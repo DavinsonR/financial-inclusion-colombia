@@ -1,0 +1,8 @@
+# Orientativo: confirmar contra el notebook al subirlo.
+pandas
+numpy
+scikit-learn
+statsmodels
+linearmodels
+matplotlib
+jupyterlab

@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "Si usas este trabajo, cítalo como se indica en preferred-citation."
+title: "Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia: evidencia de panel departamental con índice compuesto multidimensional (2017–2021)"
+type: software
+authors:
+  - family-names: "Novoa Ramírez"
+    given-names: "Davirson"
+repository-code: "https://github.com/DavinsonR/Tesis_Fnancial_Inclusion_GDP_Growth_Colombia"
+license: MIT
+preferred-citation:
+  type: thesis
+  title: "Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia: evidencia de panel departamental con índice compuesto multidimensional (2017–2021)"
+  authors:
+    - family-names: "Novoa Ramírez"
+      given-names: "Davirson"
+  institution:
+    name: "Pontificia Universidad Javeriana"
+    city: "Bogotá"
+    country: CO
+  thesis-type: "Trabajo de grado, Maestría en Economía"
+  year: 2026
