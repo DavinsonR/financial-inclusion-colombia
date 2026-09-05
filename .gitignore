@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# Datos crudos: se documentan, no se versionan (ver data/raw/README.md)
+data/raw/*
+!data/raw/README.md
+
+# Sistema
+.DS_Store
+Thumbs.db
