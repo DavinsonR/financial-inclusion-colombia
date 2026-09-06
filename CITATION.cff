@@ -1,21 +1,26 @@
 cff-version: 1.2.0
-message: "Si usas este trabajo, cítalo como se indica en preferred-citation."
-title: "Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia: evidencia de panel departamental con índice compuesto multidimensional (2017–2021)"
+message: "Si usas este código o estos datos, cítalos como se indica abajo."
+title: "Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible"
 type: software
 authors:
   - family-names: "Novoa Ramírez"
     given-names: "Davirson"
-repository-code: "https://github.com/DavinsonR/Tesis_Fnancial_Inclusion_GDP_Growth_Colombia"
+repository-code: "https://github.com/DavinsonR/financial-inclusion-colombia"
+url: "https://financial-inclusion-colombia.vercel.app"
 license: MIT
-preferred-citation:
-  type: thesis
-  title: "Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia: evidencia de panel departamental con índice compuesto multidimensional (2017–2021)"
-  authors:
-    - family-names: "Novoa Ramírez"
-      given-names: "Davirson"
-  institution:
-    name: "Pontificia Universidad Javeriana"
-    city: "Bogotá"
-    country: CO
-  thesis-type: "Trabajo de grado, Maestría en Economía"
-  year: 2026
+version: "0.2.0"
+date-released: "2026-09-06"
+abstract: "Warehouse dimensional abierto de 19 fuentes públicas colombianas (2005 a 2026), índice de inclusión financiera en dos etapas y paneles anuales departamental y municipal, con una batería de pruebas contra la correlación espuria. Nace del trabajo de grado de la Maestría en Economía de la Pontificia Universidad Javeriana (2026), que sirve de borrador; los resultados se rehacen desde las fuentes."
+references:
+  - type: thesis
+    title: "Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia: evidencia de panel departamental con índice compuesto multidimensional (2017–2021)"
+    authors:
+      - family-names: "Novoa Ramírez"
+        given-names: "Davirson"
+    institution:
+      name: "Pontificia Universidad Javeriana"
+      city: "Bogotá"
+      country: CO
+    thesis-type: "Trabajo de grado, Maestría en Economía"
+    year: 2026
+    notes: "Origen e inspiración del proyecto; sus resultados no se reutilizan."
