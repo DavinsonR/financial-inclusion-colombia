@@ -6,6 +6,7 @@ select
     p.dpto_ccdgo,
     p.municipio,
     p.mpio_tipo,
+    d.es_capital,
     p.anio,
     p.periodo_id,
     i.iif_acceso,
@@ -31,5 +32,6 @@ select
     p.poblacion_total,
     p.tasa_urbanizacion
 from {{ ref('mart_panel_municipio_anual') }} as p
+left join {{ ref('dim_municipio') }} as d on d.mpio_ccdgo = p.mpio_ccdgo
 left join {{ source('indice', 'indice_municipio_anual') }} as i
     on i.mpio_ccdgo = p.mpio_ccdgo and i.anio = p.anio
