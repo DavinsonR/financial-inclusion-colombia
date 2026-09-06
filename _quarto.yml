@@ -14,8 +14,8 @@ project:
 website:
   title: "Inclusión financiera y crecimiento regional en Colombia"
   description: "Un warehouse abierto de 19 fuentes públicas, un índice de inclusión financiera por dimensiones, paneles anuales y un atlas interactivo."
-  site-url: https://inclusion-financiera-colombia.vercel.app/
-  repo-url: https://github.com/DavinsonR/inclusion-financiera-colombia
+  site-url: https://financial-inclusion-colombia.vercel.app/
+  repo-url: https://github.com/DavinsonR/financial-inclusion-colombia
   repo-actions: [source]
   navbar:
     left:

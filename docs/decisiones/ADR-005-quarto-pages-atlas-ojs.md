@@ -10,7 +10,7 @@ El autor quiere un sitio interactivo y útil para curiosos: un atlas del índice
 ## Decisión
 
 1. Sitio Quarto en la raíz del repo, `lang: es`, `freeze: auto`, kernel del `.venv`. Páginas: índice, reproducción de la tesis, fuentes (renderiza el manifiesto), diccionario legado, modelo de datos (diagrama mermaid de la estrella), crosswalk, metodología, anexo, atlas, bitácora y decisiones (incluyen los `.md` de `docs/`).
-2. Despliegue en GitHub Pages con `actions/deploy-pages` desde `main`. URL prevista: https://davinsonr.github.io/inclusion-financiera-colombia/.
+2. Despliegue en GitHub Pages con `actions/deploy-pages` desde `main`. URL prevista entonces: https://davinsonr.github.io/inclusion-financiera-colombia/ (sustituida por Vercel, ver adenda).
 3. Atlas en Observable JS dentro de Quarto, sin servidor. Contrato de datos en `config/atlas.yaml`: `atlas_meta.json`, `geo_*.json` en TopoJSON simplificado desde el MGN 2024, series columnares por nivel y frecuencia. Presupuesto total < 3 MB.
 4. Las páginas de fases futuras existen desde ahora como `draft: true` para que el sitio compile.
 
@@ -32,4 +32,4 @@ El atlas depende solo de los archivos de `atlas/data/`. Cualquier otro front (Re
 
 ## Adenda 2026-09-06: Vercel en lugar de GitHub Pages
 
-El autor ya despliega su portafolio en Vercel y no quiere una segunda plataforma. Vercel no puede correr Quarto ni Python en su build, así que el flujo es: CI renderiza `_site` en cada push a `main` y lo empuja, con un `vercel.json` mínimo, a la rama `site`; el proyecto de Vercel (`inclusion-financiera-colombia`, enlazado al repositorio) despliega esa rama. En `main` hay un `vercel.json` con `ignoreCommand` que cancela cualquier build de Vercel sobre el código fuente. Único ajuste manual del autor, una sola vez: en Vercel, Settings → Git → Production Branch = `site`. URL: https://inclusion-financiera-colombia.vercel.app. La página de reproducción del trabajo de grado se retira del sitio: los resultados de la tesis no se publican (decisión del autor, misma fecha).
+El autor ya despliega su portafolio en Vercel y no quiere una segunda plataforma. Vercel no puede correr Quarto ni Python en su build, así que el flujo es: CI renderiza `_site` en cada push a `main` y lo empuja, con un `vercel.json` mínimo, a la rama `site`; el proyecto de Vercel (`financial-inclusion-colombia`, enlazado al repositorio) despliega esa rama. En `main` hay un `vercel.json` con `ignoreCommand` que cancela cualquier build de Vercel sobre el código fuente. Único ajuste manual del autor, una sola vez: en Vercel, Settings → Git → Production Branch = `site`. URL: https://financial-inclusion-colombia.vercel.app. La página de reproducción del trabajo de grado se retira del sitio: los resultados de la tesis no se publican (decisión del autor, misma fecha).

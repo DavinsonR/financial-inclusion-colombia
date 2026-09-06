@@ -161,7 +161,7 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 ## 9. Preguntas abiertas
 
 Del lado del autor:
-- En Vercel, proyecto `inclusion-financiera-colombia`: Settings, Git, Production Branch = `site`. Es el único ajuste manual; CI se encarga del resto.
+- En Vercel, proyecto `financial-inclusion-colombia`: Settings, Git, Production Branch = `site`. Es el único ajuste manual; CI se encarga del resto.
 - Subir a Release cualquier partición que supere 45 MB (arrastrar en el navegador; desde la sesión no se puede, B-023).
 - Cuando quiera el demo de Snowflake: cuenta de prueba, usuario con par de claves y los cinco secrets; entonces se recrea el job de CI (ADR-014).
 

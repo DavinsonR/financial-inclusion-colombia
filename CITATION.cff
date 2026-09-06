@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: "Novoa Ramírez"
     given-names: "Davirson"
-repository-code: "https://github.com/DavinsonR/inclusion-financiera-colombia"
-url: "https://inclusion-financiera-colombia.vercel.app"
+repository-code: "https://github.com/DavinsonR/financial-inclusion-colombia"
+url: "https://financial-inclusion-colombia.vercel.app"
 license: MIT
 version: "0.2.0"
 date-released: "2026-09-06"
