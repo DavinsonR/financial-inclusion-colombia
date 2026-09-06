@@ -4,7 +4,6 @@ project:
   execute-dir: project
   render:
     - index.qmd
-    - reproduccion-tesis.qmd
     - bitacora.qmd
     - decisiones.qmd
     - datos/*.qmd
@@ -14,16 +13,14 @@ project:
 
 website:
   title: "Inclusión financiera y crecimiento regional en Colombia"
-  description: "Reproducción honesta de una tesis, un warehouse abierto, un índice por dimensiones y un atlas interactivo."
-  site-url: https://davinsonr.github.io/inclusion-financiera-colombia/
+  description: "Un warehouse abierto de 19 fuentes públicas, un índice de inclusión financiera por dimensiones, paneles anuales y un atlas interactivo."
+  site-url: https://inclusion-financiera-colombia.vercel.app/
   repo-url: https://github.com/DavinsonR/inclusion-financiera-colombia
   repo-actions: [source]
   navbar:
     left:
       - text: Inicio
         href: index.qmd
-      - text: Reproducción
-        href: reproduccion-tesis.qmd
       - text: Datos
         menu:
           - datos/fuentes.qmd

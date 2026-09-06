@@ -1,0 +1,3 @@
+{
+  "ignoreCommand": "echo 'main no se construye en Vercel: el sitio sale de la rama site' && exit 0"
+}
