@@ -1,0 +1,4 @@
+dimension,metodo,n_variables,kmo,bartlett_chi2,bartlett_p,varianza_explicada
+acceso,variable_unica,1,,,,
+uso,pesos_iguales,4,0.3141834248405618,52.47340562649277,1.4976448921480028e-09,
+profundidad,pesos_iguales,3,0.4042434056414627,41.36374499105547,5.47481672843153e-09,

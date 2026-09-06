@@ -24,8 +24,8 @@ El plan completo, con semáforo por fase y las decisiones de valor, está en [`d
 
 ## Qué construye
 
-1. **Warehouse.** Esquema estrella con vintages en dbt sobre todas las fuentes públicas: Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local y CI. Snowflake queda como demo posterior (ADR-014).
-2. **Índice.** Índice de inclusión financiera en dos etapas (acceso, uso, profundidad) con pesos congelados y publicados por variable (ADR-004), a nivel departamental y municipal.
+1. **Warehouse.** Esquema estrella con vintages en dbt sobre todas las fuentes públicas: Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local, en CI y para el sitio. BigQuery como warehouse en la nube, en su sandbox gratuito y sin tarjeta (`bigquery/`). Snowflake queda como demo posterior (ADR-014).
+2. **Índice.** Índice de inclusión financiera por dimensión (acceso, uso, profundidad) sobre ocho variables normalizadas, con pesos congelados en la ventana de calibración y publicados variable a variable, a nivel departamental y municipal (ADR-004, ADR-015).
 3. **Paneles.** Frecuencia anual: departamental 2018 a 2025 y municipal 2018 a 2024; panel trimestral real solo donde el DANE publica actividad trimestral (ITAED) (ADR-001).
 4. **Atlas.** Mapa interactivo del índice por región, dimensión y variable en Quarto y Observable JS, sin servidor (ADR-005).
 5. **Econometría.** Efectos fijos de entidad y tiempo como base y una batería explícita contra la correlación espuria (ver [Método](#method)).
@@ -112,6 +112,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 │   └── legacy/        panel del trabajo de grado, congelado como insumo histórico
 ├── db/                iif.duckdb local (ignorado)
 ├── dbt/               estrella dimensional: seeds, staging, intermediate, marts, tests
+├── bigquery/          datasets, carga de Parquet, particionado, control de coste, vistas autorizadas
 ├── snowflake/         scripts para el demo posterior (ADR-014)
 ├── src/iif/           config, cli, acquire, parse, crosswalk, data, legacy (port congelado)
 ├── tests/             pytest; marca `data` para pruebas que leen descargas
@@ -136,11 +137,14 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | dbt: fuentes, staging de las 13 tablas, `dim_departamento`, `dim_municipio`, `dim_periodo`, SFC en largo por bloque, pruebas de totales y de empalme | Hecho |
 | Sitio Quarto, CI, publicación en Vercel | Hecho |
 | Documentos de gobierno: guía, bitácora, 14 ADR, licencias | Hecho |
-| Mapa completo columna a variable, hechos SFC y DANE, paneles anuales | Fase 2, en curso |
-| Índice en dos etapas por dimensión | Fase 2, pendiente |
+| Diccionario de las 98 variables de la SFC con su regla de anualización | Hecho |
+| Hechos de inclusión (trimestral y anual, municipal y departamental), puntos de atención, actividad, internet y educación | Hecho |
+| Paneles anuales: departamental 2018-2025 y municipal 2018-2024 | Hecho |
+| Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
 | Atlas interactivo | Fase 3, pendiente |
 | Econometría y batería contra la correlación espuria | Fase 3, pendiente |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
+| BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
 | PDF del trabajo de grado | Tras el depósito en el repositorio institucional de la Javeriana |
 | Página en el sitio del autor | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |

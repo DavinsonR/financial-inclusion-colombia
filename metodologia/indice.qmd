@@ -1,6 +1,132 @@
 ---
-title: "Índice de inclusión financiera en dos etapas"
-draft: true
+title: "El índice de inclusión financiera"
+subtitle: "Ocho variables, tres dimensiones, pesos congelados y publicados"
 ---
 
-En construcción (Fase 2). Decisión: ADR-004.
+El índice resume en un número la intensidad de la inclusión financiera de un departamento o municipio en un
+año. Está construido para que ese número signifique lo que dice: no el tamaño de la unidad, no una escala
+que cambia cada vez que se añade un año, y sin ninguna variable entrando con el signo contrario al que le
+corresponde. Las decisiones y su motivo están en [ADR-015](../decisiones.qmd).
+
+## Qué entra y por qué
+
+Ocho variables, una por concepto, todas presentes en las dos tablas de la Superintendencia para que la
+serie no se rompa en 2021.
+
+```{python}
+#| output: asis
+import pandas as pd
+from iif import config
+from iif.index.build import load_contract
+
+c = load_contract()
+dim = pd.read_csv(config.SEEDS_DIR / "dim_variable.csv").set_index("variable_id")
+print("| Dimensión | Variable | Unidad | Naturaleza | Normalización |")
+print("|---|---|---|---|---|")
+for nombre, spec in c["dimensiones"].items():
+    for v in spec["variables"]:
+        r = dim.loc[v["variable_id"]]
+        print(f"| {nombre} | {r.descripcion.split(' - ')[0]} | {r.unidad} | {r.naturaleza} | "
+              f"{'por 10.000 habitantes' if r.unidad == 'count' else '% del producto'} |")
+```
+
+Las variables crudas no sirven: su correlación con la población va de 0,58 a 0,94, así que un índice sobre
+ellas mediría tamaño. Después de normalizar, esa correlación cae a un rango de −0,28 a 0,69.
+
+Lo que queda fuera, con su motivo, está en `config/index.yaml`: el crédito de bajo monto por cobertura
+insuficiente, los componentes de las transacciones porque su total ya entra, los cortes por género y por
+rango porque son desagregaciones del mismo total, y las cuentas electrónicas y los corresponsales móviles
+porque solo existen en una de las dos tablas.
+
+## Cómo se combinan
+
+Dentro de cada dimensión las variables pesan igual sobre sus valores estandarizados. El compuesto promedia
+las tres dimensiones con el mismo peso.
+
+El plan era un componente principal por dimensión. Al medirlo se descartó, y la medición se publica:
+
+```{python}
+import pandas as pd
+from iif import config
+d = pd.read_csv(config.DATA_PROCESSED / "indice_diagnosticos.csv")
+d[["dimension", "metodo", "n_variables", "kmo", "varianza_explicada"]].round(3)
+```
+
+Un KMO por debajo de 0,5 significa que las variables no comparten suficiente varianza común para que un
+componente principal las resuma. Forzarlo daba peso negativo al microcrédito y al monto de transacciones:
+el mismo defecto que la auditoría había encontrado en el índice del trabajo de grado. El componente
+principal se conserva como sensibilidad, no como método.
+
+## Los pesos, a la vista
+
+Cuánto pesa cada variable en el compuesto. En la escala estandarizada suman uno; en la escala original
+dicen cuánto mueve el índice un cambio de una unidad de la variable tal como se mide.
+
+```{python}
+import pandas as pd
+from iif import config
+pd.read_csv(config.DATA_PROCESSED / "indice_pesos_implicitos.csv").round(4)
+```
+
+Ninguno es negativo. Esa es la comprobación que decidió el método y la que vigila una prueba automática.
+
+## Sensibilidad
+
+Tres versiones del mismo índice: la publicada, la del componente principal y la de distancia de Sarma.
+Correlación de rangos entre ellas:
+
+```{python}
+import pandas as pd
+from iif import config
+pd.read_csv(config.DATA_PROCESSED / "indice_correlacion_rangos.csv", index_col=0).round(3)
+```
+
+Las tres ordenan a los departamentos casi igual. Por eso conviene quedarse con la que no tiene pesos
+negativos: se pierde poco y se gana una propiedad que sí importa.
+
+## Pesos congelados
+
+Media, desviación y cargas se estiman una sola vez, en la ventana de calibración, y se guardan en
+`config/index.yaml`. A partir de ahí el índice se reproduce exactamente y añadir un año nuevo no cambia el
+valor de los años anteriores. Recalibrar es una decisión explícita: `uv run iif index --recalibrar`, que
+reescribe el archivo y queda registrado en git.
+
+Los mismos pesos se aplican al nivel municipal, calibrados en el departamental, para que el índice de un
+municipio y el de su departamento estén en la misma escala.
+
+## Cómo se ve
+
+```{python}
+#| fig-cap: "Mediana nacional del compuesto y de sus tres dimensiones, por año."
+import duckdb, os
+import matplotlib.pyplot as plt
+from iif import config
+
+con = duckdb.connect(str(config.REPO_ROOT / "db" / "iif.duckdb"), read_only=True)
+d = con.sql("select anio, iif_acceso, iif_uso, iif_profundidad, iif_compuesto "
+            "from marts.mart_indice_departamento_anual").df()
+med = d.groupby("anio").median(numeric_only=True)
+fig, ax = plt.subplots(figsize=(7.2, 3.6))
+for col, estilo in [("iif_compuesto", dict(lw=2.4, color="#123f6d")),
+                    ("iif_acceso", dict(lw=1.2, ls="--", color="#4a7ba7")),
+                    ("iif_uso", dict(lw=1.2, ls="-.", color="#7aa6c2")),
+                    ("iif_profundidad", dict(lw=1.2, ls=":", color="#a8c4d8"))]:
+    ax.plot(med.index, med[col], label=col.replace("iif_", ""), **estilo)
+ax.axhline(0, color="#999", lw=0.7)
+ax.set_xlabel("año"); ax.set_ylabel("índice (0 = media de la calibración)")
+ax.legend(frameon=False, ncol=4, fontsize=9)
+ax.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+```
+
+El acceso es el que más se mueve: los corresponsales físicos por habitante se multiplicaron en el periodo.
+La profundidad, que mide crédito sobre producto, apenas cambia. El compuesto queda entre los dos.
+
+::: {.callout-note}
+## Lo que el índice no dice
+Es una medida de intensidad relativa, no de bienestar ni de acceso efectivo de las personas. Mide lo que
+las entidades vigiladas reportan por municipio: un municipio sin fila no es un municipio con cero, es un
+municipio no observado. La dimensión de acceso descansa en una sola variable porque la fuente no ofrece
+otra medida continua en todo el periodo; los puntos de atención (oficinas, cajeros, datáfonos) empiezan en
+2023 y entrarán cuando el panel corto tenga sentido.
+:::

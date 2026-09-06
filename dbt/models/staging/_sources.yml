@@ -1,8 +1,9 @@
 version: 2
 
 # Fuentes crudas del almacén. En DuckDB se leen con read_parquet() desde el repositorio vía
-# `meta.external_location` (dbt-duckdb); `{name}` es el nombre de la tabla. En Snowflake las mismas
-# tablas viven en IIF.RAW e IIF.INTERIM tras COPY INTO (snowflake/02_database_stages_copy.sql).
+# `meta.external_location` (dbt-duckdb); `{name}` es el nombre de la tabla. En BigQuery las mismas tablas
+# viven en los datasets `raw` e `interim` tras `bash bigquery/01_load_parquet.sh`, y en Snowflake en
+# IIF.RAW e IIF.INTERIM tras COPY INTO; en ambos casos `external_location` se ignora.
 # IIF_ROOT apunta a la raíz del repositorio; dbt corre desde dbt/, de ahí el '..' por defecto.
 # Descargas: data/raw/<fuente_id>/anio=YYYY/part-0.parquet (config/sources.yaml, manifest.jsonl).
 # Parseados: data/interim/{dane,mgn}/<tabla>.parquet (`iif parse dane`, `iif parse mgn`).
@@ -67,3 +68,14 @@ sources:
         description: "33 departamentos: dpto_ccdgo, nombre, área."
       - name: municipios
         description: "1.121 municipios, áreas no municipalizadas e isla: mpio_ccdgo (5 dígitos), tipo, área."
+
+  - name: indice
+    description: "Índice de inclusión financiera calculado por `uv run iif index` (ADR-015) y escrito como Parquet en data/processed/. No lo produce dbt: el ajuste vive en Python porque necesita PCA y estandarización con pesos congelados."
+    schema: processed
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/processed/{name}.parquet"
+    tables:
+      - name: indice_departamento_anual
+        description: "Subíndices de acceso, uso y profundidad, compuesto y las dos versiones de sensibilidad, por departamento y año."
+      - name: indice_municipio_anual
+        description: "Lo mismo por municipio y año, con los pesos calibrados en el panel departamental para que las dos escalas sean comparables."

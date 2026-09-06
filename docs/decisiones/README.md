@@ -17,6 +17,6 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [011](ADR-011-uv-quarto-tarball-sin-r.md) | uv + Quarto por tarball, sin R | aceptada |
 | [012](ADR-012-datos-derivados-cc-by-sa.md) | Datos derivados bajo CC BY-SA 4.0 | aceptada |
 | [013](ADR-013-bogota-separada-y-anm.md) | Bogotá separada y áreas no municipalizadas conservadas | aceptada |
-| [014](ADR-014-snowflake.md) | DuckDB como motor; Snowflake como demo posterior | aceptada, con adenda |
+| [014](ADR-014-snowflake.md) | DuckDB como motor, BigQuery en la nube, Snowflake como demo posterior | aceptada, con adendas |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
