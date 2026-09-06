@@ -27,6 +27,10 @@ vars:
   # de fijarlos definitivamente.
   overlap_median_pct: 2
   overlap_max_pct: 10
+  # Tolerancia relativa entre la fila de total departamental (renglon 999) y la suma de las municipales.
+  # ptgf es exacta; en kx2f los totales de corresponsales difieren hasta 2,2 % desde 2022Q3 (B-032).
+  sfc_total_tol_ptgf: 0.000001
+  sfc_total_tol_kx2f: 0.03
   # Rango de dim_periodo.
   periodo_anual_desde: 2005
   periodo_anual_hasta: 2026
@@ -85,6 +89,22 @@ seeds:
         nombre_raw: varchar
         mpio_ccdgo: varchar(5)
         motivo: varchar
+    dim_municipio_extra:
+      +column_types:
+        mpio_ccdgo: varchar(5)
+        dpto_ccdgo: varchar(2)
+    xw_sfc_columns_empalme:
+      +column_types:
+        numero: integer
+        ptgf_column: varchar
+        kx2f_column: varchar
+    map_sfc_columns:
+      +column_types:
+        fuente: varchar
+        tipo_id: varchar
+        columna: varchar
+        n_no_cero: bigint
+        frac_no_cero: double
     dim_variable:
       +column_types:
         en_indice: boolean

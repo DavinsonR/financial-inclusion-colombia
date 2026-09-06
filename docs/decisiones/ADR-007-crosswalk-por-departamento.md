@@ -1,7 +1,7 @@
 # ADR-007 · Crosswalk nombre a DIVIPOLA por departamento, con overrides
 
 - Fecha: 2026-09-06
-- Estado: aceptada
+- Estado: aceptada, con adenda
 
 ## Contexto
 
@@ -31,3 +31,7 @@ La tabla vigente de la SFC (`kx2f-xjdq`) no trae códigos DIVIPOLA. Identifica e
 ## Cómo revertirla
 
 Sustituir `xw_sfc_municipio.csv` por otra fuente de correspondencia con las mismas columnas. Las pruebas dbt se mantienen.
+
+## Adenda 2026-09-06
+
+En `ptgf-ywrb`, `renglon` es el código municipal DIVIPOLA de tres dígitos dentro del departamento y `renglon = 999` el total departamental: `dpto_ccdgo || lpad(renglon, 3)` cubre el 100 % de las filas geográficas en los 14 trimestres (S-009). Para esa tabla el crosswalk es una concatenación y la comparación de nombres queda como prueba de consistencia, no como mecanismo. `kx2f-xjdq` sigue la misma convención (S-010: cobertura 100 % en los 20 cortes). Los puntos 2 a 4 quedan sin uso; `xw_sfc_municipio_overrides.csv` se conserva vacía para excepciones futuras y el informe de nombres no coincidentes (`data/interim/sfc/nombres_no_coincidentes_*.csv`) documenta las grafías.

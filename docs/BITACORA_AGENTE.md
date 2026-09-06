@@ -142,6 +142,15 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: data/legacy/SHA256SUMS; src/iif/data/scrub.py::PRIVATE_PATH_PATTERNS.
 - Estado: cerrada.
 
+## B-031 · 2026-09-06 · Doble conteo: el panel de la tesis suma municipios y total departamental
+- Contexto: S13, reconstrucción de las nueve variables SFC del panel legado desde `ptgf-ywrb` (603.232 filas, 2017Q4 a 2021Q1).
+- Qué pasó: para las 462 filas y las nueve variables, el valor del panel es exactamente la suma de todas las filas de `ptgf` por (departamento, trimestre, `tipo`), incluida la fila de total departamental (`renglon = 999`). Como esa fila es la suma de las municipales, cada nivel SFC del panel (corresponsales, depósitos, pagos, transferencias, cuentas, montos de crédito) vale el doble del real. La razón panel/real es 2,000000 en todas las filas no nulas. Antioquia 2018Q1: 7.961.768 depósitos en el panel, 3.980.884 en la fuente.
+- Causa raíz: agregación con `groupby(departamento, trimestre).sum()` sin filtrar `renglon = 999`. Ninguna prueba comparaba el panel con la fuente.
+- Consecuencias: las log-diferencias, la estandarización y el PCA no cambian (factor constante); las razones flujo/PIB de profundidad y los niveles per cápita están al doble; T-03 se agrava. Se añade como T-16 a la auditoría.
+- Regla: todo agregado desde la SFC filtra `renglon = 999` (total departamental) o suma solo filas municipales, nunca ambas; la prueba de reconstrucción corre con `make test-data` → tests/test_legacy_vs_ptgf.py; ADR-008.
+- Evidencia: tests/test_legacy_vs_ptgf.py::test_legacy_equals_twice_the_true_total (9 variables); ::test_department_totals_equal_municipal_sums.
+- Estado: cerrada en el almacén (el modo `corrected` de la reproducción y los marts usan el total real); abierta en el documento de la tesis, que no se reescribe.
+
 ---
 
 ## Errores del asistente
@@ -268,6 +277,22 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: tests/test_repo.py::test_workflows_are_valid_yaml_with_jobs.
 - Estado: cerrada.
 
+## B-032 · 2026-09-06 · En `kx2f` el total departamental no siempre es la suma de los municipios
+- Contexto: prueba `assert_sfc_geo_totals_equal_municipal_sums` extendida a `kx2f` (S12).
+- Qué pasó: 274 combinaciones (corte, departamento, bloque, columna) difieren: hasta 2,2 % en el bloque de corresponsales físicos desde 2022Q3 (`_2_`, `_3_`, `_4_`, `_80_`) y menos de 0,13 % en transacciones. En `ptgf` la igualdad es exacta.
+- Causa raíz: no está en el código; es la fuente. La fila 999 la reporta la entidad y no siempre cuadra con sus filas municipales (corresponsales contados en más de un municipio o reasignados).
+- Regla: la tolerancia es por fuente y vive en `dbt_project.yml` (`sfc_total_tol_ptgf` 1e-6, `sfc_total_tol_kx2f` 3 %); los marts departamentales usan la fila 999 y los municipales la suma, y la diferencia se publica, no se oculta.
+- Evidencia: dbt/tests/assert_sfc_geo_totals_equal_municipal_sums.sql; dbt/dbt_project.yml.
+- Estado: cerrada (documentada); abierta como pregunta a la SFC.
+
+## B-033 · 2026-09-06 · Primeros números del empalme ptgf/kx2f en 2021Q1
+- Contexto: ADR-009 exigía anotar las diferencias antes de fijar umbrales.
+- Qué pasó: con la correspondencia posicional de 70 columnas (`xw_sfc_columns_empalme`) y los totales departamentales de 2021Q1: 2.052 pares con dato en ambas tablas; mediana global de la diferencia relativa 0,02 %; por bloque, cuentas de ahorro 0,02 %, transacciones 0,02 %, crédito de consumo 0,2 %, vivienda 0,65 %, corresponsales físicos 3,4 % (p90 10 %, máximo 31,5 %), microcrédito mediana 0 pero p90 de 12 % a 13 % y máximo 40 % (Huila, Nariño, Santander en el rango hasta 1 SMMLV). 103 pares de 2.052 (5 %) difieren más del 10 %. Peores departamentos por mediana: Antioquia 1,8 %, Bogotá 1,65 %, Atlántico 1,6 %. Las cuentas de ahorro electrónicas (8 columnas) no existen en `kx2f`.
+- Causa raíz: `kx2f` es una serie revisada por las entidades; las diferencias grandes se concentran en microcrédito por rango y en corresponsales propios, no en saldos ni transacciones.
+- Regla: umbral de la prueba = mediana por departamento ≤ 2 % (pasa con margen); las diferencias por bloque se publican en `datos/crosswalk.qmd`; los marts prefieren `kx2f` en 2021Q1 y guardan la diferencia (ADR-009).
+- Evidencia: dbt/tests/assert_sfc_empalme_2021q1.sql; data/interim/sfc/empalme_2021q1_departamento.csv.
+- Estado: cerrada.
+
 ---
 
 ## Aciertos
@@ -311,4 +336,14 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Contexto: B-025.
 - Qué funcionó: `api/views/<id>.json` declara `number`, `text` y `calendar_date` por columna; con `code_cols` para conservar los códigos como texto, un mismo descargador sirve para las cinco tablas SODA sin expresiones regulares por fuente. MinTIC declara todo como `text` y es la única que necesita `numeric_cols`.
 - Dónde se reutiliza: `src/iif/acquire/soda.py::typing_from_metadata`; `config/sources.yaml`.
+
+## S-009 · 2026-09-06 · En `ptgf`, `renglon` es el código municipal DIVIPOLA
+- Contexto: ADR-007 preveía un crosswalk por nombre normalizado con overrides.
+- Qué funcionó: `dpto_ccdgo || lpad(renglon, 3)` reproduce el DIVIPOLA de 5 dígitos para los 1.115 municipios con fila en `ptgf` (cobertura 100 % en los 14 trimestres contra MGN 2024 y población DANE); `renglon = 999` es el total departamental. El nombre solo se usa como comprobación (92 % coincide tras normalizar; el resto son alias como "SANTAFE DE BOGOTA D." o "CARMEN DE VIBORAL").
+- Dónde se reutiliza: `dbt/models/staging/sfc/stg_sfc__ptgf.sql`; adenda de ADR-007. Pendiente comprobar lo mismo en `kx2f`.
+
+## S-010 · 2026-09-06 · `kx2f` sigue la misma convención: `renglon` es el DIVIPOLA municipal
+- Contexto: S-009 se comprobó en `ptgf`; el plan suponía que `kx2f` venía sin DIVIPOLA.
+- Qué funcionó: en `kx2f`, `dpto_ccdgo || lpad(renglon, 3)` cubre el 100 % de las filas geográficas en los 20 cortes (2021Q1 a 2025Q4); 64 nombres difieren del DANE solo por grafía. El crosswalk por nombre de ADR-007 queda como prueba de consistencia en ambas tablas.
+- Dónde se reutiliza: `stg_sfc__kx2f`, `int_sfc_geo_long`, `iif crosswalk geo-report --fuente kx2f`.
 

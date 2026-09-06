@@ -15,6 +15,7 @@ sources:
     descripcion: "Inclusión Financiera (SFC), vigente 2021Q1–2025Q4, municipal × trimestre × entidad × bloque"
     partition_col: fecha_corte
     code_cols: [tipo_entidad, codigo_entidad, unicap, renglon]
+    page_size: 20000  # 99 columnas: una página de 50.000 filas supera los 100 MB y corta la lectura
     license: CC-BY-SA-4.0
     max_file_mb: 45
   sfc-vkbt-desu:

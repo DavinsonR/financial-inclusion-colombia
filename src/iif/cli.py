@@ -128,6 +128,37 @@ def parse(
 
 
 @app.command()
+def crosswalk(
+    action: str = typer.Argument(
+        ..., help="derive-blocks: mapa tipo → columnas; geo-report: cobertura DIVIPOLA"
+    ),
+    fuente: str = typer.Option("ptgf", help="ptgf | kx2f | all"),
+) -> None:
+    """Mapas derivados de las tablas de la SFC (ADR-007, ADR-008)."""
+    from iif import crosswalk as cw
+
+    fuentes = list(cw.FUENTES) if fuente == "all" else [fuente]
+    if action == "derive-blocks":
+        res = cw.write_blocks(fuentes)
+        for f in fuentes:
+            sub = res[res.fuente == f]
+            typer.echo(f"✓ {f}: {sub.tipo_id.nunique()} bloques, {len(sub)} pares bloque-columna")
+    elif action == "geo-report":
+        out = config.DATA_INTERIM / "sfc"
+        out.mkdir(parents=True, exist_ok=True)
+        for f in fuentes:
+            cov, names = cw.geo_report(f)
+            cov.to_csv(out / f"cobertura_geo_{f}.csv", index=False)
+            names.to_csv(out / f"nombres_no_coincidentes_{f}.csv", index=False)
+            typer.echo(
+                f"✓ {f}: cobertura mínima {cov.cobertura.min():.4f} en {len(cov)} cortes; "
+                f"{len(names)} nombres distintos al DANE ({int((~names.en_dane_o_mgn).sum())} sin código conocido)"
+            )
+    else:
+        raise typer.BadParameter(action)
+
+
+@app.command()
 def manifest(action: str = typer.Argument("verify")) -> None:
     """verify: comprueba que cada archivo del manifiesto existe y su sha256 coincide."""
     from iif.acquire.manifest import read_records, verify_manifest

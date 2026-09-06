@@ -1,0 +1,187 @@
+fuente,columna,nombre_original
+ptgf,tipoentidad,TIPO DE ENTIDAD
+ptgf,codigoentidad,CODIGO DE LA  ENTIDAD
+ptgf,nombreentidad,NOMBRE DE LA  ENTIDAD
+ptgf,fechacorte,FECHA DE CORTE
+ptgf,unicap,UNIDAD DE CAPTURA
+ptgf,departamento,DEPARTAMENTO
+ptgf,renglon,RENGLON
+ptgf,municipio,MUNICIPIO
+ptgf,tipo,TIPO
+ptgf,correspropios,NRO CORRESPONSALES PROPIOS
+ptgf,correstercerizados,NRO CORRESPONSALES TERCERIZADOS
+ptgf,corresactivos,NRO CORRESPONSALES ACTIVOS
+ptgf,nrocorresponsales,NRO CORRESPONSALES
+ptgf,nrodepositos,NRO DEPOSITOS
+ptgf,montodepositos,MONTO DEPOSITOS
+ptgf,nrogirosenv,NRO GIROS ENVIADOS
+ptgf,montogiroenv,MONTO GIROS ENVIADOS
+ptgf,nrogirosreci,NRO GIROS RECIBIDOS
+ptgf,montogirorec,MONTO GIROS RECIBIDOS
+ptgf,nropagos,NRO PAGOS
+ptgf,montopago,MONTO PAGOS
+ptgf,nroretiros,NRO RETIROS
+ptgf,montoreti,MONTO RETIROS
+ptgf,nrotrnsfer,NRO TRANSFERENCIAS
+ptgf,montotransfer,MONTO TRANSFERENCIAS
+ptgf,totalnrocorr,NRO TOTAL
+ptgf,totalmontocorr,MONTO TOTAL
+ptgf,nro1smmlvca,NRO CTA AHORRO HASTA 1 SMMLV
+ptgf,saldo1smmlv,SALDO CTA AHORRO HASTA 1 SMMLV
+ptgf,nro1y3smmlv,NRO CTA AHORRO > 1 SMMLV HASTA 3 SMMLV
+ptgf,saldo1y3smmlv,SALDO CTA AHORRO> 1 SMMLV HASTA 3 SMMLV
+ptgf,nro3y5smmlv,NRO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV
+ptgf,saldo3y5smmlv,SALDO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV
+ptgf,nroactivasca,NRO CTA AHORRO ACTIVAS
+ptgf,saldoactivasca,SALDO CTA AHORRO ACTIVAS
+ptgf,generonromca,NRO CTA AHORRO MUJERES
+ptgf,generosaldomca,SALDO CTA AHORRO MUJERES
+ptgf,generonrohca,NRO CTA AHORRO HOMBRES
+ptgf,generosaldohca,SALDO CTA AHORRO HOMBRES
+ptgf,totalnroca,NRO TOTAL CTA AHORROS
+ptgf,totalsaldoca,SALDO TOTAL CTA AHORROS
+ptgf,nroactivasche,NRO CTA AHORRO ELECTRONICAS ACTIVAS
+ptgf,saldoactivasche,SALDO CTA AHORRO ELECTRONICAS ACTIVAS
+ptgf,generonromche,NRO CTA AHORRO ELECTRONICAS MUJERES
+ptgf,generosaldomche,SALDO CTA AHORRO ELECTRONICAS MUJERES
+ptgf,generonrohche,NRO CTA AHORRO ELECTRONICAS HOMBRES
+ptgf,generosaldohche,SALDO CTA AHORRO ELECTRONICAS HOMBRES
+ptgf,totalnroche,NRO TOTAL CTA AHORROS ELECTRONICAS
+ptgf,totalsaldoche,SALDO TOTAL CTA AHORROS ELECTRONICAS
+ptgf,generonromcdc,NRO CREDITO CONSUMO MUJERES
+ptgf,generomontomcdc,MONTO CREDITO CONSUMO MUJERES
+ptgf,generonrohcdc,NRO CREDITO CONSUMO HOMBRES
+ptgf,generomontohcdc,MONTO CREDITO CONSUMO  HOMBRES
+ptgf,totalnrocdc,NRO TOTAL CREDITO CONSUMO
+ptgf,totalmontocdc,MONTO TOTAL CREDITO CONSUMO
+ptgf,generonromcdcbm,NRO CRED CONS BAJO MONTO MUJERES
+ptgf,generomontomcdcbm,MONTO CRED CONS BAJO MONTO MUJERES
+ptgf,generonrohcdcbm,NRO CRED CONS BAJO MONTO HOMBRES
+ptgf,generomontohcdcbm,MONTO CRED CONS BAJO MONTO HOMBRES
+ptgf,totalnrocdcbm,NRO TOTAL CRED CONS BAJO MONTO
+ptgf,totalmontocdcbm,MONTO TOTAL CRED CONS BAJO MONTO
+ptgf,generonromcdv,NRO CREDITO VIVIENDA MUJERES
+ptgf,generomontomcdv,MONTO CREDITO VIVIENDA MUJERES
+ptgf,generonrohcdv,NRO CREDITO VIVIENDA HOMBRES
+ptgf,generomontohcdv,MONTO CREDITO VIVIENDA HOMBRES
+ptgf,totalnrocdv,NRO TOTAL CREDITO VIVIENDA
+ptgf,totalmontocdv,MONTO TOTAL CREDITO VIVIENDA
+ptgf,nro1smmlv,NRO MICROCREDITO HASTA 1 SMMLV
+ptgf,monto1smmlv,MONTO MICROCREDITO HASTA 1 SMMLV
+ptgf,nro1y2smmlv,NRO MICROCREDITO > 1 SMMLV HASTA 2 SMMLV
+ptgf,monto1y2smmlv,MONTO MICROCREDITO> 1SMMLV HASTA 2SMMLV
+ptgf,nro2y3smmlv,NRO MICROCREDITO> 2 SMMLV HASTA 3 SMMLV
+ptgf,monto2y3smmlv,MONTO MICROCREDITO> 2SMMLV HASTA 3SMMLV
+ptgf,nro3y4smmlv,NRO MICROCREDITO> 3 SMMLV HASTA 4 SMMLV
+ptgf,monto3y4smmlv,MONTO MICROCREDITO> 3SMMLV HASTA 4SMMLV
+ptgf,nro4y10smmlv,NRO MICROCREDITO> 4 SMMLV HASTA 10 SMMLV
+ptgf,monto4y10smmlv,MONTO MICROCREDITO> 4SMMLV HASTA 10SMML
+ptgf,nro10y25smmlv,NRO MICROCREDITO> 10SMMLV HASTA 25SMMLV
+ptgf,monto10y25smmlv,MONTO MICROCREDI> 10SMMLV HASTA 25SMMLV
+ptgf,generonrommicro,NRO MICROCREDITO MUJERES
+ptgf,generomontommicro,MONTO MICROCREDITO MUJERES
+ptgf,generonrohmicro,NRO MICROCREDITO HOMBRES
+ptgf,generomontohmicro,MONTO MICROCREDITO HOMBRES
+ptgf,totalnromicro,NRO TOTAL MICROCREDITO
+ptgf,totalmontomicro,MONTO TOTAL MICROCREDITO
+ptgf,col77,NRO PROD DEPOSITO NIVEL NACIONAL
+ptgf,col78,MONTO PROD DEPOSITO NIVEL NACIONAL
+kx2f,tipo_entidad,TIPO_ENTIDAD
+kx2f,codigo_entidad,CODIGO_ENTIDAD
+kx2f,nombre_entidad,NOMBRE_ENTIDAD
+kx2f,fecha_corte,FECHA_CORTE
+kx2f,unicap,UNICAP
+kx2f,descrip_uc,DESCRIP_UC
+kx2f,renglon,RENGLON
+kx2f,desc_renglon,DESC_RENGLON
+kx2f,tipo,TIPO
+kx2f,_1_nro_corresponsales_f_sicos,(1) NRO_CORRESPONSALES_FÍSICOS_PROPIOS
+kx2f,_2_nro_corresponsales_f_sicos,(2) NRO_CORRESPONSALES_FÍSICOS_TERCERIZADOS
+kx2f,_3_nro_corresponsales_f_sicos,(3) NRO_CORRESPONSALES_FÍSICOS_ACTIVOS
+kx2f,_4_nro_corresponsales_f_sicos,(4) NRO_CORRESPONSALES_FÍSICOS
+kx2f,_5_nro_dep_sitos,(5) NRO_DEPÓSITOS_CORRESPONSALES_FÍSICOS
+kx2f,_6_monto_dep_sitos,(6) MONTO_DEPÓSITOS_CORRESPONSALES_FÍSICOS
+kx2f,_7_nro_giros_enviados,(7) NRO_GIROS_ENVIADOS_CORRESPONSALES_FÍSICOS
+kx2f,_8_monto_giros_enviados,(8) MONTO_GIROS_ENVIADOS_CORRESPONSALES_FÍSICOS
+kx2f,_9_nro_giros_recibidos,(9) NRO_GIROS_RECIBIDOS_CORRESPONSALES_FÍSICOS
+kx2f,_10_monto_giros_recibidos,(10) MONTO_GIROS_RECIBIDOS_CORRESPONSALES_FÍSICOS
+kx2f,_11_nro_pagos_corresponsales,(11) NRO_PAGOS_CORRESPONSALES_FÍSICOS
+kx2f,_12_monto_pagos_corresponsales,(12) MONTO_PAGOS_CORRESPONSALES_FÍSICOS
+kx2f,_13_nro_retiros_corresponsales,(13) NRO_RETIROS_CORRESPONSALES_FÍSICOS
+kx2f,_14_monto_retiros,(14) MONTO_RETIROS_CORRESPONSALES_FÍSICOS
+kx2f,_15_nro_transferencias,(15) NRO_TRANSFERENCIAS_CORRESPONSALES_FÍSICOS
+kx2f,_16_monto_transferencias,(16) MONTO_TRANSFERENCIAS_CORRESPONSALES_FÍSICOS
+kx2f,_17_nro_transacciones_tr,(17) NRO_TRANSACCIONES_TRÁMITES_CORRESPONSALES_FÍSICOS
+kx2f,_18_monto_transacciones,(18) MONTO_TRANSACCIONES_CORRESPONSALES_FÍSICOS
+kx2f,_19_nro_ctas_ahorro_hasta,(19) NRO_CTAS_AHORRO_HASTA_1SMMLV
+kx2f,_20_saldo_ctas_ahorro_hasta,(20) SALDO_CTAS_AHORRO_HASTA_1SMMLV
+kx2f,_21_nro_ctas_ahorro_1smmlv,(21) NRO_CTAS_AHORRO>1SMMLV_HASTA _3SMMLV
+kx2f,_22_saldo_ctas_ahorro_1smmlv,(22) SALDO_CTAS_AHORRO>1SMMLV_HASTA _3SMMLV
+kx2f,_23_nro_ctas_ahorr_3smmlv,(23) NRO_CTAS_AHORR>3SMMLV_HASTA_ 5SMMLV
+kx2f,_24_saldo_ctas_ahorr_3smmlv,(24) SALDO_CTAS_AHORR>3SMMLV_HASTA_ 5SMMLV
+kx2f,_25_nro_ctas_ahorro_activas,(25) NRO_CTAS_AHORRO_ACTIVAS
+kx2f,_26_saldo_ctas_ahorro_activas,(26) SALDO_CTAS_AHORRO_ACTIVAS
+kx2f,_27_nro_ctas_ahorro_mujeres,(27) NRO_CTAS_AHORRO_MUJERES
+kx2f,_28_saldo_ctas_ahorro_mujeres,(28) SALDO_CTAS_AHORRO_MUJERES
+kx2f,_29_nro_ctas_ahorro_hombres,(29) NRO_CTAS_AHORRO_HOMBRES
+kx2f,_30_saldo_ctas_ahorro_hombres,(30) SALDO_CTAS_AHORRO_HOMBRES
+kx2f,_31_nro_ctas_ahorro,(31) NRO_CTAS_AHORRO
+kx2f,_32_saldo_ctas_ahorro,(32) SALDO_CTAS_AHORRO
+kx2f,_41_nro_cr_dito_consumo,(41) NRO_CRÉDITO_CONSUMO_MUJERES
+kx2f,_42_monto_cr_dito_consumo,(42) MONTO_CRÉDITO_CONSUMO_MUJERES
+kx2f,_43_nro_cr_dito_consumo,(43) NRO_CRÉDITO_CONSUMO_HOMBRES
+kx2f,_44_monto_cr_dito_consumo,(44) MONTO_CRÉDITO_CONSUMO_HOMBRES
+kx2f,_45_nro_cr_dito_consumo,(45) NRO_CRÉDITO_CONSUMO
+kx2f,_46_monto_cr_dito_consumo,(46) MONTO_CRÉDITO_CONSUMO
+kx2f,_47_nro_cred_cons_bajo_monto,(47) NRO_CRED_CONS_BAJO_MONTO_MUJERES
+kx2f,_48_monto_cred_cons_bajo,(48) MONTO_CRED_CONS_BAJO_MONTO_MUJERES
+kx2f,_49_nro_cred_cons_bajo_monto,(49) NRO_CRED_CONS_BAJO_MONTO_HOMBRES
+kx2f,_50_monto_cred_cons_bajo,(50) MONTO_CRED_CONS_BAJO_MONTO_HOMBRES
+kx2f,_51_nro_cred_cons_bajo_monto,(51) NRO_CRED_CONS_BAJO_MONTO
+kx2f,_52_monto_cred_cons_bajo,(52) MONTO_CRED_CONS_BAJO_MONTO
+kx2f,_53_nro_cr_dito_vivienda,(53) NRO_CRÉDITO_VIVIENDA_MUJERES
+kx2f,_54_monto_cr_dito_vivienda,(54) MONTO_CRÉDITO_VIVIENDA_MUJERES
+kx2f,_55_nro_cr_dito_vivienda,(55) NRO_CRÉDITO_VIVIENDA_HOMBRES
+kx2f,_56_monto_cr_dito_vivienda,(56) MONTO_CRÉDITO_VIVIENDA_HOMBRES
+kx2f,_57_nro_cr_dito_vivienda,(57) NRO_CRÉDITO_VIVIENDA
+kx2f,_58_monto_cr_dito_vivienda,(58) MONTO_CRÉDITO_VIVIENDA
+kx2f,_59_nro_microcr_dito_hasta,(59) NRO_MICROCRÉDITO_HASTA_ 1SMMLV
+kx2f,_60_monto_microcr_dito_hasta,(60) MONTO_MICROCRÉDITO_HASTA_1SMMLV
+kx2f,_61_nro_microcr_dito_1smmlv,(61) NRO_MICROCRÉDITO_>1SMMLV_HASTA_ 2SMMLV
+kx2f,_62_monto_microcr_dito_1smmlv,(62) MONTO_MICROCRÉDITO_>1SMMLV HASTA_ 2SMMLV
+kx2f,_63_nro_microcr_dito_2smmlv,(63) NRO_MICROCRÉDITO_>2SMMLV_HASTA_3SMMLV
+kx2f,_64_monto_microcr_dito_2smmlv,(64) MONTO_MICROCRÉDITO_> 2SMMLV_HASTA_3SMMLV
+kx2f,_65_nro_microcr_dito_3smmlv,(65) NRO_MICROCRÉDITO_>3SMMLV_HASTA_ 4SMMLV
+kx2f,_66_monto_microcr_dito_3smmlv,(66) MONTO_MICROCRÉDITO_>3SMMLV_HASTA_4SMMLV
+kx2f,_67_nro_microcr_dito_4smmlv,(67) NRO_MICROCRÉDITO_>4SMMLV_HASTA_10SMMLV
+kx2f,_68_monto_microcr_dito_4smmlv,(68) MONTO_MICROCRÉDITO_> 4SMMLV_HASTA_10SMMLV
+kx2f,_69_nro_microcr_dito_10smmlv,(69) NRO_MICROCRÉDITO_>10SMMLV_HASTA_25SMMLV
+kx2f,_70_monto_microcr_dito_10smmlv,(70) MONTO_MICROCRÉDITO_>10SMMLV_HASTA_ 25SMMLV
+kx2f,_71_nro_microcr_dito_mujeres,(71) NRO_MICROCRÉDITO_MUJERES
+kx2f,_72_monto_microcr_dito_mujeres,(72) MONTO_MICROCRÉDITO_MUJERES
+kx2f,_73_nro_microcr_dito_hombres,(73) NRO_MICROCRÉDITO_HOMBRES
+kx2f,_74_monto_microcr_dito_hombres,(74) MONTO_MICROCRÉDITO_HOMBRES
+kx2f,_75_nro_microcr_dito,(75) NRO_MICROCRÉDITO
+kx2f,_76_monto_microcr_dito,(76) MONTO_MICROCRÉDITO
+kx2f,_77_nro_productos_a_nivel,(77) NRO_PRODUCTOS_A_NIVEL_NACIONAL
+kx2f,_78_monto_saldo_productos,(78) MONTO_SALDO_PRODUCTOS_A_NIVEL_NACIONAL
+kx2f,_79_nro_corresponsales_f,(79) NRO_CORRESPONSALES_FÍSICOS_PROPIOS_ACTIVOS
+kx2f,_80_nro_corresponsales_f,(80) NRO_CORRESPONSALES_FÍSICOS_TERCERIZADOS_ACTIVOS
+kx2f,_81_nro_corresponsales_propios,(81) NRO_CORRESPONSALES_PROPIOS_MÓVILES
+kx2f,_82_nro_corresponsales,(82) NRO_CORRESPONSALES_TERCERIZADOS_MÓVILES
+kx2f,_83_nro_corresponsales_m,(83) NRO_CORRESPONSALES_MÓVILES_ACTIVOS
+kx2f,_84_nro_corresponsales_m,(84) NRO_CORRESPONSALES_MÓVILES
+kx2f,_85_nro_dep_sitos,(85) NRO_DEPÓSITOS_CORRESPONSALES_MÓVILES
+kx2f,_86_monto_dep_sitos,(86) MONTO_DEPÓSITOS_CORRESPONSALES_MÓVILES
+kx2f,_87_nro_giros_enviados,(87) NRO_GIROS_ENVIADOS_CORRESPONSALES_MÓVILES
+kx2f,_88_monto_giros_enviados,(88) MONTO_GIROS_ENVIADOS_CORRESPONSALES_MÓVILES
+kx2f,_89_nro_giros_recibidos,(89) NRO_GIROS_RECIBIDOS_CORRESPONSALES_MÓVILES
+kx2f,_90_monto_giros_recibidos,(90) MONTO_GIROS_RECIBIDOS_CORRESPONSALES_MÓVILES
+kx2f,_91_nro_pagos_corresponsales,(91) NRO_PAGOS_CORRESPONSALES_MÓVILES
+kx2f,_92_monto_pagos_corresponsales,(92) MONTO_PAGOS_CORRESPONSALES_MÓVILES
+kx2f,_93_nro_retiros_corresponsales,(93) NRO_RETIROS_CORRESPONSALES_MÓVILES
+kx2f,_94_monto_retiros,(94) MONTO_RETIROS_CORRESPONSALES_MÓVILES
+kx2f,_95_nro_transferencias,(95) NRO_TRANSFERENCIAS_CORRESPONSALES_MÓVILES
+kx2f,_96_monto_transferencias,(96) MONTO_TRANSFERENCIAS_CORRESPONSALES_MÓVILES
+kx2f,_97_nro_transacciones_tr,(97) NRO_TRANSACCIONES_TRÁMITES_CORRESPONSALES_MÓVILES
+kx2f,_98_monto_transacciones,(98) MONTO_TRANSACCIONES_CORRESPONSALES_MÓVILES

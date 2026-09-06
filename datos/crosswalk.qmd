@@ -1,6 +1,48 @@
 ---
-title: "Crosswalk municipal"
-draft: true
+title: "Claves geográficas de la SFC y empalme 2021Q1"
 ---
 
-Las tablas de inclusión financiera de la Superintendencia no traen código DIVIPOLA. El cruce nombre → código se hace por departamento, con una tabla de sobrescrituras versionada. Esta página publicará la cobertura por trimestre y la lista de nombres sin mapear cuando se ejecute la Fase 1.
+Las tablas de inclusión financiera de la Superintendencia no declaran el código DIVIPOLA, pero lo llevan: `renglon` es el código municipal de tres dígitos dentro del departamento (`unicap`) y `renglon = 999` la fila de total departamental. Con `dpto_ccdgo || lpad(renglon, 3)` la cobertura es del 100 % en los 34 cortes de las dos tablas (S-009, S-010). Los nombres solo sirven de comprobación.
+
+## Cobertura por corte
+
+```{python}
+#| output: asis
+import pandas as pd
+from iif import config
+out = config.DATA_INTERIM / "sfc"
+for f in ("ptgf", "kx2f"):
+    p = out / f"cobertura_geo_{f}.csv"
+    if p.exists():
+        d = pd.read_csv(p)
+        print(f"**{f}**: {len(d)} cortes, cobertura mínima {d.cobertura.min():.4f}, filas municipales {int(d.filas.sum()):,}.\n")
+```
+
+## Nombres que difieren del DANE
+
+Grafías distintas para el mismo código (mojibake, alias, abreviaturas). Ninguna corresponde a un código desconocido.
+
+```{python}
+import pandas as pd
+from iif import config
+out = config.DATA_INTERIM / "sfc"
+pd.concat(
+    [pd.read_csv(out / f"nombres_no_coincidentes_{f}.csv").assign(fuente=f) for f in ("ptgf", "kx2f") if (out / f"nombres_no_coincidentes_{f}.csv").exists()]
+)[["fuente", "mpio_ccdgo", "nombre_sfc", "nombre_dane"]].head(40)
+```
+
+## Empalme 2021Q1
+
+El trimestre 2021Q1 está en las dos tablas. Diferencia relativa entre los totales departamentales de las 70 columnas emparejadas (`xw_sfc_columns_empalme`), por bloque:
+
+```{python}
+import pandas as pd
+from iif import config
+p = config.DATA_INTERIM / "sfc" / "empalme_2021q1_departamento.csv"
+m = pd.read_csv(p, dtype={"dpto_ccdgo": str})
+m = m[m.v_kx2f.notna()]
+(m.groupby("tipo_id").rel.agg(pares="size", mediana="median", p90=lambda s: s.quantile(0.9), maximo="max")
+  .round(4).sort_values("mediana"))
+```
+
+La regla (ADR-009): los marts prefieren `kx2f` en 2021Q1 y guardan la diferencia; la prueba dbt `assert_sfc_empalme_2021q1` exige mediana por departamento ≤ 2 %.

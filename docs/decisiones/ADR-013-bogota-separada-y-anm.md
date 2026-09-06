@@ -29,3 +29,7 @@ El DANE publica PIB departamental para 33 unidades: 32 departamentos y Bogotá D
 ## Cómo revertirla
 
 Cambiar `dbt/seeds/xw_sfc_departamento.csv` y `dim_municipio` con un ADR nuevo. Las pruebas de conteo se ajustan en el mismo cambio.
+
+## Adenda 2026-09-06: Belén de Bajirá
+
+El municipio creado en 2022 tiene tres identidades: DIVIPOLA 27086 (la usa la SFC en `vkbt`), 27493 "Nuevo Belén de Bajirá" en las cuentas y proyecciones del DANE, y ningún polígono en el MGN 2024 (sigue dentro de Riosucio 27615 y Mutatá 05480). `dim_municipio` conserva los tres códigos con `en_mgn`, `en_dane` y una nota (semilla `dim_municipio_extra.csv`); el atlas los mostrará dentro de sus municipios de origen hasta que el MGN publique el límite.
