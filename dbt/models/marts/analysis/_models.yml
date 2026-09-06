@@ -81,3 +81,28 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [mpio_ccdgo, anio]
+
+  - name: mart_indice_departamento_anual
+    description: >
+      Índice de inclusión financiera por departamento y año (ADR-015), con sus tres subíndices, las dos
+      versiones de sensibilidad y las variables del panel que consume la econometría.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+    columns:
+      - name: iif_compuesto
+        description: "Nulo cuando falta alguna de las tres dimensiones; `dimensiones_observadas` dice cuántas hay."
+      - name: dimensiones_observadas
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 3
+
+  - name: mart_indice_municipio_anual
+    description: "Índice por municipio y año, con los pesos calibrados en el panel departamental."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
