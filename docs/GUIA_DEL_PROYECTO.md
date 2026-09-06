@@ -19,12 +19,12 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 | 0 | Reestructura del repo, limpieza y subida de los tres artefactos legados, paquete `iif`, documentos de gobierno, dbt, Quarto, CI | Hecha: S1 a S8 completos | verde |
 | 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (77 MB), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
 | 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
-| 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Pendiente | rojo |
+| 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | A medias: atlas terminado (tres vistas, 1,83 MB de 3); falta la econometría | ámbar |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
 
 Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto, CI con publicación en Vercel y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
 
-Lo que no hay todavía: el atlas y la econometría. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
+Lo que no hay todavía: la econometría. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
 
 ## 3. Mapa del repo
 
@@ -42,7 +42,7 @@ _quarto.yml, *.qmd            sitio (pendiente); toca esto si cambia una página
 config/tesis_documento.yaml   cifras del documento de la tesis; toca esto solo si se corrige una errata del documento
 config/sources.yaml           fuentes y reglas de descarga (pendiente); toca esto si una fuente cambia de URL
 config/index.yaml             dimensiones, variables, ventana de pesos del índice (pendiente)
-config/atlas.yaml             contrato de exportación del atlas (pendiente)
+config/atlas.yaml             contrato de exportación del atlas
 data/legacy/                  congelado (R-06); no se toca
 data/raw/                     descargas con manifest.jsonl (pendiente); no se edita a mano
 data/interim/, data/processed/ Parquet derivado; se regenera, no se edita
@@ -158,7 +158,8 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 - Local: `make setup && make quarto-install && make check`. `check` corre ruff, pytest sin la marca `data`, `dbt build` en DuckDB y `quarto render`. Con datos crudos descargados, `make test-data` añade las pruebas que los leen.
 - Auditoría interna (no publicada): `make reproduce` regenera `docs/legacy/reproduccion.md`, que sirve de evidencia para las entradas B-001 a B-015 de la bitácora. Mientras el panel congelado no cambie, el informe no cambia (sha256 en `data/legacy/SHA256SUMS`).
 - Limpieza: `tests/test_repo.py::test_no_private_strings_in_published_trees` recorre `data/legacy`, `notebooks` y `docs` con la lista de cadenas privadas de `iif.data.scrub`; debe dar cero.
-- Sitio: `_site/index.html`, `_site/datos/fuentes.html` (manifiesto) y `_site/datos/crosswalk.html` (cobertura y empalme) se renderizan con datos reales; el atlas y la metodología aparecen como borrador hasta la fase 3.
+- Sitio: `_site/index.html`, `_site/datos/fuentes.html` (manifiesto) y `_site/datos/crosswalk.html` (cobertura y empalme) se renderizan con datos reales; el atlas y la metodología del índice ya están publicados y solo el panel econométrico y el anexo siguen como borrador.
+- Atlas: `uv run iif atlas` deja `atlas/data/` por debajo de 3 MB y `pytest tests/test_atlas.py` comprueba el giro de los anillos, el área esférica de Colombia, el presupuesto y el tipo de cada acompañante. Lo que una prueba no ve (encuadre, colisiones de rótulos, fugas de oyentes) se mide en el navegador; el procedimiento está en S-016.
 - CI: `ci.yml` corre lo mismo que `make check`, publica `_site` como artefacto y, en `main`, lo empuja a la rama `site` que despliega Vercel.
 
 ## 9. Preguntas abiertas

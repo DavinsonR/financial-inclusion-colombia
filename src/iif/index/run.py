@@ -74,7 +74,12 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
     for nivel in NIVELES:
         panel, res = build_level(nivel, db=db, contract=contract, congelados=congelados)
         salida = out_dir / f"indice_{nivel}_anual.parquet"
-        scores = res.scores.merge(res.sensibilidad, on=list(NIVELES[nivel]["id_cols"]), how="left")
+        ids = list(NIVELES[nivel]["id_cols"])
+        scores = res.scores.merge(res.sensibilidad, on=ids, how="left")
+        # Las variables normalizadas viajan con el índice: son lo que el atlas muestra cuando se pide
+        # el desglose por variable, y publicarlas hace auditable de qué está hecho cada subíndice.
+        variables = [v for f in res.fits.values() for v in f.variables]
+        scores = scores.merge(res.normalizado[ids + variables], on=ids, how="left")
         scores.to_parquet(salida, index=False)
         escritos[nivel] = salida
     res_dep.implicitos.to_csv(out_dir / "indice_pesos_implicitos.csv", index=False)
