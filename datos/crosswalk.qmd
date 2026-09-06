@@ -1,0 +1,6 @@
+---
+title: "Crosswalk municipal"
+draft: true
+---
+
+Las tablas de inclusión financiera de la Superintendencia no traen código DIVIPOLA. El cruce nombre → código se hace por departamento, con una tabla de sobrescrituras versionada. Esta página publicará la cobertura por trimestre y la lista de nombres sin mapear cuando se ejecute la Fase 1.

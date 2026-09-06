@@ -1,0 +1,35 @@
+variable_id,bloque,dimension_iif,unidad,naturaleza,regla_anualizacion,en_indice,ptgf_column,kx2f_column,descripcion
+nro_corresp_activos,corresponsales_fisicos,acceso,count,stock,last,true,,,Corresponsales físicos activos al cierre del trimestre (variable de acceso del índice legado)
+nro_corresp_propios,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos propios
+nro_corresp_tercerizados,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos tercerizados
+nro_corresponsales,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos contratados (propios + tercerizados)
+nro_depositos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de depósitos en corresponsales físicos en el trimestre
+monto_depositos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de depósitos en corresponsales físicos (COP nominales)
+nro_pagos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de pagos en corresponsales físicos en el trimestre
+monto_pagos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de pagos en corresponsales físicos (COP nominales)
+nro_transferencias,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de transferencias en corresponsales físicos en el trimestre
+monto_transferencias,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de transferencias en corresponsales físicos (COP nominales)
+nro_retiros,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de retiros en corresponsales físicos en el trimestre
+monto_retiros,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de retiros en corresponsales físicos (COP nominales)
+nro_giros_enviados,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de giros enviados desde corresponsales físicos
+monto_giros_enviados,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de giros enviados desde corresponsales físicos (COP nominales)
+nro_giros_recibidos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de giros recibidos en corresponsales físicos
+monto_giros_recibidos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de giros recibidos en corresponsales físicos (COP nominales)
+nro_total_transacciones,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Total de operaciones en corresponsales físicos (suma reportada por la SFC; base del log_fintech_pc legado)
+monto_total_transacciones,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto total de operaciones en corresponsales físicos (COP nominales)
+nro_cuentas_ahorro,cuentas_ahorro,acceso,count,stock,last,true,,,Número total de cuentas de ahorro (variable de acceso del índice legado)
+saldo_cuentas_ahorro,cuentas_ahorro,profundidad,cop,stock,last,false,,,Saldo total de cuentas de ahorro (COP nominales)
+nro_cuentas_ahorro_activas,cuentas_ahorro,acceso,count,stock,last,false,,,Cuentas de ahorro activas
+nro_cuentas_electronicas,cuentas_ahorro_electronicas,acceso,count,stock,last,false,,,Cuentas de ahorro electrónicas (solo ptgf; en kx2f pasan a depósitos de bajo monto)
+saldo_cuentas_electronicas,cuentas_ahorro_electronicas,profundidad,cop,stock,last,false,,,Saldo de cuentas de ahorro electrónicas (COP nominales)
+nro_microcredito,microcredito,profundidad,count,flujo,sum,false,,,Número de microcréditos desembolsados en el trimestre
+monto_microcredito,microcredito,profundidad,cop,flujo,sum,true,,,Monto de microcrédito desembolsado (COP nominales; variable de profundidad del índice legado)
+nro_credito_consumo,credito_consumo,profundidad,count,flujo,sum,false,,,Número de créditos de consumo desembolsados
+monto_credito_consumo,credito_consumo,profundidad,cop,flujo,sum,true,,,Monto de crédito de consumo desembolsado (COP nominales; índice legado)
+nro_credito_vivienda,credito_vivienda,profundidad,count,flujo,sum,false,,,Número de créditos de vivienda desembolsados
+monto_credito_vivienda,credito_vivienda,profundidad,cop,flujo,sum,true,,,Monto de crédito de vivienda desembolsado (COP nominales; índice legado)
+nro_credito_consumo_bajo_monto,credito_consumo_bajo_monto,profundidad,count,flujo,sum,false,,,Número de créditos de consumo de bajo monto
+monto_credito_consumo_bajo_monto,credito_consumo_bajo_monto,profundidad,cop,flujo,sum,false,,,Monto de crédito de consumo de bajo monto (COP nominales)
+nro_corresp_moviles,corresponsales_moviles,acceso,count,stock,last,false,,,"Corresponsales móviles (solo kx2f, desde 2021)"
+nro_transacciones_corresp_movil,transacciones_corresponsal_movil,uso,count,flujo,sum,false,,,Número de operaciones en corresponsales móviles (solo kx2f)
+monto_transacciones_corresp_movil,transacciones_corresponsal_movil,uso,cop,flujo,sum,false,,,Monto de operaciones en corresponsales móviles (COP nominales; solo kx2f)

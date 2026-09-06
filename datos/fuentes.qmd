@@ -1,0 +1,25 @@
+---
+title: "Fuentes y manifiesto"
+---
+
+Cada descarga queda registrada en `data/raw/manifest.jsonl` con URL, fecha, `rowsUpdatedAt` o `Last-Modified` de la fuente, filas, bytes y sha256. Esta página lee el manifiesto y muestra la última instantánea por fuente.
+
+```{python}
+#| output: asis
+import json, os
+from pathlib import Path
+from iif import config
+p = config.MANIFEST
+if not p.exists():
+    print("Todavía no hay descargas registradas.")
+else:
+    rows = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    latest = {}
+    for r in rows:
+        latest[r["source_id"]] = r
+    print("| Fuente | Actualizada en la fuente | Descargada | Filas | Licencia |\n|---|---|---|---|---|")
+    for k, r in sorted(latest.items()):
+        print(f"| `{k}` | {r.get('source_updated_at') or ''} | {r['pulled_at'][:10]} | {r.get('row_count') or ''} | {r.get('license','')} |")
+```
+
+{{< include ../docs/LICENCIAS_DATOS.md >}}

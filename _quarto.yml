@@ -1,0 +1,63 @@
+project:
+  type: website
+  output-dir: _site
+  execute-dir: project
+  render:
+    - index.qmd
+    - reproduccion-tesis.qmd
+    - bitacora.qmd
+    - decisiones.qmd
+    - datos/*.qmd
+    - metodologia/*.qmd
+    - anexos/*.qmd
+    - atlas/*.qmd
+
+website:
+  title: "Inclusión financiera y crecimiento regional en Colombia"
+  description: "Reproducción honesta de una tesis, un warehouse abierto, un índice por dimensiones y un atlas interactivo."
+  site-url: https://davinsonr.github.io/inclusion-financiera-colombia/
+  repo-url: https://github.com/DavinsonR/inclusion-financiera-colombia
+  repo-actions: [source]
+  navbar:
+    left:
+      - text: Inicio
+        href: index.qmd
+      - text: Reproducción
+        href: reproduccion-tesis.qmd
+      - text: Datos
+        menu:
+          - datos/fuentes.qmd
+          - datos/diccionario-legacy.qmd
+          - datos/modelo-de-datos.qmd
+          - datos/crosswalk.qmd
+      - text: Metodología
+        menu:
+          - metodologia/indice.qmd
+          - metodologia/panel.qmd
+      - text: Atlas
+        href: atlas/index.qmd
+      - text: Anexos
+        href: anexos/desagregacion-temporal.qmd
+      - text: Bitácora
+        href: bitacora.qmd
+      - text: Decisiones
+        href: decisiones.qmd
+  page-footer:
+    left: "Datos de la Superintendencia Financiera (CC BY-SA 4.0), DANE, MinTIC y MEN. Código MIT."
+    right: "Construido en público: cada cifra traza a una prueba."
+
+lang: es
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    df-print: kable
+    fig-width: 8
+
+execute:
+  freeze: auto
+  echo: false
+  warning: false
+
+jupyter: python3

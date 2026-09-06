@@ -1,0 +1,245 @@
+version: 2
+
+# Semillas = datos de referencia versionados (crosswalks y dimensiones pequeñas). Se generaron con
+# datos vivos de la API SODA y la Tabla canal de la SFC el 2026-09-06; el script de derivación imprime
+# cualquier nombre que no case. Ninguna semilla contiene datos personales.
+seeds:
+  - name: xw_departamento_region
+    description: >
+      33 departamentos con DIVIPOLA, nombre oficial DANE, nombre corto, región del notebook legado
+      (0 Andina, 1 Caribe, 2 Pacífica, 3 Orinoquía, 4 Amazonía) y la grafía exacta de `Depto Base`
+      en data/legacy/panel_fintech_colombia_trimestral.parquet (`nombre_legacy`, derivada normalizando acentos y puntuación).
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(dpto_ccdgo) = 2"
+    columns:
+      - name: dpto_ccdgo
+        description: "DIVIPOLA departamental, texto de dos dígitos con cero a la izquierda."
+        data_tests: [unique, not_null]
+      - name: departamento
+        description: "Nombre oficial DANE (DIVIPOLA 2024), con acentos."
+        data_tests: [unique, not_null]
+      - name: nombre_corto
+        data_tests: [unique, not_null]
+      - name: region_id
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4]
+                quote: false
+      - name: region
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Andina", "Caribe", "Pacífica", "Orinoquía", "Amazonía"]
+      - name: nombre_legacy
+        description: "Grafía exacta en el panel legado (p. ej. 'San Andres,Prov Y Santa Catalina')."
+        data_tests: [unique, not_null]
+
+  - name: xw_sfc_departamento
+    description: >
+      Unidades de captura geográficas (unicap 1-33) de los datasets SFC ptgf-ywrb (legado) y kx2f-xjdq (vigente)
+      con su DIVIPOLA. La numeración es idéntica en ambas fuentes (lo prueba
+      tests/assert_sfc_unicap_consistente_entre_fuentes.sql). `descrip_uc` es el nombre canónico: en ptgf la
+      unidad 17 aparece también como 'NARIﾑO' (katakana de media anchura), que se repara en staging con repair_mojibake().
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, unicap]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "unicap between 1 and 33"
+    columns:
+      - name: fuente
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["kx2f", "ptgf"]
+      - name: unicap
+        description: "Unidad de captura SFC (numeración interna, no DIVIPOLA)."
+        data_tests: [not_null]
+      - name: descrip_uc
+        description: "Nombre tal como lo publica la SFC (mayúsculas sin acentos, salvo NARIÑO)."
+        data_tests: [not_null]
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('xw_departamento_region')
+                field: dpto_ccdgo
+
+  - name: sfc_unidades_no_geograficas
+    description: >
+      Unidades de captura no geográficas de la SFC: 34 total nacional, 35-36 desgloses de corresponsales
+      (tipo de negocio, agregadores) y 37-42 bloques de producto a nivel nacional. kx2f no tiene la 40 y
+      añade la 42 (corresponsales digitales); ptgf llega hasta la 41 (cuentas de ahorro electrónicas).
+      Sus filas alimentan fct_sfc_nacional_trimestre, nunca los hechos departamentales.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, unicap]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "unicap >= 34"
+    columns:
+      - name: fuente
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["kx2f", "ptgf"]
+      - name: unicap
+        data_tests: [not_null]
+      - name: descrip_uc
+        data_tests: [not_null]
+      - name: tipo_bloque
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["total_nacional", "corresponsales_desglose", "productos_nacional"]
+
+  - name: map_sfc_tipo
+    description: >
+      Mapa del campo `tipo` (bloque de columnas que la fila realmente informa) a un identificador canónico,
+      para las dos fuentes SFC. Cubre los 13 valores de kx2f —incluidas las tres grafías de
+      'Corresponsales físicos', una de ellas con guion suave U+00AD invisible— y los 10 de ptgf
+      ('N/A' solo aparece en las unidades 37-41, por eso es productos_nivel_nacional). `n_filas` es el
+      conteo de la API el día de la consulta, como huella de procedencia.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, tipo_raw]
+    columns:
+      - name: fuente
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["kx2f", "ptgf"]
+      - name: tipo_raw
+        description: "Valor exacto del campo `tipo` en la API, byte a byte."
+        data_tests: [not_null]
+      - name: tipo_id
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - corresponsales_fisicos
+                  - transacciones_corresponsales_fisicos
+                  - corresponsales_moviles
+                  - transacciones_corresponsal_movil
+                  - cuentas_ahorro
+                  - cuentas_ahorro_electronicas
+                  - credito_consumo
+                  - credito_consumo_bajo_monto
+                  - credito_vivienda
+                  - microcredito
+                  - microcredito_rango
+                  - productos_nivel_nacional
+      - name: n_filas
+        data_tests: [not_null]
+
+  - name: dim_canal
+    description: >
+      Catálogo oficial de canales de la SFC (Tabla canal de las tablas anexas para el reporte de información,
+      19 códigos) agrupado para el análisis. `en_vkbt` marca los 17 códigos que aparecen en vkbt-desu
+      (faltan 15 POS administrados y 18 RAS). Al corte 2026-06: 14 Oficinas 6.241 puntos y 40 entidades;
+      4 Cajeros propios 15.636; 16 POS no propios 909.973 (solo las dos redes EASPBV); 10 Corresponsales
+      físicos tercerizados 1.204.258 (660.709 activos), lo que confirma la lectura del catálogo.
+    columns:
+      - name: codigo_canal
+        data_tests: [unique, not_null]
+      - name: nombre_canal
+        data_tests: [unique, not_null]
+      - name: grupo_canal
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["oficina", "cajero", "datafono", "corresponsal_fisico", "corresponsal_movil", "corresponsal_digital", "otro"]
+      - name: tipo_canal
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["presencial", "no_presencial"]
+      - name: en_vkbt
+        data_tests: [not_null]
+
+  - name: xw_sfc_municipio_overrides
+    description: >
+      Correcciones manuales del crosswalk municipal nombre → DIVIPOLA (por fuente, unidad de captura y renglón),
+      con el motivo. Vacío hasta que `iif crosswalk build` publique los no mapeados (paso S12).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, unicap, renglon]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(mpio_ccdgo) = 5 and left(mpio_ccdgo, 2) = lpad(cast(unicap as varchar), 2, '0') or mpio_ccdgo is null"
+    columns:
+      - name: fuente
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["kx2f", "ptgf"]
+      - name: unicap
+      - name: renglon
+      - name: nombre_raw
+      - name: mpio_ccdgo
+        description: "DIVIPOLA municipal de cinco dígitos."
+      - name: motivo
+
+  - name: dim_variable
+    description: >
+      Primer corte del diccionario de variables SFC: bloque (tipo_id), dimensión del índice
+      (acceso/uso/profundidad), unidad, naturaleza stock/flujo y regla de anualización (flujos: suma de
+      4 trimestres; stocks: valor del Q4). `en_indice` marca las 8 variables SFC del índice legado (la novena,
+      internet, viene de MinTIC). `ptgf_column` y `kx2f_column` (el mapa del empalme) se llenan en S12.
+    columns:
+      - name: variable_id
+        data_tests: [unique, not_null]
+      - name: bloque
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('map_sfc_tipo')
+                field: tipo_id
+      - name: dimension_iif
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["acceso", "uso", "profundidad", "ninguna"]
+      - name: unidad
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["count", "cop", "pct"]
+      - name: naturaleza
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["stock", "flujo"]
+      - name: regla_anualizacion
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["sum", "last", "mean"]
+      - name: en_indice
+        data_tests: [not_null]
+      - name: ptgf_column
+      - name: kx2f_column
+      - name: descripcion
+        data_tests: [not_null]

@@ -1,0 +1,73 @@
+version: 2
+
+# Fuentes crudas del almacén. Todas se materializan como Parquet dentro del repositorio
+# (data/raw/<fuente>/<dataset>/ para descargas, data/interim/ para XLSX/GeoJSON ya parseados)
+# y se declaran aquí con `meta.external_location` para que dbt-duckdb las lea con read_parquet()
+# sin cargarlas. Ninguna existe todavía (llegan en los pasos S10-S11); no hay modelos sobre ellas.
+# En Snowflake las mismas tablas viven en IIF.RAW tras COPY INTO (snowflake/02_database_stages_copy.sql);
+# la variable IIF_ROOT apunta a la raíz del repositorio (dbt corre desde dbt/, de ahí el '..').
+sources:
+  - name: sfc
+    description: "Superintendencia Financiera de Colombia vía API SODA de datos.gov.co (CC BY-SA 4.0)."
+    schema: raw
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/raw/sfc/{name}/*.parquet"
+    tables:
+      - name: ptgf_ywrb
+        description: "Inclusión financiera (legado): entidad × municipio, trimestral 2017Q4-2021Q1. Congelado. unicap 1-33 departamentos, 34-41 bloques no geográficos; `departamento` con mojibake (NARIﾑO)."
+      - name: kx2f_xjdq
+        description: "Inclusión financiera (vigente): entidad × municipio, trimestral 2021Q1-2025Q4, 99 columnas. Sin DIVIPOLA: unicap 1-33 departamentos (numeración interna), 34 total nacional, 35-42 bloques de producto; `tipo` con tres grafías de 'Corresponsales físicos'; ceros no nulos."
+      - name: vkbt_desu
+        description: "Puntos de atención de canales por municipio (DIVIPOLA): entidad × municipio × canal, mensual 2023-01 en adelante; `codigo_canal` según la Tabla canal de la SFC (seed dim_canal)."
+
+  - name: mintic
+    description: "Ministerio TIC vía API SODA (CC BY-SA 4.0)."
+    schema: raw
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/raw/mintic/{name}/*.parquet"
+    tables:
+      - name: n48w_gutb
+        description: "Internet fijo por municipio (DIVIPOLA), trimestral 2017Q2-2023Q3; abandonado en 2024; decimales con coma."
+
+  - name: men
+    description: "Ministerio de Educación Nacional vía API SODA (CC BY-SA 4.0)."
+    schema: raw
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/raw/men/{name}/*.parquet"
+    tables:
+      - name: nudc_7mev
+        description: "Estadísticas de educación por municipio (DIVIPOLA), anual 2011-2024; ceros = faltantes; quiebre metodológico en 2018."
+
+  - name: dane
+    description: "DANE: cuentas departamentales, valor agregado municipal, proyecciones de población e ITAED. XLSX descargados con fecha (Last-Modified) y convertidos a Parquet tidy por `iif parse dane` en data/interim/dane/."
+    schema: interim
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/interim/dane/{name}.parquet"
+    tables:
+      - name: pib_departamento_anual
+        description: "PIB departamental base 2015, 2005-2025pr, con estado_dato (definitivo/provisional/preliminar) y vintage."
+      - name: pib_departamento_actividad_anual
+        description: "Valor agregado departamental por actividad económica."
+      - name: va_municipio_anual
+        description: "Valor agregado municipal 2011-2024p (distribución del PIB departamental, nominal)."
+      - name: poblacion_municipio_anual
+        description: "Proyecciones de población municipal (_VP), 2005-2042."
+      - name: poblacion_departamento_anual
+        description: "Proyecciones de población departamental (_VP)."
+      - name: itaed_departamento_trimestre
+        description: "Indicador trimestral de actividad económica departamental: 13 departamentos + Bogotá + resto, 2015Q1 en adelante."
+      - name: pib_bogota_trimestre
+        description: "PIB trimestral de Bogotá (indicador auxiliar)."
+      - name: ise_nacional_mes
+        description: "Indicador de seguimiento a la economía, nacional mensual (auxiliar)."
+
+  - name: mgn
+    description: "DANE Marco Geoestadístico Nacional 2024 (ArcGIS REST, f=geojson), simplificado a Parquet por `iif parse mgn`."
+    schema: interim
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/interim/mgn/{name}.parquet"
+    tables:
+      - name: departamentos
+        description: "33 departamentos con dpto_ccdgo, nombre y geometría simplificada (WKB)."
+      - name: municipios
+        description: "1.121 municipios y áreas no municipalizadas con mpio_ccdgo, tipo (M/D/ANM), área y geometría simplificada (WKB)."

@@ -1,0 +1,97 @@
+version: 2
+
+models:
+  - name: dim_departamento
+    description: "33 departamentos (incluida Bogotá D.C.) con DIVIPOLA, región del notebook legado y numeración interna de la SFC."
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(dpto_ccdgo) = 2"
+    columns:
+      - name: dpto_ccdgo
+        description: "Código DIVIPOLA de dos dígitos, con cero a la izquierda ('05' Antioquia)."
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('xw_departamento_region')
+                field: dpto_ccdgo
+      - name: departamento
+        description: "Nombre oficial DANE (DIVIPOLA), con acentos."
+        data_tests: [unique, not_null]
+      - name: nombre_corto
+        description: "Nombre breve para tablas y mapas ('Bogotá D.C.', 'San Andrés y Providencia')."
+        data_tests: [unique, not_null]
+      - name: nombre_legacy
+        description: "Grafía exacta de `Depto Base` en el panel legado."
+        data_tests: [unique, not_null]
+      - name: nombre_normalizado
+        description: "Clave de cruce: mayúsculas, sin acentos ni puntuación (macro normalize_geo_name)."
+        data_tests: [unique, not_null]
+      - name: region_id
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4]
+                quote: false
+      - name: region
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Andina", "Caribe", "Pacífica", "Orinoquía", "Amazonía"]
+      - name: sfc_unicap
+        description: "Unidad de captura de la SFC (1-33), común a ptgf-ywrb y kx2f-xjdq."
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('xw_sfc_departamento')
+                field: unicap
+      - name: sfc_descrip_uc
+        data_tests: [not_null]
+
+  - name: dim_periodo
+    description: "Calendario con frecuencias anual (2005-2026), trimestral (2015Q1-2026Q4) y mensual (2023-01 a 2026-12)."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [frecuencia, fecha_inicio]
+    columns:
+      - name: periodo_id
+        description: "'YYYY', 'YYYYQn' o 'YYYY-MM' según la frecuencia."
+        data_tests: [unique, not_null]
+      - name: frecuencia
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["A", "Q", "M"]
+      - name: anio
+        data_tests: [not_null]
+      - name: trimestre
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+      - name: mes
+      - name: fecha_inicio
+        data_tests: [not_null]
+      - name: fecha_fin
+        data_tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= fecha_inicio"
+      - name: periodo_anio_id
+        description: "Año del periodo como clave 'YYYY' (autorreferencia a la fila anual)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id

@@ -1,0 +1,24 @@
+fuente,tipo_raw,tipo_id,n_filas
+kx2f,Corresponsales fÃ­sicos,corresponsales_fisicos,40181
+kx2f,Corresponsales fisicos,corresponsales_fisicos,470230
+kx2f,Corresponsales físicos,corresponsales_fisicos,339074
+kx2f,Credito de consumo,credito_consumo,129558
+kx2f,Credito de consumo de bajo monto,credito_consumo_bajo_monto,39169
+kx2f,Credito de vivienda,credito_vivienda,47824
+kx2f,Cuentas de Ahorro,cuentas_ahorro,123735
+kx2f,Microcredito,microcredito,67139
+kx2f,Microcredito por rango,microcredito_rango,67942
+kx2f,Numero de corresponsales moviles,corresponsales_moviles,24676
+kx2f,Productos a nivel nacional,productos_nivel_nacional,12241
+kx2f,Transacciones corresponsal movil,transacciones_corresponsal_movil,22376
+kx2f,Transacciones y tramites a traves de corresponsales fisicos,transacciones_corresponsales_fisicos,365266
+ptgf,CORRESPONSALES,corresponsales_fisicos,210114
+ptgf,CREDITO DE CONSUMO,credito_consumo,58448
+ptgf,CREDITO DE CONSUMO BAJO MONTO,credito_consumo_bajo_monto,1401
+ptgf,CREDITO DE VIVIENDA,credito_vivienda,23593
+ptgf,CUENTAS DE AHORRO,cuentas_ahorro,52135
+ptgf,CUENTAS DE AHORRO ELECTRONICAS,cuentas_ahorro_electronicas,11083
+ptgf,MICROCREDITO,microcredito,34186
+ptgf,MICROCREDITO POR RANGO,microcredito_rango,33867
+ptgf,N/A,productos_nivel_nacional,5132
+ptgf,TRANS Y TRAMITES EN CORRESPONSALES,transacciones_corresponsales_fisicos,173273

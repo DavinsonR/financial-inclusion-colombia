@@ -1,0 +1,5 @@
+---
+title: "Decisiones de arquitectura y método"
+---
+
+{{< include docs/decisiones/README.md >}}

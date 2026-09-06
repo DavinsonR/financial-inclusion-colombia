@@ -1,0 +1,6 @@
+---
+title: "Atlas de inclusión financiera"
+draft: true
+---
+
+En construcción (Fase 2): mapa de Colombia por departamento y municipio, con selector de dimensión (compuesto, acceso, uso, profundidad) y de variable, periodo, agrupación por región y ranking. Los datos que consumirá están descritos en `config/atlas.yaml`.
