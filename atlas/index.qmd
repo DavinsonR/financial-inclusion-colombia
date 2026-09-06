@@ -1,6 +1,453 @@
 ---
 title: "Atlas de inclusión financiera"
-draft: true
+subtitle: "Colombia por departamento y municipio, 2018 a 2025"
+format:
+  html:
+    page-layout: full
+    code-fold: true
+    include-in-header:
+      # d3 y topojson viven en el repositorio, no en un CDN: el atlas es un artefacto de investigación y
+      # tiene que seguir dibujándose dentro de diez años sin depender de que un servicio ajeno siga vivo.
+      - text: |
+          <script src="lib/d3.min.js"></script>
+          <script src="lib/topojson-client.min.js"></script>
+resources:
+  - lib/*.js
 ---
 
-En construcción (Fase 2): mapa de Colombia por departamento y municipio, con selector de dimensión (compuesto, acceso, uso, profundidad) y de variable, periodo, agrupación por región y ranking. Los datos que consumirá están descritos en `config/atlas.yaml`.
+```{=html}
+<style>
+:root {
+  color-scheme: light;
+  --atl-surface: #fcfcfb;
+  --atl-plane: #f9f9f7;
+  --atl-ink: #0b0b0b;
+  --atl-ink-2: #52514e;
+  --atl-muted: #898781;
+  --atl-hairline: #e1e0d9;
+  --atl-baseline: #c3c2b7;
+  --atl-ring: rgba(11, 11, 11, 0.10);
+  /* Divergente: dos matices opuestos con gris neutro al centro. Las luminosidades de los dos brazos
+     son espejo una de otra (OKLCH L 0,764 / 0,622 / 0,338), medidas, no elegidas a ojo. */
+  --atl-div-neg-3: #621b1a; --atl-div-neg-2: #d75853; --atl-div-neg-1: #ea9a93;
+  --atl-div-mid:   #f0efec;
+  --atl-div-pos-1: #86b6ef; --atl-div-pos-2: #3987e5; --atl-div-pos-3: #0d366b;
+  /* Secuencial: un solo matiz, claro a oscuro. El paso más claro significa "casi nada" y puede
+     acercarse a la superficie. */
+  --atl-seq-0: #cde2fb; --atl-seq-1: #9ec5f4; --atl-seq-2: #5598e7; --atl-seq-3: #256abf; --atl-seq-4: #0d366b;
+  --atl-sin-dato: #e6e5e0;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --atl-surface: #1a1a19; --atl-plane: #0d0d0d; --atl-ink: #ffffff; --atl-ink-2: #c3c2b7;
+    --atl-muted: #898781; --atl-hairline: #2c2c2a; --atl-baseline: #383835;
+    --atl-ring: rgba(255, 255, 255, 0.10);
+    /* Pasos propios para la superficie oscura: los extremos se aclaran y el centro retrocede
+       hacia el fondo. No es la rampa clara invertida. */
+    --atl-div-neg-3: #ea9a93; --atl-div-neg-2: #d75853; --atl-div-neg-1: #8e3230;
+    --atl-div-mid:   #383835;
+    --atl-div-pos-1: #24548f; --atl-div-pos-2: #3987e5; --atl-div-pos-3: #86b6ef;
+    --atl-seq-0: #0d366b; --atl-seq-1: #184f95; --atl-seq-2: #2a78d6; --atl-seq-3: #6da7ec; --atl-seq-4: #cde2fb;
+    --atl-sin-dato: #2c2c2a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --atl-surface: #1a1a19; --atl-plane: #0d0d0d; --atl-ink: #ffffff; --atl-ink-2: #c3c2b7;
+  --atl-muted: #898781; --atl-hairline: #2c2c2a; --atl-baseline: #383835;
+  --atl-ring: rgba(255, 255, 255, 0.10);
+  --atl-div-neg-3: #ea9a93; --atl-div-neg-2: #d75853; --atl-div-neg-1: #8e3230;
+  --atl-div-mid:   #383835;
+  --atl-div-pos-1: #24548f; --atl-div-pos-2: #3987e5; --atl-div-pos-3: #86b6ef;
+  --atl-seq-0: #0d366b; --atl-seq-1: #184f95; --atl-seq-2: #2a78d6; --atl-seq-3: #6da7ec; --atl-seq-4: #cde2fb;
+  --atl-sin-dato: #2c2c2a;
+}
+.atlas { background: var(--atl-surface); color: var(--atl-ink); border-radius: 6px; padding: 4px 2px 10px; }
+.atlas-filtros { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end;
+  padding: 10px 14px; border-bottom: 1px solid var(--atl-hairline); margin-bottom: 10px; }
+.atlas-filtros label { font-size: 13px; color: var(--atl-ink-2); }
+.atlas-lienzo { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, 1fr); gap: 20px; }
+@media (max-width: 900px) { .atlas-lienzo { grid-template-columns: 1fr; } }
+.atlas figure, .atlas form { margin: 0; }
+.atlas-nota { font-size: 12.5px; color: var(--atl-muted); line-height: 1.55; padding: 8px 14px 0; }
+.atlas-tabla { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.atlas-tabla th { text-align: left; font-weight: 600; color: var(--atl-ink-2); font-size: 12px;
+  text-transform: uppercase; letter-spacing: .04em; padding: 0 6px 6px; border-bottom: 1px solid var(--atl-baseline); }
+.atlas-tabla td { padding: 4px 6px; border-bottom: 1px solid var(--atl-hairline); color: var(--atl-ink); }
+.atlas-tabla td.num { text-align: right; }
+.atlas-barra { height: 9px; border-radius: 0 4px 4px 0; display: block; }
+.atlas-tip { position: absolute; pointer-events: none; background: var(--atl-surface); color: var(--atl-ink);
+  border: 1px solid var(--atl-ring); border-radius: 4px; padding: 6px 9px; font-size: 12.5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14); opacity: 0; transition: opacity .08s; z-index: 5; }
+</style>
+```
+
+El mapa muestra la intensidad de la inclusión financiera de cada unidad en un año. El índice y sus tres
+dimensiones se explican en [Metodología](../metodologia/indice.qmd); las ocho variables que lo componen
+pueden verse una a una. **Un territorio sin color no vale cero: es un territorio del que la
+Superintendencia no reporta datos ese año.**
+
+```{ojs}
+//| echo: false
+//| output: false
+d3 = window.d3
+topojson = window.topojson
+meta = FileAttachment("data/atlas_meta.json").json()
+serieDep = FileAttachment("data/series_departamento.json").json()
+serieMun = FileAttachment("data/series_municipio.json").json()
+geoDep = FileAttachment("data/geo_departamentos.json").json()
+geoMun = FileAttachment("data/geo_municipios.json").json()
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Un solo lugar donde se lee el token de color, para que la rampa del mapa, la de la leyenda y la de
+// las barras del ranking sean siempre la misma.
+tok = (nombre) => getComputedStyle(document.documentElement).getPropertyValue(nombre).trim()
+rampas = ({
+  divergente: () => [tok("--atl-div-neg-3"), tok("--atl-div-neg-2"), tok("--atl-div-neg-1"), tok("--atl-div-mid"),
+                     tok("--atl-div-pos-1"), tok("--atl-div-pos-2"), tok("--atl-div-pos-3")],
+  secuencial: () => [tok("--atl-seq-0"), tok("--atl-seq-1"), tok("--atl-seq-2"), tok("--atl-seq-3"), tok("--atl-seq-4")]
+})
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Controles construidos con HTML plano. Observable Inputs se carga desde un CDN y sin red los cuatro
+// filtros se caen; además, un filtro es interfaz corriente y debe vestir el mismo cromado que el gráfico.
+// El envoltorio expone `value` y reemite `input`, que es lo que `viewof` necesita.
+control = {
+  const envolver = (etiqueta, interno) => {
+    const caja = document.createElement("label");
+    caja.style.cssText = "display:flex;flex-direction:column;gap:3px";
+    const t = document.createElement("span");
+    t.textContent = etiqueta;
+    t.style.cssText = "font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--atl-ink-2)";
+    caja.append(t, interno);
+    Object.defineProperty(caja, "value", {
+      get: () => interno.value,
+      set: (v) => { interno.value = v; }
+    });
+    interno.addEventListener("input", () => caja.dispatchEvent(new CustomEvent("input")));
+    return caja;
+  };
+  const estilo = "font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--atl-baseline);" +
+                 "border-radius:4px;background:var(--atl-surface);color:var(--atl-ink)";
+  return {
+    seleccion(etiqueta, opciones, valor) {
+      const sel = document.createElement("select");
+      sel.style.cssText = estilo + ";min-width:190px";
+      let grupoActual = null, destino = sel;
+      for (const o of opciones) {
+        if (o.grupo && o.grupo !== grupoActual) {
+          grupoActual = o.grupo;
+          destino = document.createElement("optgroup");
+          destino.label = o.grupo;
+          sel.append(destino);
+        } else if (!o.grupo) {
+          destino = sel;
+        }
+        const op = document.createElement("option");
+        op.value = o.valor;
+        op.textContent = o.texto;
+        destino.append(op);
+      }
+      sel.value = valor ?? opciones[0].valor;
+      return envolver(etiqueta, sel);
+    },
+    radio(etiqueta, opciones, valor) {
+      const caja = document.createElement("div");
+      caja.style.cssText = "display:flex;gap:10px;align-items:center;min-height:29px";
+      const nombre = "r" + Math.random().toString(36).slice(2);
+      let actual = valor ?? opciones[0].valor;
+      for (const o of opciones) {
+        const l = document.createElement("label");
+        l.style.cssText = "display:flex;gap:4px;align-items:center;font-size:13px;color:var(--atl-ink);cursor:pointer";
+        const r = document.createElement("input");
+        r.type = "radio"; r.name = nombre; r.value = o.valor; r.checked = o.valor === actual;
+        r.addEventListener("change", () => {
+          actual = o.valor;
+          caja.dispatchEvent(new CustomEvent("input"));
+        });
+        l.append(r, document.createTextNode(o.texto));
+        caja.append(l);
+      }
+      Object.defineProperty(caja, "value", {get: () => actual, set: (v) => { actual = v; }});
+      return envolver(etiqueta, caja);
+    },
+    rango(etiqueta, [min, max], valor) {
+      const caja = document.createElement("div");
+      caja.style.cssText = "display:flex;gap:8px;align-items:center";
+      const r = document.createElement("input");
+      r.type = "range"; r.min = min; r.max = max; r.step = 1; r.value = valor ?? max;
+      r.style.cssText = "width:170px;accent-color:var(--atl-div-pos-2)";
+      const eco = document.createElement("output");
+      eco.textContent = r.value;
+      eco.style.cssText = "font-size:13px;font-variant-numeric:tabular-nums;color:var(--atl-ink);min-width:34px";
+      r.addEventListener("input", () => {
+        eco.textContent = r.value;
+        caja.dispatchEvent(new CustomEvent("input"));
+      });
+      caja.append(r, eco);
+      Object.defineProperty(caja, "value", {get: () => +r.value, set: (v) => { r.value = v; eco.textContent = v; }});
+      return envolver(etiqueta, caja);
+    }
+  };
+}
+```
+
+::: {.atlas}
+
+::: {.atlas-filtros}
+```{ojs}
+//| echo: false
+viewof nivel = control.radio("Nivel",
+  [{valor: "departamento", texto: "Departamentos"}, {valor: "municipio", texto: "Municipios"}],
+  "departamento")
+```
+```{ojs}
+//| echo: false
+viewof indicadorId = control.seleccion("Qué se pinta",
+  meta.indicadores[nivel].map(i => ({
+    valor: i.id,
+    texto: i.etiqueta,
+    grupo: i.grupo === "indice" ? "Índice" : i.grupo === "variable" ? "Variables del índice" : "Contexto"
+  })),
+  "iif_compuesto")
+```
+```{ojs}
+//| echo: false
+viewof anio = control.rango("Año", [d3.min(datos.anios), d3.max(datos.anios)], d3.max(datos.anios))
+```
+```{ojs}
+//| echo: false
+viewof grupo = control.seleccion(nivel === "departamento" ? "Región" : "Departamento",
+  ["Todas", ...grupos].map(g => ({valor: g, texto: g})), "Todas")
+```
+:::
+
+::: {.atlas-lienzo}
+```{ojs}
+//| echo: false
+mapa = {
+  const ancho = 640, alto = 700;
+  const objeto = Object.values(geo.objects)[0];
+  const rasgos = topojson.feature(geo, objeto).features;
+  const porId = new Map(datos.ids.map((id, i) => [id, i]));
+
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, ancho, alto])
+    .attr("width", "100%")
+    .attr("style", "max-width:100%;height:auto;max-height:78vh;display:block")
+    .attr("role", "img")
+    .attr("aria-label", `Mapa de Colombia: ${indicador.etiqueta}, ${anio}`);
+
+  const proyeccion = d3.geoMercator().fitSize([ancho, alto - 56], {type: "FeatureCollection", features: rasgos});
+  const trazo = d3.geoPath(proyeccion);
+  const capa = svg.append("g").attr("transform", "translate(0,56)");
+
+  capa.selectAll("path")
+    .data(rasgos)
+    .join("path")
+      .attr("d", trazo)
+      // Un separador del color de la superficie entre polígonos: sin él dos unidades vecinas con
+      // valores parecidos se leen como una sola mancha.
+      .attr("stroke", "var(--atl-surface)")
+      .attr("stroke-width", nivel === "departamento" ? 0.7 : 0.25)
+      .attr("fill", f => {
+        const i = porId.get(f.properties.id);
+        if (i === undefined || valores[i] === null) return "var(--atl-sin-dato)";
+        return enGrupo(i) ? escala(valores[i]) : "var(--atl-sin-dato)";
+      })
+      .attr("opacity", f => {
+        const i = porId.get(f.properties.id);
+        return (grupo === "Todas" || (i !== undefined && enGrupo(i))) ? 1 : 0.35;
+      })
+      .on("pointerenter pointermove", function (evento, f) {
+        const i = porId.get(f.properties.id);
+        const v = i === undefined ? null : valores[i];
+        d3.select(this).attr("stroke", "var(--atl-ink)").attr("stroke-width", 1.2).raise();
+        tip.style.opacity = 1;
+        tip.innerHTML = `<strong>${i === undefined ? f.properties.id : datos.nombres[i]}</strong><br>` +
+          `${indicador.etiqueta}, ${anio}<br>` +
+          (v === null ? "<em>sin dato reportado</em>" : `<strong>${formato(v)}</strong>`);
+        const caja = svg.node().getBoundingClientRect();
+        tip.style.left = `${evento.clientX - caja.left + 14}px`;
+        tip.style.top = `${evento.clientY - caja.top + 12}px`;
+      })
+      .on("pointerleave", function () {
+        d3.select(this).attr("stroke", "var(--atl-surface)")
+          .attr("stroke-width", nivel === "departamento" ? 0.7 : 0.25);
+        tip.style.opacity = 0;
+      })
+    .append("title")
+      .text(f => {
+        const i = porId.get(f.properties.id);
+        const v = i === undefined ? null : valores[i];
+        return `${i === undefined ? f.properties.id : datos.nombres[i]}: ${v === null ? "sin dato" : formato(v)}`;
+      });
+
+  svg.append("g").attr("transform", "translate(2,8)").call(g => leyenda(g, ancho - 4));
+
+  const envoltorio = d3.create("div").style("position", "relative").node();
+  envoltorio.append(svg.node());
+  const tip = d3.create("div").attr("class", "atlas-tip").node();
+  envoltorio.append(tip);
+  return envoltorio;
+}
+```
+```{ojs}
+//| echo: false
+// El ranking es también la vista de tabla: da el número exacto que el color solo insinúa.
+ranking = {
+  const filas = datos.ids
+    .map((id, i) => ({id, nombre: datos.nombres[i], grupo: etiquetaGrupo[i], valor: valores[i]}))
+    .filter(f => f.valor !== null && enGrupo(datos.ids.indexOf(f.id)))
+    .sort((a, b) => d3.descending(a.valor, b.valor));
+  const tope = 15;
+  const mostradas = filas.length <= tope * 2 ? filas : [...filas.slice(0, tope), null, ...filas.slice(-5)];
+  const anchoBarra = d3.scaleLinear()
+    .domain([d3.min(filas, f => Math.min(0, f.valor)), d3.max(filas, f => f.valor)])
+    .range([0, 96]).clamp(true);
+
+  const cont = d3.create("div");
+  cont.append("p")
+    .attr("style", "font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--atl-ink-2);margin:0 0 6px 6px")
+    .text(`Ranking · ${filas.length} unidades con dato`);
+  const tabla = cont.append("table").attr("class", "atlas-tabla");
+  tabla.append("thead").append("tr").selectAll("th")
+    .data(["#", nivel === "departamento" ? "Departamento" : "Municipio", "Valor", ""])
+    .join("th").text(d => d);
+  const cuerpo = tabla.append("tbody");
+  mostradas.forEach((f, k) => {
+    const tr = cuerpo.append("tr");
+    if (f === null) {
+      tr.append("td").attr("colspan", 4)
+        .attr("style", "text-align:center;color:var(--atl-muted);padding:6px")
+        .text(`… ${filas.length - tope - 5} unidades intermedias`);
+      return;
+    }
+    const posicion = filas.indexOf(f) + 1;
+    tr.append("td").attr("class", "num").attr("style", "color:var(--atl-muted);width:28px").text(posicion);
+    tr.append("td").text(f.nombre)
+      .attr("title", f.grupo ? `${f.nombre} · ${f.grupo}` : f.nombre);
+    tr.append("td").attr("class", "num").attr("style", "width:74px").text(formato(f.valor));
+    tr.append("td").attr("style", "width:104px")
+      .append("span").attr("class", "atlas-barra")
+      .attr("style", `width:${Math.max(2, anchoBarra(f.valor))}px;background:${escala(f.valor)}`);
+  });
+  return cont.node();
+}
+```
+:::
+
+::: {.atlas-nota}
+Fuente: Superintendencia Financiera de Colombia (CC BY-SA 4.0), DANE, MinTIC y MEN. Geometría del Marco
+Geoestadístico Nacional 2024, simplificada para la web. El índice y sus pesos están en
+[Metodología](../metodologia/indice.qmd); los datos que consume esta página se generan con `uv run iif atlas`.
+:::
+
+:::
+
+```{ojs}
+//| echo: false
+//| output: false
+datos = nivel === "departamento" ? serieDep : serieMun
+geo = nivel === "departamento" ? geoDep : geoMun
+indicador = meta.indicadores[nivel].find(i => i.id === indicadorId)
+// La agrupación es la región del departamento, o el departamento del municipio.
+etiquetaGrupo = nivel === "departamento"
+  ? datos.region
+  : datos.dpto_ccdgo.map(c => nombreDepartamento.get(c) ?? c)
+nombreDepartamento = new Map(serieDep.ids.map((id, i) => [id, serieDep.nombres[i]]))
+grupos = Array.from(new Set(etiquetaGrupo.filter(d => d))).sort((a, b) => a.localeCompare(b, "es"))
+indiceAnio = datos.anios.indexOf(anio)
+valores = datos.series[indicadorId][indiceAnio]
+enGrupo = (i) => grupo === "Todas" || etiquetaGrupo[i] === grupo
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Escala de color. Divergente: dominio simétrico alrededor de cero, para que el mismo color signifique
+// la misma distancia al centro a los dos lados. Secuencial: del mínimo al máximo observados.
+escala = {
+  const visibles = valores.filter((v, i) => v !== null && enGrupo(i));
+  if (!visibles.length) return d3.scaleLinear().domain([0, 1]).range(["#ccc", "#ccc"]);
+  if (indicador.escala === "divergente") {
+    const m = d3.max(visibles, Math.abs);
+    return d3.scaleLinear().domain(d3.range(7).map(i => -m + (2 * m * i) / 6)).range(rampas.divergente())
+      .clamp(true).interpolate(d3.interpolateLab);
+  }
+  const [lo, hi] = d3.extent(visibles);
+  const r = rampas.secuencial();
+  return d3.scaleLinear().domain(r.map((_, i) => lo + ((hi - lo) * i) / (r.length - 1))).range(r)
+    .clamp(true).interpolate(d3.interpolateLab);
+}
+formato = indicador.decimales >= 3 ? d3.format("+.2f")
+  : indicador.decimales === 0 ? d3.format(",.0f") : d3.format(",.2f")
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Leyenda continua: siempre presente, con el cero marcado cuando la escala es divergente.
+leyenda = (g, ancho) => {
+  const w = Math.min(300, ancho - 20), h = 9, x = 0, y = 20;
+  const id = "grad-" + Math.random().toString(36).slice(2);
+  const dominio = escala.domain();
+  const [lo, hi] = [dominio[0], dominio[dominio.length - 1]];
+  const grad = g.append("defs").append("linearGradient").attr("id", id);
+  d3.range(0, 1.001, 0.05).forEach(t => grad.append("stop")
+    .attr("offset", `${t * 100}%`).attr("stop-color", escala(lo + t * (hi - lo))));
+  g.append("text").attr("x", x).attr("y", y - 8)
+    .attr("fill", "var(--atl-ink-2)").attr("font-size", 12.5).attr("font-weight", 600)
+    .text(`${indicador.etiqueta} · ${anio}`);
+  g.append("rect").attr("x", x).attr("y", y).attr("width", w).attr("height", h)
+    .attr("rx", 2).attr("fill", `url(#${id})`).attr("stroke", "var(--atl-ring)");
+  const ejeX = d3.scaleLinear().domain([lo, hi]).range([x, x + w]);
+  const marcas = indicador.escala === "divergente" ? [lo, 0, hi] : [lo, (lo + hi) / 2, hi];
+  g.selectAll("text.marca").data(marcas).join("text").attr("class", "marca")
+    .attr("x", d => ejeX(d)).attr("y", y + h + 12)
+    .attr("text-anchor", (d, i) => i === 0 ? "start" : i === marcas.length - 1 ? "end" : "middle")
+    .attr("fill", "var(--atl-muted)").attr("font-size", 11)
+    .attr("font-variant-numeric", "tabular-nums")
+    .text(d => formato(d));
+  if (indicador.escala === "divergente") {
+    g.append("line").attr("x1", ejeX(0)).attr("x2", ejeX(0)).attr("y1", y - 2).attr("y2", y + h + 2)
+      .attr("stroke", "var(--atl-ink-2)").attr("stroke-width", 1);
+  }
+  g.append("g").attr("transform", `translate(${x + w + 16},${y})`).call(gg => {
+    gg.append("rect").attr("width", h).attr("height", h).attr("rx", 2)
+      .attr("fill", "var(--atl-sin-dato)").attr("stroke", "var(--atl-ring)");
+    gg.append("text").attr("x", h + 6).attr("y", h - 1)
+      .attr("fill", "var(--atl-muted)").attr("font-size", 11).text("sin dato");
+  });
+}
+```
+
+## Cómo leerlo
+
+El índice está estandarizado: **cero es el promedio de los departamentos en la ventana de calibración
+(2018 y 2019)**, y las unidades son desviaciones estándar de esa ventana. Un valor de 2 significa dos
+desviaciones por encima de aquel promedio, no "el doble de inclusión". Por eso la escala del índice es
+divergente, con el gris en el cero, y la de las variables es de un solo color: una variable como
+"corresponsales por 10.000 habitantes" no tiene un centro natural, solo más y menos.
+
+Los pesos con los que se combinan las variables están publicados en
+[Metodología](../metodologia/indice.qmd), igual que las razones por las que el componente principal quedó
+descartado como método.
+
+::: {.callout-warning}
+## Los límites del mapa
+Los municipios que no aparecen coloreados no son municipios sin inclusión financiera: son municipios de los
+que ninguna entidad vigilada reportó operaciones ese año. La diferencia importa, y confundirlas es el error
+más fácil de cometer con estos datos.
+
+El nivel municipal hereda además una limitación de la fuente: el valor agregado municipal del DANE es un
+reparto del PIB departamental, no una medición independiente, así que las razones que lo usan como
+denominador deben leerse como aproximaciones.
+:::

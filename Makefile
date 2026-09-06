@@ -4,7 +4,7 @@ export IIF_DUCKDB_PATH ?= $(CURDIR)/db/iif.duckdb
 export QUARTO_PYTHON := $(CURDIR)/.venv/bin/python
 DBT_FLAGS := --profiles-dir dbt --project-dir dbt
 
-.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check acquire parse index manifest clean
+.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check acquire parse index atlas manifest clean
 
 setup:            ## dependencias de Python (uv) y kernel de Jupyter
 	uv sync --all-groups --all-extras
