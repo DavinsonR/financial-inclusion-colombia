@@ -199,10 +199,19 @@ seeds:
 
   - name: dim_variable
     description: >
-      Primer corte del diccionario de variables SFC: bloque (tipo_id), dimensión del índice
-      (acceso/uso/profundidad), unidad, naturaleza stock/flujo y regla de anualización (flujos: suma de
-      4 trimestres; stocks: valor del Q4). `en_indice` marca las 8 variables SFC del índice legado (la novena,
-      internet, viene de MinTIC). `ptgf_column` y `kx2f_column` (el mapa del empalme) se llenan en S12.
+      Diccionario de las 98 variables de las tablas de inclusión financiera de la SFC, derivado de los nombres
+      oficiales de cada columna (`sfc_column_names`) y de la correspondencia posicional entre las dos tablas
+      (`xw_sfc_columns_empalme`). 70 variables existen en ptgf y kx2f, 8 solo en ptgf (cuentas de ahorro
+      electrónicas) y 20 solo en kx2f (corresponsales móviles y desagregación de activos).
+      `regla_anualizacion` sigue de `naturaleza`: los flujos se suman sobre los cuatro trimestres del año y los
+      stocks toman el valor del cuarto trimestre. Ninguna columna es acumulada en el año: se comprobó que el
+      primer trimestre no cae respecto al cuarto anterior en ninguna de las 164 series (B-036).
+      `desagregacion` distingue los totales del bloque de sus cortes por género, rango de SMMLV, tenencia o
+      estado; la selección de variables del índice es una decisión aparte (fase 2, `config/index.yaml`).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ptgf_column, kx2f_column]
     columns:
       - name: variable_id
         data_tests: [unique, not_null]
@@ -224,7 +233,7 @@ seeds:
           - not_null
           - accepted_values:
               arguments:
-                values: ["count", "cop", "pct"]
+                values: ["count", "cop"]
       - name: naturaleza
         data_tests:
           - not_null
@@ -232,18 +241,22 @@ seeds:
               arguments:
                 values: ["stock", "flujo"]
       - name: regla_anualizacion
+        description: "last: valor del cuarto trimestre (stocks). sum: suma de los cuatro trimestres (flujos)."
         data_tests:
           - not_null
           - accepted_values:
               arguments:
-                values: ["sum", "last", "mean"]
-      - name: en_indice
-        data_tests: [not_null]
-      - name: ptgf_column
-      - name: kx2f_column
-      - name: descripcion
-        data_tests: [not_null]
-
+                values: ["last", "sum"]
+      - name: desagregacion
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["ninguna", "genero", "rango_smmlv", "tenencia", "estado"]
+      - name: disponible_en
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["ambas", "ptgf", "kx2f"]
   - name: map_sfc_columns
     description: "Bloque `tipo_id` al que pertenece cada columna numérica de las tablas SFC, derivado de los datos con `iif crosswalk derive-blocks` (columnas con algún valor distinto de cero dentro del bloque). Fuera de su bloque una columna solo trae ceros estructurales (ADR-008)."
     data_tests:

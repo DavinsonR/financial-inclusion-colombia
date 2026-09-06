@@ -309,6 +309,22 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: `.github/workflows/ci.yml` (paso "Publicar la rama site"); `vercel.json` en `main` con `ignoreCommand`.
 - Estado: cerrada.
 
+## B-036 · 2026-09-06 · Se dio por descartado BigQuery sobre una instrucción ambigua
+- Contexto: el autor escribió "dejemos google bigquery y la otra tecnología que mencionaste por ahora y snowflake como un demo a posterior".
+- Qué pasó: se leyó "dejemos X por ahora" como "dejemos X de lado" y se escribió una adenda a ADR-014 descartando BigQuery y Databricks. El autor aclaró en el mismo turno que sí quería BigQuery implementado.
+- Causa raíz: la frase admite las dos lecturas opuestas (dejar de lado / conservar) y se resolvió sin preguntar, en una decisión de arquitectura que ya se había discutido antes.
+- Regla: una instrucción con dos lecturas opuestas sobre una decisión de valor se pregunta, no se resuelve por contexto; el coste de una pregunta es menor que el de un ADR equivocado (R-11).
+- Evidencia: ADR-014, adendas 1 y 2; `bigquery/`.
+- Estado: cerrada.
+
+## B-037 · 2026-09-06 · Una semilla con esquema nuevo no se recarga sola
+- Contexto: `dim_variable` pasó de 10 a 12 columnas al generarse el diccionario completo.
+- Qué pasó: `dbt seed` falló con "Error when sniffing file": dbt hace `COPY` sobre la tabla existente, que conserva el esquema viejo, y el mensaje culpa al CSV en vez de al esquema. Se perdió tiempo revisando comillas y separadores del archivo, que estaba bien.
+- Causa raíz: dbt no recrea una semilla cuando cambian sus columnas, salvo con `--full-refresh`.
+- Regla: al cambiar las columnas de una semilla, `dbt seed --select <semilla> --full-refresh`; si un error de CSV menciona un número de columnas distinto al del archivo, el problema es la tabla destino → `docs/GUIA_DEL_PROYECTO.md` (sección 8).
+- Evidencia: `dbt/seeds/dim_variable.csv` con 12 columnas; el error citaba 10.
+- Estado: cerrada.
+
 ---
 
 ## Aciertos
@@ -362,4 +378,14 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Contexto: S-009 se comprobó en `ptgf`; el plan suponía que `kx2f` venía sin DIVIPOLA.
 - Qué funcionó: en `kx2f`, `dpto_ccdgo || lpad(renglon, 3)` cubre el 100 % de las filas geográficas en los 20 cortes (2021Q1 a 2025Q4); 64 nombres difieren del DANE solo por grafía. El crosswalk por nombre de ADR-007 queda como prueba de consistencia en ambas tablas.
 - Dónde se reutiliza: `stg_sfc__kx2f`, `int_sfc_geo_long`, `iif crosswalk geo-report --fuente kx2f`.
+
+## S-011 · 2026-09-06 · Ninguna serie de la SFC es acumulada en el año
+- Contexto: antes de fijar la regla de anualización de las 98 variables (sumar flujos, tomar el cuarto trimestre en stocks) había que descartar que las transacciones vinieran acumuladas desde enero, error que multiplicaría por cuatro cualquier agregado anual.
+- Qué funcionó: la firma de una serie acumulada es que el primer trimestre cae a un cuarto del cuarto trimestre anterior y que dentro del año crece de forma monótona. Se midió en las 164 series de las dos tablas: la mediana de Q1 sobre el Q4 anterior está entre 0,73 y 1,54, nunca cerca de 0,25, y ninguna serie cumple las dos condiciones.
+- Dónde se reutiliza: `dbt/seeds/dim_variable.csv` (`regla_anualizacion`); la prueba se repetirá cuando la SFC publique columnas nuevas.
+
+## S-012 · 2026-09-06 · El panel nuevo sí varía dentro del panel
+- Contexto: el defecto que originó el proyecto fue un panel trimestral cuya dependiente solo cambiaba una vez al año (64,3 % de log-diferencias exactamente cero).
+- Qué funcionó: construir la dependiente a frecuencia anual verdadera sobre el PIB real per cápita del DANE. El panel departamental 2018-2025 tiene 231 observaciones de crecimiento, **ninguna** exactamente cero, siete valores distintos por departamento y el perfil esperado de la pandemia (mediana de −9,3 % en 2020 y +8,4 % en 2021). Una prueba dbt (`assert_panel_departamento_varia_dentro_del_anio`) falla si los ceros exactos superan el 5 %.
+- Dónde se reutiliza: `mart_panel_departamento_anual`, `mart_panel_municipio_anual`; R-05.
 

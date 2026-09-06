@@ -1,35 +1,99 @@
-variable_id,bloque,dimension_iif,unidad,naturaleza,regla_anualizacion,en_indice,ptgf_column,kx2f_column,descripcion
-nro_corresp_activos,corresponsales_fisicos,acceso,count,stock,last,true,,,Corresponsales físicos activos al cierre del trimestre (variable de acceso del índice legado)
-nro_corresp_propios,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos propios
-nro_corresp_tercerizados,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos tercerizados
-nro_corresponsales,corresponsales_fisicos,acceso,count,stock,last,false,,,Corresponsales físicos contratados (propios + tercerizados)
-nro_depositos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de depósitos en corresponsales físicos en el trimestre
-monto_depositos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de depósitos en corresponsales físicos (COP nominales)
-nro_pagos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de pagos en corresponsales físicos en el trimestre
-monto_pagos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de pagos en corresponsales físicos (COP nominales)
-nro_transferencias,transacciones_corresponsales_fisicos,uso,count,flujo,sum,true,,,Número de transferencias en corresponsales físicos en el trimestre
-monto_transferencias,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de transferencias en corresponsales físicos (COP nominales)
-nro_retiros,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de retiros en corresponsales físicos en el trimestre
-monto_retiros,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de retiros en corresponsales físicos (COP nominales)
-nro_giros_enviados,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de giros enviados desde corresponsales físicos
-monto_giros_enviados,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de giros enviados desde corresponsales físicos (COP nominales)
-nro_giros_recibidos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Número de giros recibidos en corresponsales físicos
-monto_giros_recibidos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto de giros recibidos en corresponsales físicos (COP nominales)
-nro_total_transacciones,transacciones_corresponsales_fisicos,uso,count,flujo,sum,false,,,Total de operaciones en corresponsales físicos (suma reportada por la SFC; base del log_fintech_pc legado)
-monto_total_transacciones,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,false,,,Monto total de operaciones en corresponsales físicos (COP nominales)
-nro_cuentas_ahorro,cuentas_ahorro,acceso,count,stock,last,true,,,Número total de cuentas de ahorro (variable de acceso del índice legado)
-saldo_cuentas_ahorro,cuentas_ahorro,profundidad,cop,stock,last,false,,,Saldo total de cuentas de ahorro (COP nominales)
-nro_cuentas_ahorro_activas,cuentas_ahorro,acceso,count,stock,last,false,,,Cuentas de ahorro activas
-nro_cuentas_electronicas,cuentas_ahorro_electronicas,acceso,count,stock,last,false,,,Cuentas de ahorro electrónicas (solo ptgf; en kx2f pasan a depósitos de bajo monto)
-saldo_cuentas_electronicas,cuentas_ahorro_electronicas,profundidad,cop,stock,last,false,,,Saldo de cuentas de ahorro electrónicas (COP nominales)
-nro_microcredito,microcredito,profundidad,count,flujo,sum,false,,,Número de microcréditos desembolsados en el trimestre
-monto_microcredito,microcredito,profundidad,cop,flujo,sum,true,,,Monto de microcrédito desembolsado (COP nominales; variable de profundidad del índice legado)
-nro_credito_consumo,credito_consumo,profundidad,count,flujo,sum,false,,,Número de créditos de consumo desembolsados
-monto_credito_consumo,credito_consumo,profundidad,cop,flujo,sum,true,,,Monto de crédito de consumo desembolsado (COP nominales; índice legado)
-nro_credito_vivienda,credito_vivienda,profundidad,count,flujo,sum,false,,,Número de créditos de vivienda desembolsados
-monto_credito_vivienda,credito_vivienda,profundidad,cop,flujo,sum,true,,,Monto de crédito de vivienda desembolsado (COP nominales; índice legado)
-nro_credito_consumo_bajo_monto,credito_consumo_bajo_monto,profundidad,count,flujo,sum,false,,,Número de créditos de consumo de bajo monto
-monto_credito_consumo_bajo_monto,credito_consumo_bajo_monto,profundidad,cop,flujo,sum,false,,,Monto de crédito de consumo de bajo monto (COP nominales)
-nro_corresp_moviles,corresponsales_moviles,acceso,count,stock,last,false,,,"Corresponsales móviles (solo kx2f, desde 2021)"
-nro_transacciones_corresp_movil,transacciones_corresponsal_movil,uso,count,flujo,sum,false,,,Número de operaciones en corresponsales móviles (solo kx2f)
-monto_transacciones_corresp_movil,transacciones_corresponsal_movil,uso,cop,flujo,sum,false,,,Monto de operaciones en corresponsales móviles (COP nominales; solo kx2f)
+variable_id,bloque,dimension_iif,unidad,naturaleza,regla_anualizacion,desagregacion,es_total_bloque,disponible_en,ptgf_column,kx2f_column,descripcion
+nro_corresp_propios,corresponsales_fisicos,acceso,count,stock,last,tenencia,false,ambas,correspropios,_1_nro_corresponsales_f_sicos,NRO CORRESPONSALES PROPIOS - corresponsales_fisicos; acceso; count; stock
+nro_corresp_terc,corresponsales_fisicos,acceso,count,stock,last,tenencia,false,ambas,correstercerizados,_2_nro_corresponsales_f_sicos,NRO CORRESPONSALES TERCERIZADOS - corresponsales_fisicos; acceso; count; stock
+nro_corresp_activos,corresponsales_fisicos,acceso,count,stock,last,estado,false,ambas,corresactivos,_3_nro_corresponsales_f_sicos,NRO CORRESPONSALES ACTIVOS - corresponsales_fisicos; acceso; count; stock
+nro_corresp,corresponsales_fisicos,acceso,count,stock,last,ninguna,true,ambas,nrocorresponsales,_4_nro_corresponsales_f_sicos,NRO CORRESPONSALES - corresponsales_fisicos; acceso; count; stock
+nro_depositos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nrodepositos,_5_nro_dep_sitos,NRO DEPOSITOS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_depositos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montodepositos,_6_monto_dep_sitos,MONTO DEPOSITOS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_giros_env,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nrogirosenv,_7_nro_giros_enviados,NRO GIROS ENVIADOS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_giros_env,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montogiroenv,_8_monto_giros_enviados,MONTO GIROS ENVIADOS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_giros_rec,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nrogirosreci,_9_nro_giros_recibidos,NRO GIROS RECIBIDOS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_giros_rec,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montogirorec,_10_monto_giros_recibidos,MONTO GIROS RECIBIDOS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_pagos,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nropagos,_11_nro_pagos_corresponsales,NRO PAGOS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_pagos,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montopago,_12_monto_pagos_corresponsales,MONTO PAGOS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_retiros,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nroretiros,_13_nro_retiros_corresponsales,NRO RETIROS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_retiros,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montoreti,_14_monto_retiros,MONTO RETIROS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_transfer,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,nrotrnsfer,_15_nro_transferencias,NRO TRANSFERENCIAS - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_transfer,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,montotransfer,_16_monto_transferencias,MONTO TRANSFERENCIAS - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_total,transacciones_corresponsales_fisicos,uso,count,flujo,sum,ninguna,true,ambas,totalnrocorr,_17_nro_transacciones_tr,NRO TOTAL - transacciones_corresponsales_fisicos; uso; count; flujo
+monto_total,transacciones_corresponsales_fisicos,uso,cop,flujo,sum,ninguna,true,ambas,totalmontocorr,_18_monto_transacciones,MONTO TOTAL - transacciones_corresponsales_fisicos; uso; cop; flujo
+nro_cta_ahorro_hasta_1_smmlv,cuentas_ahorro,uso,count,stock,last,rango_smmlv,false,ambas,nro1smmlvca,_19_nro_ctas_ahorro_hasta,NRO CTA AHORRO HASTA 1 SMMLV - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_hasta_1_smmlv,cuentas_ahorro,uso,cop,stock,last,rango_smmlv,false,ambas,saldo1smmlv,_20_saldo_ctas_ahorro_hasta,SALDO CTA AHORRO HASTA 1 SMMLV - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_gt_1_smmlv_hasta_3_smmlv,cuentas_ahorro,uso,count,stock,last,rango_smmlv,false,ambas,nro1y3smmlv,_21_nro_ctas_ahorro_1smmlv,NRO CTA AHORRO > 1 SMMLV HASTA 3 SMMLV - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_gt_1_smmlv_hasta_3_smmlv,cuentas_ahorro,uso,cop,stock,last,rango_smmlv,false,ambas,saldo1y3smmlv,_22_saldo_ctas_ahorro_1smmlv,SALDO CTA AHORRO> 1 SMMLV HASTA 3 SMMLV - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_gt_3_smmlv_hasta_5_smmlv,cuentas_ahorro,uso,count,stock,last,rango_smmlv,false,ambas,nro3y5smmlv,_23_nro_ctas_ahorr_3smmlv,NRO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_gt_3_smmlv_hasta_5_smmlv,cuentas_ahorro,uso,cop,stock,last,rango_smmlv,false,ambas,saldo3y5smmlv,_24_saldo_ctas_ahorr_3smmlv,SALDO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_activas,cuentas_ahorro,uso,count,stock,last,estado,false,ambas,nroactivasca,_25_nro_ctas_ahorro_activas,NRO CTA AHORRO ACTIVAS - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_activas,cuentas_ahorro,uso,cop,stock,last,estado,false,ambas,saldoactivasca,_26_saldo_ctas_ahorro_activas,SALDO CTA AHORRO ACTIVAS - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_muj,cuentas_ahorro,uso,count,stock,last,genero,false,ambas,generonromca,_27_nro_ctas_ahorro_mujeres,NRO CTA AHORRO MUJERES - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_muj,cuentas_ahorro,uso,cop,stock,last,genero,false,ambas,generosaldomca,_28_saldo_ctas_ahorro_mujeres,SALDO CTA AHORRO MUJERES - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_hom,cuentas_ahorro,uso,count,stock,last,genero,false,ambas,generonrohca,_29_nro_ctas_ahorro_hombres,NRO CTA AHORRO HOMBRES - cuentas_ahorro; uso; count; stock
+saldo_cta_ahorro_hom,cuentas_ahorro,uso,cop,stock,last,genero,false,ambas,generosaldohca,_30_saldo_ctas_ahorro_hombres,SALDO CTA AHORRO HOMBRES - cuentas_ahorro; uso; cop; stock
+nro_total_cta_ahorros,cuentas_ahorro,uso,count,stock,last,ninguna,true,ambas,totalnroca,_31_nro_ctas_ahorro,NRO TOTAL CTA AHORROS - cuentas_ahorro; uso; count; stock
+saldo_total_cta_ahorros,cuentas_ahorro,uso,cop,stock,last,ninguna,true,ambas,totalsaldoca,_32_saldo_ctas_ahorro,SALDO TOTAL CTA AHORROS - cuentas_ahorro; uso; cop; stock
+nro_cta_ahorro_electronica_activas,cuentas_ahorro_electronicas,uso,count,stock,last,estado,false,ptgf,nroactivasche,,NRO CTA AHORRO ELECTRONICAS ACTIVAS - cuentas_ahorro_electronicas; uso; count; stock
+saldo_cta_ahorro_electronica_activas,cuentas_ahorro_electronicas,uso,cop,stock,last,estado,false,ptgf,saldoactivasche,,SALDO CTA AHORRO ELECTRONICAS ACTIVAS - cuentas_ahorro_electronicas; uso; cop; stock
+nro_cta_ahorro_electronica_muj,cuentas_ahorro_electronicas,uso,count,stock,last,genero,false,ptgf,generonromche,,NRO CTA AHORRO ELECTRONICAS MUJERES - cuentas_ahorro_electronicas; uso; count; stock
+saldo_cta_ahorro_electronica_muj,cuentas_ahorro_electronicas,uso,cop,stock,last,genero,false,ptgf,generosaldomche,,SALDO CTA AHORRO ELECTRONICAS MUJERES - cuentas_ahorro_electronicas; uso; cop; stock
+nro_cta_ahorro_electronica_hom,cuentas_ahorro_electronicas,uso,count,stock,last,genero,false,ptgf,generonrohche,,NRO CTA AHORRO ELECTRONICAS HOMBRES - cuentas_ahorro_electronicas; uso; count; stock
+saldo_cta_ahorro_electronica_hom,cuentas_ahorro_electronicas,uso,cop,stock,last,genero,false,ptgf,generosaldohche,,SALDO CTA AHORRO ELECTRONICAS HOMBRES - cuentas_ahorro_electronicas; uso; cop; stock
+nro_total_cta_ahorros_electronica,cuentas_ahorro_electronicas,uso,count,stock,last,ninguna,true,ptgf,totalnroche,,NRO TOTAL CTA AHORROS ELECTRONICAS - cuentas_ahorro_electronicas; uso; count; stock
+saldo_total_cta_ahorros_electronica,cuentas_ahorro_electronicas,uso,cop,stock,last,ninguna,true,ptgf,totalsaldoche,,SALDO TOTAL CTA AHORROS ELECTRONICAS - cuentas_ahorro_electronicas; uso; cop; stock
+nro_cred_consumo_muj,credito_consumo,profundidad,count,stock,last,genero,false,ambas,generonromcdc,_41_nro_cr_dito_consumo,NRO CREDITO CONSUMO MUJERES - credito_consumo; profundidad; count; stock
+monto_cred_consumo_muj,credito_consumo,profundidad,cop,stock,last,genero,false,ambas,generomontomcdc,_42_monto_cr_dito_consumo,MONTO CREDITO CONSUMO MUJERES - credito_consumo; profundidad; cop; stock
+nro_cred_consumo_hom,credito_consumo,profundidad,count,stock,last,genero,false,ambas,generonrohcdc,_43_nro_cr_dito_consumo,NRO CREDITO CONSUMO HOMBRES - credito_consumo; profundidad; count; stock
+monto_cred_consumo_hom,credito_consumo,profundidad,cop,stock,last,genero,false,ambas,generomontohcdc,_44_monto_cr_dito_consumo,MONTO CREDITO CONSUMO  HOMBRES - credito_consumo; profundidad; cop; stock
+nro_total_cred_consumo,credito_consumo,profundidad,count,stock,last,ninguna,true,ambas,totalnrocdc,_45_nro_cr_dito_consumo,NRO TOTAL CREDITO CONSUMO - credito_consumo; profundidad; count; stock
+monto_total_cred_consumo,credito_consumo,profundidad,cop,stock,last,ninguna,true,ambas,totalmontocdc,_46_monto_cr_dito_consumo,MONTO TOTAL CREDITO CONSUMO - credito_consumo; profundidad; cop; stock
+nro_cred_consumo_bajo_muj,credito_consumo_bajo_monto,profundidad,count,stock,last,genero,false,ambas,generonromcdcbm,_47_nro_cred_cons_bajo_monto,NRO CRED CONS BAJO MONTO MUJERES - credito_consumo_bajo_monto; profundidad; count; stock
+monto_cred_consumo_bajo_muj,credito_consumo_bajo_monto,profundidad,cop,stock,last,genero,false,ambas,generomontomcdcbm,_48_monto_cred_cons_bajo,MONTO CRED CONS BAJO MONTO MUJERES - credito_consumo_bajo_monto; profundidad; cop; stock
+nro_cred_consumo_bajo_hom,credito_consumo_bajo_monto,profundidad,count,stock,last,genero,false,ambas,generonrohcdcbm,_49_nro_cred_cons_bajo_monto,NRO CRED CONS BAJO MONTO HOMBRES - credito_consumo_bajo_monto; profundidad; count; stock
+monto_cred_consumo_bajo_hom,credito_consumo_bajo_monto,profundidad,cop,stock,last,genero,false,ambas,generomontohcdcbm,_50_monto_cred_cons_bajo,MONTO CRED CONS BAJO MONTO HOMBRES - credito_consumo_bajo_monto; profundidad; cop; stock
+nro_total_cred_consumo_bajo,credito_consumo_bajo_monto,profundidad,count,stock,last,ninguna,true,ambas,totalnrocdcbm,_51_nro_cred_cons_bajo_monto,NRO TOTAL CRED CONS BAJO MONTO - credito_consumo_bajo_monto; profundidad; count; stock
+monto_total_cred_consumo_bajo,credito_consumo_bajo_monto,profundidad,cop,stock,last,ninguna,true,ambas,totalmontocdcbm,_52_monto_cred_cons_bajo,MONTO TOTAL CRED CONS BAJO MONTO - credito_consumo_bajo_monto; profundidad; cop; stock
+nro_cred_vivienda_muj,credito_vivienda,profundidad,count,stock,last,genero,false,ambas,generonromcdv,_53_nro_cr_dito_vivienda,NRO CREDITO VIVIENDA MUJERES - credito_vivienda; profundidad; count; stock
+monto_cred_vivienda_muj,credito_vivienda,profundidad,cop,stock,last,genero,false,ambas,generomontomcdv,_54_monto_cr_dito_vivienda,MONTO CREDITO VIVIENDA MUJERES - credito_vivienda; profundidad; cop; stock
+nro_cred_vivienda_hom,credito_vivienda,profundidad,count,stock,last,genero,false,ambas,generonrohcdv,_55_nro_cr_dito_vivienda,NRO CREDITO VIVIENDA HOMBRES - credito_vivienda; profundidad; count; stock
+monto_cred_vivienda_hom,credito_vivienda,profundidad,cop,stock,last,genero,false,ambas,generomontohcdv,_56_monto_cr_dito_vivienda,MONTO CREDITO VIVIENDA HOMBRES - credito_vivienda; profundidad; cop; stock
+nro_total_cred_vivienda,credito_vivienda,profundidad,count,stock,last,ninguna,true,ambas,totalnrocdv,_57_nro_cr_dito_vivienda,NRO TOTAL CREDITO VIVIENDA - credito_vivienda; profundidad; count; stock
+monto_total_cred_vivienda,credito_vivienda,profundidad,cop,stock,last,ninguna,true,ambas,totalmontocdv,_58_monto_cr_dito_vivienda,MONTO TOTAL CREDITO VIVIENDA - credito_vivienda; profundidad; cop; stock
+nro_micro_hasta_1_smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro1smmlv,_59_nro_microcr_dito_hasta,NRO MICROCREDITO HASTA 1 SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_hasta_1_smmlv,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto1smmlv,_60_monto_microcr_dito_hasta,MONTO MICROCREDITO HASTA 1 SMMLV - microcredito_rango; profundidad; cop; stock
+nro_micro_gt_1_smmlv_hasta_2_smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro1y2smmlv,_61_nro_microcr_dito_1smmlv,NRO MICROCREDITO > 1 SMMLV HASTA 2 SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_1a2smmlv,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto1y2smmlv,_62_monto_microcr_dito_1smmlv,MONTO MICROCREDITO> 1SMMLV HASTA 2SMMLV - microcredito_rango; profundidad; cop; stock
+nro_micro_gt_2_smmlv_hasta_3_smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro2y3smmlv,_63_nro_microcr_dito_2smmlv,NRO MICROCREDITO> 2 SMMLV HASTA 3 SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_2a3smmlv,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto2y3smmlv,_64_monto_microcr_dito_2smmlv,MONTO MICROCREDITO> 2SMMLV HASTA 3SMMLV - microcredito_rango; profundidad; cop; stock
+nro_micro_gt_3_smmlv_hasta_4_smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro3y4smmlv,_65_nro_microcr_dito_3smmlv,NRO MICROCREDITO> 3 SMMLV HASTA 4 SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_3a4smmlv,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto3y4smmlv,_66_monto_microcr_dito_3smmlv,MONTO MICROCREDITO> 3SMMLV HASTA 4SMMLV - microcredito_rango; profundidad; cop; stock
+nro_micro_gt_4_smmlv_hasta_10_smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro4y10smmlv,_67_nro_microcr_dito_4smmlv,NRO MICROCREDITO> 4 SMMLV HASTA 10 SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_gt_4smmlv_hasta_10smml,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto4y10smmlv,_68_monto_microcr_dito_4smmlv,MONTO MICROCREDITO> 4SMMLV HASTA 10SMML - microcredito_rango; profundidad; cop; stock
+nro_micro_10a25smmlv,microcredito_rango,profundidad,count,stock,last,rango_smmlv,false,ambas,nro10y25smmlv,_69_nro_microcr_dito_10smmlv,NRO MICROCREDITO> 10SMMLV HASTA 25SMMLV - microcredito_rango; profundidad; count; stock
+monto_micro_10a25smmlv,microcredito_rango,profundidad,cop,stock,last,rango_smmlv,false,ambas,monto10y25smmlv,_70_monto_microcr_dito_10smmlv,MONTO MICROCREDI> 10SMMLV HASTA 25SMMLV - microcredito_rango; profundidad; cop; stock
+nro_micro_muj,microcredito,profundidad,count,stock,last,genero,false,ambas,generonrommicro,_71_nro_microcr_dito_mujeres,NRO MICROCREDITO MUJERES - microcredito; profundidad; count; stock
+monto_micro_muj,microcredito,profundidad,cop,stock,last,genero,false,ambas,generomontommicro,_72_monto_microcr_dito_mujeres,MONTO MICROCREDITO MUJERES - microcredito; profundidad; cop; stock
+nro_micro_hom,microcredito,profundidad,count,stock,last,genero,false,ambas,generonrohmicro,_73_nro_microcr_dito_hombres,NRO MICROCREDITO HOMBRES - microcredito; profundidad; count; stock
+monto_micro_hom,microcredito,profundidad,cop,stock,last,genero,false,ambas,generomontohmicro,_74_monto_microcr_dito_hombres,MONTO MICROCREDITO HOMBRES - microcredito; profundidad; cop; stock
+nro_total_micro,microcredito,profundidad,count,stock,last,ninguna,true,ambas,totalnromicro,_75_nro_microcr_dito,NRO TOTAL MICROCREDITO - microcredito; profundidad; count; stock
+monto_total_micro,microcredito,profundidad,cop,stock,last,ninguna,true,ambas,totalmontomicro,_76_monto_microcr_dito,MONTO TOTAL MICROCREDITO - microcredito; profundidad; cop; stock
+nro_prod_nacional,productos_nivel_nacional,ninguna,count,stock,last,ninguna,true,ambas,col77,_77_nro_productos_a_nivel,NRO PROD DEPOSITO NIVEL NACIONAL - productos_nivel_nacional; ninguna; count; stock
+monto_prod_nacional,productos_nivel_nacional,ninguna,cop,stock,last,ninguna,true,ambas,col78,_78_monto_saldo_productos,MONTO PROD DEPOSITO NIVEL NACIONAL - productos_nivel_nacional; ninguna; cop; stock
+nro_corresp_fis_propios_activos,corresponsales_fisicos,acceso,count,stock,last,tenencia,false,kx2f,,_79_nro_corresponsales_f,(79) NRO_CORRESPONSALES_FÍSICOS_PROPIOS_ACTIVOS - corresponsales_fisicos; acceso; count; stock
+nro_corresp_fis_terc_activos,corresponsales_fisicos,acceso,count,stock,last,tenencia,false,kx2f,,_80_nro_corresponsales_f,(80) NRO_CORRESPONSALES_FÍSICOS_TERCERIZADOS_ACTIVOS - corresponsales_fisicos; acceso; count; stock
+nro_corresp_propios_mov,corresponsales_moviles,acceso,count,stock,last,tenencia,false,kx2f,,_81_nro_corresponsales_propios,(81) NRO_CORRESPONSALES_PROPIOS_MÓVILES - corresponsales_moviles; acceso; count; stock
+nro_corresp_terc_mov,corresponsales_moviles,acceso,count,stock,last,tenencia,false,kx2f,,_82_nro_corresponsales,(82) NRO_CORRESPONSALES_TERCERIZADOS_MÓVILES - corresponsales_moviles; acceso; count; stock
+nro_corresp_mov_activos,corresponsales_moviles,acceso,count,stock,last,estado,false,kx2f,,_83_nro_corresponsales_m,(83) NRO_CORRESPONSALES_MÓVILES_ACTIVOS - corresponsales_moviles; acceso; count; stock
+nro_corresp_mov,corresponsales_moviles,acceso,count,stock,last,ninguna,true,kx2f,,_84_nro_corresponsales_m,(84) NRO_CORRESPONSALES_MÓVILES - corresponsales_moviles; acceso; count; stock
+nro_depositos_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_85_nro_dep_sitos,(85) NRO_DEPÓSITOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_depositos_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_86_monto_dep_sitos,(86) MONTO_DEPÓSITOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_giros_env_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_87_nro_giros_enviados,(87) NRO_GIROS_ENVIADOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_giros_env_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_88_monto_giros_enviados,(88) MONTO_GIROS_ENVIADOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_giros_rec_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_89_nro_giros_recibidos,(89) NRO_GIROS_RECIBIDOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_giros_rec_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_90_monto_giros_recibidos,(90) MONTO_GIROS_RECIBIDOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_pagos_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_91_nro_pagos_corresponsales,(91) NRO_PAGOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_pagos_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_92_monto_pagos_corresponsales,(92) MONTO_PAGOS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_retiros_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_93_nro_retiros_corresponsales,(93) NRO_RETIROS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_retiros_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_94_monto_retiros,(94) MONTO_RETIROS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_transfer_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_95_nro_transferencias,(95) NRO_TRANSFERENCIAS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_transfer_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_96_monto_transferencias,(96) MONTO_TRANSFERENCIAS_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
+nro_transacciones_corresp_mov,transacciones_corresponsal_movil,uso,count,flujo,sum,ninguna,true,kx2f,,_97_nro_transacciones_tr,(97) NRO_TRANSACCIONES_TRÁMITES_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; count; flujo
+monto_transacciones_corresp_mov,transacciones_corresponsal_movil,uso,cop,flujo,sum,ninguna,true,kx2f,,_98_monto_transacciones,(98) MONTO_TRANSACCIONES_CORRESPONSALES_MÓVILES - transacciones_corresponsal_movil; uso; cop; flujo
