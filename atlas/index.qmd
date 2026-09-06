@@ -1,6 +1,975 @@
 ---
 title: "Atlas de inclusión financiera"
-draft: true
+subtitle: "Colombia por departamento y municipio, 2018 a 2025"
+format:
+  html:
+    page-layout: full
+    toc: false
+    code-fold: true
+    include-in-header:
+      # d3 y topojson viven en el repositorio, no en un CDN: el atlas es un artefacto de investigación y
+      # tiene que seguir dibujándose dentro de diez años sin depender de que un servicio ajeno siga vivo.
+      - text: |
+          <script src="lib/d3.min.js"></script>
+          <script src="lib/topojson-client.min.js"></script>
+resources:
+  - lib/*.js
 ---
 
-En construcción (Fase 2): mapa de Colombia por departamento y municipio, con selector de dimensión (compuesto, acceso, uso, profundidad) y de variable, periodo, agrupación por región y ranking. Los datos que consumirá están descritos en `config/atlas.yaml`.
+```{=html}
+<style>
+:root {
+  color-scheme: light;
+  --atl-surface: #fcfcfb;
+  --atl-plane: #f9f9f7;
+  --atl-ink: #0b0b0b;
+  --atl-ink-2: #52514e;
+  --atl-muted: #898781;
+  --atl-hairline: #e1e0d9;
+  --atl-baseline: #c3c2b7;
+  --atl-ring: rgba(11, 11, 11, 0.10);
+  /* Divergente: dos matices opuestos con gris neutro al centro. Las luminosidades de los dos brazos
+     son espejo una de otra (OKLCH L 0,764 / 0,622 / 0,338), medidas, no elegidas a ojo. */
+  --atl-div-neg-3: #621b1a; --atl-div-neg-2: #d75853; --atl-div-neg-1: #ea9a93;
+  --atl-div-mid:   #f0efec;
+  --atl-div-pos-1: #86b6ef; --atl-div-pos-2: #3987e5; --atl-div-pos-3: #0d366b;
+  /* Secuencial: un solo matiz, claro a oscuro. El paso más claro significa "casi nada" y puede
+     acercarse a la superficie. */
+  --atl-seq-0: #cde2fb; --atl-seq-1: #9ec5f4; --atl-seq-2: #5598e7; --atl-seq-3: #256abf; --atl-seq-4: #0d366b;
+  --atl-sin-dato: #e6e5e0;
+  /* Canto del relieve, solo como recurso: el lado de cada bloque se calcula oscureciendo su propia cara,
+     para que el volumen se lea como una pieza sólida y no como una mancha pegada debajo. */
+  --atl-canto: #8d8b84;
+}
+/* El sitio publica un solo tema (cosmo, claro). Un bloque de tokens oscuros aquí volvería el atlas oscuro
+   para quien tenga el sistema en oscuro mientras el resto de la página sigue clara, que es peor que no
+   tenerlo. Cuando el sitio tenga tema oscuro, los pasos oscuros vuelven aquí. */
+.atlas { background: var(--atl-surface); color: var(--atl-ink); border-radius: 6px; padding: 2px 2px 10px; }
+.atlas-barra { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;
+  padding: 10px 14px; border-bottom: 1px solid var(--atl-hairline); margin-bottom: 12px; }
+.atlas-vistas { display: flex; gap: 0; border: 1px solid var(--atl-baseline); border-radius: 5px; overflow: hidden; }
+.atlas-vistas button { font: inherit; font-size: 13px; padding: 5px 13px; border: 0; cursor: pointer;
+  background: var(--atl-surface); color: var(--atl-ink-2); border-right: 1px solid var(--atl-baseline); }
+.atlas-vistas button:last-child { border-right: 0; }
+.atlas-vistas button[aria-pressed="true"] { background: var(--atl-div-pos-2); color: #fff; font-weight: 600; }
+.atlas-vistas button:focus-visible { outline: 2px solid var(--atl-div-pos-2); outline-offset: -2px; }
+/* Tres carriles: métricas, mapa, contexto. En pantalla estrecha se apilan y el mapa va primero. */
+.atlas-lienzo { display: grid; gap: 20px;
+  grid-template-columns: minmax(220px, 0.78fr) minmax(0, 2.1fr) minmax(275px, 1fr); }
+@media (max-width: 1200px) { .atlas-lienzo { grid-template-columns: minmax(0, 1.4fr) minmax(275px, 1fr); }
+  .atlas-carril-izq { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+@media (max-width: 820px) { .atlas-lienzo { grid-template-columns: 1fr; }
+  .atlas-carril-izq { grid-template-columns: 1fr; } }
+.atlas-bloque { border-top: 1px solid var(--atl-baseline); padding-top: 7px; margin-bottom: 16px; }
+.atlas-bloque h3 { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--atl-ink-2); margin: 0 0 7px; font-weight: 600; }
+.atlas-cifra { font-size: 34px; line-height: 1.05; font-weight: 600; color: var(--atl-ink);
+  font-variant-numeric: tabular-nums; }
+.atlas-cifra-pie { font-size: 12px; color: var(--atl-muted); margin-top: 3px; line-height: 1.45; }
+.atlas-unidad { font-size: 13px; color: var(--atl-ink-2); margin-top: 2px; min-height: 18px; }
+.atlas figure, .atlas form { margin: 0; }
+.atlas-nota { font-size: 12.5px; color: var(--atl-muted); line-height: 1.55; padding: 10px 14px 0; }
+.atlas-tabla { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12.5px;
+  font-variant-numeric: tabular-nums; }
+.atlas-tabla th { text-align: left; font-weight: 600; color: var(--atl-ink-2); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .04em; padding: 0 5px 5px; border-bottom: 1px solid var(--atl-baseline); }
+.atlas-tabla td { padding: 3px 5px; border-bottom: 1px solid var(--atl-hairline); color: var(--atl-ink); }
+.atlas-tabla tr[data-id] { cursor: pointer; }
+.atlas-tabla tr[data-id]:hover td { background: var(--atl-plane); }
+.atlas-tabla tr[data-activa="si"] td { background: var(--atl-plane); font-weight: 600; }
+.atlas-tabla td.num { text-align: right; }
+.atlas-pastilla { height: 8px; border-radius: 0 3px 3px 0; display: block; }
+.atlas-tip { position: absolute; pointer-events: none; background: var(--atl-surface); color: var(--atl-ink);
+  border: 1px solid var(--atl-ring); border-radius: 4px; padding: 6px 9px; font-size: 12.5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.16); opacity: 0; transition: opacity .08s; z-index: 6; max-width: 230px; }
+.atlas-mapa { position: relative; }
+.atlas-mapa svg { display: block; width: 100%; height: auto; max-height: 80vh; }
+.atlas-mapa path { transition: none; }
+.atlas-ficha { position: absolute; pointer-events: none; z-index: 7; background: var(--atl-surface);
+  border: 1px solid var(--atl-ring); border-left: 3px solid var(--atl-div-pos-2); border-radius: 4px;
+  padding: 7px 11px; box-shadow: 0 3px 14px rgba(0,0,0,.18); max-width: 260px; }
+.atlas-ficha strong { display: block; font-size: 14px; line-height: 1.25; color: var(--atl-ink); }
+.atlas-ficha span { display: block; font-size: 12px; color: var(--atl-ink-2); margin-top: 2px;
+  font-variant-numeric: tabular-nums; }
+.atlas-bajar { position: absolute; right: 10px; bottom: 10px; font: inherit; font-size: 12.5px;
+  padding: 6px 12px; border-radius: 5px; cursor: pointer; border: 1px solid var(--atl-div-pos-2);
+  background: var(--atl-div-pos-2); color: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.18); }
+.atlas-bajar:hover { filter: brightness(1.08); }
+.atlas-bajar:focus-visible { outline: 2px solid var(--atl-ink); outline-offset: 2px; }
+</style>
+```
+
+El mapa muestra la intensidad de la inclusión financiera de cada territorio en un año. Tres vistas de lo
+mismo: **plano** con las métricas alrededor, **relieve** para levantar un departamento y verlo aparte, y
+**municipios** para bajar a las 1.123 unidades. Al fijar un departamento en relieve se puede bajar a sus
+municipios desde el propio mapa. Elegir una región o un departamento acerca el encuadre a esa selección y
+deja los vecinos sangrando por el borde, para no perder de vista dónde está. El índice y sus dimensiones se
+explican en [Metodología](../metodologia/indice.qmd). **Un territorio sin color no vale cero: es un
+territorio del que la Superintendencia no reporta datos ese año.**
+
+```{ojs}
+//| echo: false
+//| output: false
+d3 = window.d3
+topojson = window.topojson
+meta = FileAttachment("data/atlas_meta.json").json()
+serieDep = FileAttachment("data/series_departamento.json").json()
+serieMun = FileAttachment("data/series_municipio.json").json()
+geoDep = FileAttachment("data/geo_departamentos.json").json()
+geoMun = FileAttachment("data/geo_municipios.json").json()
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Un solo lugar donde se lee el token de color, para que la rampa del mapa, la de la leyenda y la de
+// las barras compartan siempre los mismos pasos.
+tok = (nombre) => getComputedStyle(document.documentElement).getPropertyValue(nombre).trim()
+rampas = ({
+  divergente: () => [tok("--atl-div-neg-3"), tok("--atl-div-neg-2"), tok("--atl-div-neg-1"), tok("--atl-div-mid"),
+                     tok("--atl-div-pos-1"), tok("--atl-div-pos-2"), tok("--atl-div-pos-3")],
+  secuencial: () => [tok("--atl-seq-0"), tok("--atl-seq-1"), tok("--atl-seq-2"), tok("--atl-seq-3"), tok("--atl-seq-4")]
+})
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// El foco (la unidad bajo el ratón, o la fijada con un clic) NO es una celda de OJS a propósito. Si lo
+// fuera, cada movimiento del ratón invalidaría todas las celdas que dependen de él y OJS reemplazaría el
+// panel entero: unos noventa nodos por fotograma. Aquí es un bus de eventos con coalescencia por
+// requestAnimationFrame, y los bloques se limitan a parchear texto y atributos de nodos que ya existen.
+foco = {
+  const oyentes = new Set();
+  let fijado = null, encima = null;
+  let ultimo = {id: null, fijado: false};
+  let pendiente = false;
+  const emitir = () => {
+    pendiente = false;
+    const id = encima ?? fijado;
+    const estado = {id, fijado: id !== null && id === fijado};
+    if (estado.id === ultimo.id && estado.fijado === ultimo.fijado) return;
+    ultimo = estado;
+    for (const f of oyentes) f(estado);
+  };
+  const pedir = () => { if (!pendiente) { pendiente = true; requestAnimationFrame(emitir); } };
+  return {
+    get: () => ultimo,
+    idFijado: () => fijado,
+    // El sobrevuelo no borra lo fijado: lo tapa mientras dura. Al salir del mapa vuelve lo fijado, que es
+    // lo que hace que un clic sirva para dejar una unidad puesta y seguir leyendo sus cifras al lado.
+    sobrevolar(id) { if (encima === id) return; encima = id; pedir(); },
+    alternarFijado(id) { fijado = fijado === id ? null : id; encima = null; pedir(); },
+    escuchar(f) { oyentes.add(f); f(ultimo); return () => oyentes.delete(f); }
+  };
+}
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Controles de HTML plano. Observable Inputs se carga desde un CDN y sin red los filtros se caen; además
+// un filtro es interfaz corriente y debe vestir el mismo cromado que el gráfico. El envoltorio expone
+// `value` y reemite `input`, que es lo que `viewof` necesita.
+control = {
+  const envolver = (etiqueta, interno) => {
+    const caja = document.createElement("label");
+    caja.style.cssText = "display:flex;flex-direction:column;gap:3px";
+    const t = document.createElement("span");
+    t.textContent = etiqueta;
+    t.style.cssText = "font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--atl-ink-2)";
+    caja.append(t, interno);
+    Object.defineProperty(caja, "value", {get: () => interno.value, set: (v) => { interno.value = v; }});
+    interno.addEventListener("input", () => caja.dispatchEvent(new CustomEvent("input")));
+    return caja;
+  };
+  const estilo = "font:inherit;font-size:13px;padding:4px 6px;border:1px solid var(--atl-baseline);" +
+                 "border-radius:4px;background:var(--atl-surface);color:var(--atl-ink)";
+  return {
+    seleccion(etiqueta, opciones, valor) {
+      const sel = document.createElement("select");
+      sel.style.cssText = estilo + ";min-width:200px";
+      let grupoActual = null, destino = sel;
+      for (const o of opciones) {
+        if (o.grupo && o.grupo !== grupoActual) {
+          grupoActual = o.grupo;
+          destino = document.createElement("optgroup");
+          destino.label = o.grupo;
+          sel.append(destino);
+        } else if (!o.grupo) { destino = sel; }
+        const op = document.createElement("option");
+        op.value = o.valor; op.textContent = o.texto;
+        destino.append(op);
+      }
+      sel.value = valor ?? opciones[0].valor;
+      return envolver(etiqueta, sel);
+    },
+    rango(etiqueta, [min, max], valor) {
+      const caja = document.createElement("div");
+      caja.style.cssText = "display:flex;gap:8px;align-items:center";
+      const r = document.createElement("input");
+      r.type = "range"; r.min = min; r.max = max; r.step = 1; r.value = valor ?? max;
+      r.style.cssText = "width:160px;accent-color:var(--atl-div-pos-2)";
+      const eco = document.createElement("output");
+      eco.textContent = r.value;
+      eco.style.cssText = "font-size:13px;font-variant-numeric:tabular-nums;color:var(--atl-ink);min-width:34px";
+      r.addEventListener("input", () => { eco.textContent = r.value; caja.dispatchEvent(new CustomEvent("input")); });
+      caja.append(r, eco);
+      Object.defineProperty(caja, "value", {get: () => +r.value, set: (v) => { r.value = v; eco.textContent = v; }});
+      return envolver(etiqueta, caja);
+    },
+    // El conmutador de vista es un grupo de botones, no un desplegable: son tres opciones y el usuario
+    // debe verlas todas a la vez para saber que existen.
+    vistas(etiqueta, opciones, valor) {
+      const caja = document.createElement("div");
+      caja.className = "atlas-vistas";
+      caja.setAttribute("role", "group");
+      caja.setAttribute("aria-label", etiqueta);
+      let actual = valor ?? opciones[0].valor;
+      const botones = opciones.map((o) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = o.texto;
+        b.setAttribute("aria-pressed", String(o.valor === actual));
+        b.addEventListener("click", () => {
+          actual = o.valor;
+          marcar();
+          caja.dispatchEvent(new CustomEvent("input"));
+        });
+        caja.append(b);
+        return b;
+      });
+      const marcar = () => botones.forEach((x, i) => x.setAttribute("aria-pressed", String(opciones[i].valor === actual)));
+      // El descenso a municipios escribe `value` desde fuera: los botones tienen que reflejarlo o la barra
+      // acaba diciendo "Relieve 3D" mientras el mapa enseña municipios.
+      Object.defineProperty(caja, "value", {get: () => actual, set: (v) => { actual = v; marcar(); }});
+      return envolver(etiqueta, caja);
+    }
+  };
+}
+```
+
+::: {.atlas}
+
+::: {.atlas-barra}
+```{ojs}
+//| echo: false
+viewof vista = control.vistas("Vista", [
+  {valor: "plano", texto: "Plano"},
+  {valor: "relieve", texto: "Relieve 3D"},
+  {valor: "municipios", texto: "Municipios"}
+], "plano")
+```
+```{ojs}
+//| echo: false
+viewof indicadorId = control.seleccion("Qué se pinta",
+  meta.indicadores[nivel].map(i => ({
+    valor: i.id, texto: i.etiqueta,
+    grupo: i.grupo === "indice" ? "Índice" : i.grupo === "variable" ? "Variables del índice" : "Contexto"
+  })), "iif_compuesto")
+```
+```{ojs}
+//| echo: false
+viewof anio = control.rango("Año", [d3.min(datos.anios), d3.max(datos.anios)], d3.max(datos.anios))
+```
+```{ojs}
+//| echo: false
+viewof grupo = {
+  // Al bajar de departamentos a municipios el desplegable se reconstruye porque cambian las opciones, así
+  // que la elección del descenso no puede escribirse antes: se deja en `memoria` y se recoge aquí.
+  const opciones = ["Todas", ...grupos];
+  const inicial = memoria.grupo && opciones.includes(memoria.grupo) ? memoria.grupo : "Todas";
+  memoria.grupo = null;
+  return control.seleccion(nivel === "departamento" ? "Región" : "Departamento",
+    opciones.map(g => ({valor: g, texto: g})), inicial);
+}
+```
+:::
+
+::: {.atlas-lienzo}
+::: {.atlas-carril-izq}
+```{ojs}
+//| echo: false
+// CARRIL IZQUIERDO: cifra destacada, evolución y las tres dimensiones. Se construye una vez por
+// (nivel, indicador, año, filtro) y el paso del ratón solo reescribe textos y anchos.
+panelMetricas = {
+  const caja = d3.create("div");
+  const fmt = formato;
+
+  // --- Cifra destacada. La mediana, no la media: el valor agregado municipal por habitante y el acceso
+  // municipal tienen extremos reales de dos órdenes de magnitud, y una media los seguiría.
+  const bCifra = caja.append("div").attr("class", "atlas-bloque");
+  bCifra.append("h3").text("Mediana del territorio");
+  const cifra = bCifra.append("div").attr("class", "atlas-cifra");
+  const unidadFoco = bCifra.append("div").attr("class", "atlas-unidad");
+  const pieCifra = bCifra.append("div").attr("class", "atlas-cifra-pie");
+
+  const visibles = valores.map((v, i) => ({v, i})).filter(d => d.v !== null && enGrupo(d.i));
+  const mediana = visibles.length ? d3.median(visibles, d => d.v) : null;
+  cifra.text(mediana === null ? "—" : fmt(mediana));
+  pieCifra.text(`${visibles.length} de ${datos.ids.length} unidades con dato · ${indicador.etiqueta.toLowerCase()}, ${anio}`);
+
+  // --- Evolución: la mediana año a año, y encima la línea de la unidad enfocada. Comparten eje porque
+  // son la misma magnitud; comparar una unidad contra una suma nacional exigiría dos escalas y eso no
+  // se hace nunca.
+  const bEvo = caja.append("div").attr("class", "atlas-bloque");
+  bEvo.append("h3").text("Evolución");
+  const w = 236, h = 74, m = {t: 6, r: 6, b: 15, l: 6};
+  const svgEvo = bEvo.append("svg").attr("viewBox", [0, 0, w, h]).attr("width", "100%")
+    .attr("style", "height:auto;display:block").attr("role", "img")
+    .attr("aria-label", `Evolución de ${indicador.etiqueta} entre ${datos.anios[0]} y ${datos.anios[datos.anios.length - 1]}`);
+  const medianas = datos.anios.map((_, k) => {
+    const fila = datos.series[indicadorId][k];
+    const vs = fila.map((v, i) => ({v, i})).filter(d => d.v !== null && enGrupo(d.i)).map(d => d.v);
+    return vs.length ? d3.median(vs) : null;
+  });
+  const todas = datos.series[indicadorId].flat().filter(v => v !== null);
+  const ejeX = d3.scaleLinear().domain(d3.extent(datos.anios)).range([m.l, w - m.r]);
+  const ejeY = d3.scaleLinear().domain(d3.extent(todas)).nice().range([h - m.b, m.t]);
+  const linea = d3.line().defined(d => d.v !== null).x(d => ejeX(d.a)).y(d => ejeY(d.v));
+  if (indicador.escala === "divergente" && ejeY.domain()[0] < 0) {
+    svgEvo.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", ejeY(0)).attr("y2", ejeY(0))
+      .attr("stroke", tok("--atl-baseline")).attr("stroke-width", 1);
+  }
+  svgEvo.append("path")
+    .attr("d", linea(datos.anios.map((a, k) => ({a, v: medianas[k]}))))
+    .attr("fill", "none").attr("stroke", tok("--atl-muted")).attr("stroke-width", 1.6);
+  const lineaFoco = svgEvo.append("path").attr("fill", "none")
+    .attr("stroke", tok("--atl-div-pos-2")).attr("stroke-width", 2.2).attr("opacity", 0);
+  const puntoAnio = svgEvo.append("circle").attr("r", 3).attr("cx", ejeX(anio))
+    .attr("cy", ejeY(medianas[indiceAnio] ?? ejeY.domain()[0])).attr("fill", tok("--atl-ink"));
+  svgEvo.append("text").attr("x", m.l).attr("y", h - 4).attr("font-size", 10)
+    .attr("fill", tok("--atl-muted")).text(datos.anios[0]);
+  svgEvo.append("text").attr("x", w - m.r).attr("y", h - 4).attr("font-size", 10)
+    .attr("text-anchor", "end").attr("fill", tok("--atl-muted")).text(datos.anios[datos.anios.length - 1]);
+
+  // --- Las tres dimensiones más el compuesto, como barras divergentes desde el cero. Son puntuaciones
+  // estandarizadas en la misma unidad y con polaridad: la barra desde el cero es la forma que les toca.
+  // Se colorean solo por signo, no con la rampa del mapa, porque esa rampa se construye sobre el dominio
+  // del indicador que esté seleccionado y aquí el dominio es otro.
+  const DIMS = [
+    {id: "iif_compuesto", et: "Compuesto"}, {id: "iif_acceso", et: "Acceso"},
+    {id: "iif_uso", et: "Uso"}, {id: "iif_profundidad", et: "Profundidad"}
+  ].filter(d => datos.series[d.id]);
+  const bDim = caja.append("div").attr("class", "atlas-bloque");
+  bDim.append("h3").text("Dimensiones del índice");
+  const wd = 236, alturaFila = 21, hd = DIMS.length * alturaFila + 14;
+  const svgDim = bDim.append("svg").attr("viewBox", [0, 0, wd, hd]).attr("width", "100%")
+    .attr("style", "height:auto;display:block");
+  const maxDim = d3.max(DIMS, d => d3.max(datos.series[d.id][indiceAnio].filter(v => v !== null), Math.abs)) || 1;
+  const ejeD = d3.scaleLinear().domain([-maxDim, maxDim]).range([56, wd - 34]);
+  svgDim.append("line").attr("x1", ejeD(0)).attr("x2", ejeD(0)).attr("y1", 2).attr("y2", hd - 12)
+    .attr("stroke", tok("--atl-baseline")).attr("stroke-width", 1);
+  const filasDim = DIMS.map((d, k) => {
+    const y = k * alturaFila + 4;
+    svgDim.append("text").attr("x", 0).attr("y", y + 10).attr("font-size", 11)
+      .attr("fill", tok("--atl-ink-2")).text(d.et);
+    const barra = svgDim.append("rect").attr("y", y + 2).attr("height", 9).attr("rx", 2);
+    const num = svgDim.append("text").attr("x", wd).attr("y", y + 10).attr("font-size", 10.5)
+      .attr("text-anchor", "end").attr("fill", tok("--atl-ink"))
+      .attr("font-variant-numeric", "tabular-nums");
+    return {d, barra, num};
+  });
+  svgDim.append("text").attr("x", ejeD(0)).attr("y", hd - 2).attr("font-size", 9.5)
+    .attr("text-anchor", "middle").attr("fill", tok("--atl-muted")).text("0");
+
+  const pintarDims = (idx) => {
+    for (const f of filasDim) {
+      const serie = datos.series[f.d.id][indiceAnio];
+      const v = idx === null
+        ? d3.median(serie.map((x, i) => ({x, i})).filter(o => o.x !== null && enGrupo(o.i)).map(o => o.x))
+        : serie[idx];
+      if (v === null || v === undefined || Number.isNaN(v)) {
+        f.barra.attr("width", 0); f.num.text("—");
+      } else {
+        f.barra.attr("x", Math.min(ejeD(0), ejeD(v))).attr("width", Math.max(1.5, Math.abs(ejeD(v) - ejeD(0))))
+          .attr("fill", v < 0 ? tok("--atl-div-neg-2") : tok("--atl-div-pos-2"));
+        f.num.text(d3.format("+.2f")(v));
+      }
+    }
+  };
+
+  // El bus del foco: aquí solo se reescriben textos y atributos de nodos que ya existen.
+  const quitar = foco.escuchar(({id}) => {
+    const idx = id === null ? null : datos.ids.indexOf(id);
+    if (idx === null || idx < 0) {
+      cifra.text(mediana === null ? "—" : fmt(mediana));
+      unidadFoco.text("");
+      pieCifra.text(`${visibles.length} de ${datos.ids.length} unidades con dato · ${indicador.etiqueta.toLowerCase()}, ${anio}`);
+      lineaFoco.attr("opacity", 0);
+      pintarDims(null);
+      return;
+    }
+    const v = valores[idx];
+    cifra.text(v === null ? "—" : fmt(v));
+    unidadFoco.text(datos.nombres[idx]);
+    pieCifra.text(v === null ? "sin dato reportado ese año" : `${indicador.etiqueta.toLowerCase()}, ${anio}`);
+    lineaFoco.attr("opacity", 1)
+      .attr("d", linea(datos.anios.map((a, k) => ({a, v: datos.series[indicadorId][k][idx]}))));
+    pintarDims(idx);
+  });
+  invalidation.then(quitar);
+  return caja.node();
+}
+```
+:::
+
+::: {.atlas-mapa}
+```{ojs}
+//| echo: false
+mapa = {
+  const {ancho, alto, margen} = vistaGeo;
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, ancho, alto])
+    .attr("role", "img")
+    .attr("aria-label", `${indicador.etiqueta} por ${nivel}, ${anio}. Vista ${vista}.`);
+
+  // --- Encuadre. La proyección se calcula sobre TODOS los rasgos, no sobre los filtrados: si cambiara
+  // con el filtro, el mapa saltaría de tamaño cada vez que se elige una región y sería imposible comparar.
+  // El giro y el aplastado de las vistas en volumen son una sola matriz sobre el grupo, no 1.121 geometrías
+  // recalculadas en JavaScript.
+  const rasgos = proyeccion.rasgos, trazo = proyeccion.trazo;
+  const marco = svg.append("g").attr("transform", `translate(0,${margen})`);
+  const capa = marco.append("g").attr("transform", vistaGeo.matriz);
+
+  const colorDe = (i) => {
+    if (i === undefined || valores[i] === null) return tok("--atl-sin-dato");
+    return enGrupo(i) ? escala(valores[i]) : tok("--atl-sin-dato");
+  };
+  const posicion = new Map(datos.ids.map((id, i) => [id, i]));
+  const grosor = (px) => px / vistaGeo.escala;   // el trazo vive dentro del grupo escalado
+  const ladoDe = (i) => { const c = d3.color(colorDe(i)); return c ? c.darker(0.85).formatHex() : tok("--atl-canto"); };
+
+  // --- Relieve. Cada unidad se define una vez en <defs> y el bloque son copias <use> desplazadas: el canto
+  // son N copias oscuras y encima va la cara con su color. Así el volumen cuesta N referencias por unidad y
+  // no N caminos con toda la geometría repetida. El desplazamiento sale de `vistaGeo.subir`, que resuelve
+  // cuánto hay que moverse DENTRO del grupo inclinado para que en pantalla el bloque suba recto.
+  const CAPAS = vistaGeo.capas, PASO = vistaGeo.paso;
+  const arriba = vistaGeo.subir(1);                 // un punto de pantalla hacia arriba, en el grupo inclinado
+  const altoBloque = (CAPAS + 1) * PASO;
+  if (CAPAS) {
+    const defs = svg.append("defs");
+    rasgos.forEach((f, k) => defs.append("path").attr("id", `pz-${k}`).attr("d", trazo(f)));
+  }
+
+  // --- El archipiélago, fuera de escala. San Andrés está a 700 km del continente y mide 26 km²: dentro del
+  // encuadre obliga a encoger Colombia una quinta parte para dibujar un punto, y en un inserto proporcional
+  // el punto sigue siendo un punto, porque lo que ocupa el recuadro es el mar entre las dos islas. Así que
+  // no se dibuja su forma: se dibuja una ficha con su color, rotulada, y se dice que está fuera de escala.
+  // Es el trato habitual con los territorios diminutos, y deja la unidad viva: se pasa el ratón y se fija
+  // igual que cualquier departamento.
+  const insulares = rasgos.filter(f => ES_INSULAR(f.properties.id));
+  const fichaAlto = 18, fichaLado = 13;
+  const cajaInsular = {x: 10, y: vistaGeo.alto - margen - (insulares.length * fichaAlto + 8)};
+  const grupoInsular = insulares.length ? marco.append("g") : null;
+  if (grupoInsular) {
+    grupoInsular.append("text").attr("x", cajaInsular.x).attr("y", cajaInsular.y - 5)
+      .attr("font-size", 9.5).attr("fill", tok("--atl-muted")).text("Archipiélago · fuera de escala");
+  }
+
+  // Cada pieza guarda su centro YA en pantalla: las fichas del archipiélago tienen su propio sitio y sin
+  // esto la tarjeta de San Andrés apuntaría a un punto del Caribe continental.
+  const posInsular = new Map(insulares.map((f, k) => [f.properties.id, k]));
+  const piezas = rasgos.map((f, k) => {
+    const kInsular = posInsular.get(f.properties.id);
+    const dentro = kInsular !== undefined;
+    return {
+      f, k, kInsular, dentro, id: f.properties.id,
+      centro: dentro
+        ? [cajaInsular.x + fichaLado / 2, cajaInsular.y + kInsular * fichaAlto + fichaLado / 2]
+        : vistaGeo.aPantalla(trazo.centroid(f))
+    };
+  });
+  const rasgoDe = new Map(piezas.map(o => [o.id, o]));
+
+  const opacidadDe = (id) => {
+    const i = posicion.get(id);
+    return (grupo === "Todas" || (i !== undefined && enGrupo(i))) ? 1 : 0.32;
+  };
+
+  // Orden de pintado: del fondo al frente EN PANTALLA, que con el giro ya no es de norte a sur. Al levantar
+  // una unidad, la que está delante debe taparla, así que se pinta después.
+  const unidades = capa.selectAll("g.unidad")
+    .data(piezas.filter(o => !o.dentro).sort((a, b) => a.centro[1] - b.centro[1])).join("g")
+    .attr("class", "unidad").attr("data-id", d => d.id)
+    .attr("opacity", d => opacidadDe(d.id));
+
+  if (CAPAS) {
+    unidades.each(function (d) {
+      const g = d3.select(this);
+      // El canto lleva el color de la cara oscurecido, no un negro translúcido: veintiséis copias de un
+      // negro al 34 % se suman hasta el negro puro y el bloque se lee como un agujero.
+      const lado = ladoDe(posicion.get(d.id));
+      for (let c = CAPAS; c >= 1; c--) {
+        g.append("use").attr("href", `#pz-${d.k}`).attr("class", "canto")
+          .attr("x", c * PASO * arriba[0]).attr("y", c * PASO * arriba[1]).attr("fill", lado);
+      }
+    });
+  }
+
+  unidades.append(CAPAS ? "use" : "path")
+    .attr("class", "cara")
+    .attr(CAPAS ? "href" : "d", d => CAPAS ? `#pz-${d.k}` : trazo(d.f))
+    .attr("x", CAPAS ? (CAPAS + 1) * PASO * arriba[0] : null)
+    .attr("y", CAPAS ? (CAPAS + 1) * PASO * arriba[1] : null)
+    .attr("fill", d => colorDe(posicion.get(d.id)))
+    .attr("stroke", tok("--atl-surface"))
+    .attr("stroke-width", grosor(nivel === "departamento" ? 0.7 : 0.22));
+
+  if (grupoInsular) {
+    const fichas = grupoInsular.selectAll("g.unidad").data(piezas.filter(o => o.dentro)).join("g")
+      .attr("class", "unidad").attr("data-id", d => d.id)
+      .attr("opacity", d => opacidadDe(d.id));
+    fichas.append("rect").attr("class", "cara").attr("rx", 2)
+      .attr("x", cajaInsular.x).attr("y", d => cajaInsular.y + d.kInsular * fichaAlto)
+      .attr("width", fichaLado).attr("height", fichaLado)
+      .attr("fill", d => colorDe(posicion.get(d.id)))
+      .attr("stroke", tok("--atl-baseline")).attr("stroke-width", 0.6);
+    fichas.append("text").attr("x", cajaInsular.x + fichaLado + 6)
+      .attr("y", d => cajaInsular.y + d.kInsular * fichaAlto + fichaLado - 2.5)
+      .attr("font-size", 10).attr("fill", tok("--atl-ink-2"))
+      .text(d => {
+        const i = posicion.get(d.id);
+        const n = i === undefined ? d.id : datos.nombres[i];
+        return n.length > 30 ? n.slice(0, 29) + "…" : n;
+      });
+  }
+
+  // --- Nombres de las capitales en la vista de municipios: no caben 1.123 etiquetas, así que solo se
+  // rotulan las capitales departamentales y se descarta la que chocaría con otra ya puesta. Las etiquetas
+  // van fuera de los grupos inclinados, con la matriz aplicada a mano, para que el texto no se deforme.
+  if (vista === "municipios") {
+    const puestas = [];
+    const capaNombres = marco.append("g").attr("pointer-events", "none");
+    const capitales = piezas
+      .map(o => ({...o, i: posicion.get(o.id)}))
+      .filter(o => o.i !== undefined && datos.es_capital[o.i] === true && enGrupo(o.i))
+      .sort((a, b) => a.centro[1] - b.centro[1]);
+    for (const c of capitales) {
+      if (c.dentro) continue;                       // la ficha del archipiélago ya lleva su rótulo
+      const [x, y] = [c.centro[0], c.centro[1] - altoBloque];
+      const nombre = datos.nombres[c.i];
+      const caja = {x: x - 4, y: y - 9, w: nombre.length * 5.6 + 16, h: 15};
+      if (puestas.some(q => !(caja.x > q.x + q.w || caja.x + caja.w < q.x || caja.y > q.y + q.h || caja.y + caja.h < q.y))) continue;
+      puestas.push(caja);
+      capaNombres.append("circle").attr("cx", x).attr("cy", y).attr("r", 2)
+        .attr("fill", tok("--atl-ink")).attr("stroke", tok("--atl-surface")).attr("stroke-width", 1);
+      capaNombres.append("text").attr("x", x + 5).attr("y", y + 3.5).attr("font-size", 10)
+        .attr("fill", tok("--atl-ink-2")).attr("stroke", tok("--atl-surface")).attr("stroke-width", 2.6)
+        .attr("paint-order", "stroke").text(nombre);
+    }
+  }
+
+  // --- Tarjeta de la unidad fijada. Va colgada de la unidad, no de una esquina: la esquina superior es de
+  // la leyenda y allí las dos se pisan. Se enseña solo al fijar con un clic; al pasar el ratón basta el
+  // globo y el carril de la izquierda, que ya dicen lo mismo sin tapar el mapa.
+  // --- Marca de la unidad fijada. El punto y el tallo van en el SVG, donde son geometría; el nombre va en
+  // HTML sobre el mapa, porque dentro del SVG el texto se encoge con el lienzo y a 0,6 de escala un nombre
+  // de 13 puntos se lee a 8. La marca cuelga de la unidad y no de una esquina: la esquina de arriba es de
+  // la leyenda y allí las dos se pisan.
+  const capaEtiqueta = svg.append("g").attr("pointer-events", "none").attr("opacity", 0);
+  const guiaEt = capaEtiqueta.append("line").attr("stroke", tok("--atl-ink")).attr("stroke-width", 1);
+  const puntoEt = capaEtiqueta.append("circle").attr("r", 2.5).attr("fill", tok("--atl-ink"));
+
+  // La leyenda va sobre una banda opaca: al acercarse a un filtro los vecinos sangran hacia arriba y sin
+  // la banda el degradado se lee sobre el mapa.
+  const banda = svg.append("g");
+  banda.append("rect").attr("x", 0).attr("y", 0).attr("width", ancho).attr("height", margen - 4)
+    .attr("fill", tok("--atl-surface"));
+  banda.append("g").attr("transform", "translate(4,8)").call(g => leyenda(g, ancho - 8));
+
+  // --- Interacción. Un solo oyente en el contenedor en vez de uno por unidad: con 1.121 municipios,
+  // 1.121 oyentes son 1.121 cierres vivos y otras tantas suscripciones que el navegador tiene que revisar.
+  const envoltorio = d3.create("div").style("position", "relative").node();
+  envoltorio.append(svg.node());
+  const tip = d3.create("div").attr("class", "atlas-tip").node();
+  envoltorio.append(tip);
+  const ficha = document.createElement("div");
+  ficha.className = "atlas-ficha";
+  ficha.hidden = true;
+  envoltorio.append(ficha);
+
+  // Descenso al nivel municipal desde el departamento fijado. Deja la elección en `memoria` porque el
+  // desplegable de grupo se reconstruye al cambiar de nivel y no sobreviviría a que lo escribiéramos antes.
+  const bajar = document.createElement("button");
+  bajar.type = "button";
+  bajar.className = "atlas-bajar";
+  bajar.hidden = true;
+  envoltorio.append(bajar);
+
+  const idDesde = (evento) => {
+    const g = evento.target.closest ? evento.target.closest("g.unidad") : null;
+    return g ? g.getAttribute("data-id") : null;
+  };
+  svg.on("pointermove", (evento) => {
+    const id = idDesde(evento);
+    foco.sobrevolar(id);
+    if (id === null || id === foco.idFijado()) { tip.style.opacity = 0; return; }
+    const i = posicion.get(id);
+    const v = i === undefined ? null : valores[i];
+    tip.style.opacity = 1;
+    tip.innerHTML = `<strong>${i === undefined ? id : datos.nombres[i]}</strong><br>${indicador.etiqueta}, ${anio}<br>` +
+      (v === null ? "<em>sin dato reportado</em>" : `<strong>${formato(v)}</strong>`);
+    const caja = envoltorio.getBoundingClientRect();
+    tip.style.left = `${Math.min(evento.clientX - caja.left + 14, caja.width - 240)}px`;
+    tip.style.top = `${evento.clientY - caja.top + 12}px`;
+  });
+  svg.on("pointerleave", () => { tip.style.opacity = 0; foco.sobrevolar(null); });
+  svg.on("click", (evento) => {
+    const id = idDesde(evento);
+    if (id !== null) foco.alternarFijado(id);
+  });
+
+  // --- Levantar la unidad enfocada. Solo se tocan los atributos de un grupo, nunca se redibuja el mapa.
+  let levantado = null;
+  const quitar = foco.escuchar(({id, fijado}) => {
+    if (levantado !== null && levantado !== id) {
+      const g = marco.select(`g.unidad[data-id="${levantado}"]`);
+      if (!g.empty()) {
+        g.attr("transform", null).select(".cara")
+          .attr("stroke", tok("--atl-surface"))
+          .attr("stroke-width", grosor(nivel === "departamento" ? 0.7 : 0.22));
+      }
+    }
+    levantado = id;
+    capaEtiqueta.attr("opacity", 0);
+    ficha.hidden = true;
+    bajar.hidden = true;
+    if (fijado) tip.style.opacity = 0;   // fijar es la lectura estable; el globo sobra y tapa
+    if (id === null) return;
+    const g = marco.select(`g.unidad[data-id="${id}"]`);
+    if (g.empty()) return;
+    g.raise();
+    const plana = g.select("use.cara").empty();
+    // Levantar la mitad del canto: menos no se distingue del bloque quieto y más lo despega del país.
+    const sube = plana ? 0 : (fijado ? 0.5 : 0.22) * CAPAS * PASO;
+    if (sube) g.attr("transform", `translate(${sube * arriba[0]},${sube * arriba[1]})`);
+    g.select(".cara").attr("stroke", tok("--atl-ink")).attr("stroke-width", grosor(1.1));
+
+    const i = posicion.get(id);
+    if (i === undefined || !fijado) return;
+    const nombre = datos.nombres[i];
+    const v = valores[i];
+    const cuerpo = v === null ? "sin dato reportado ese año" : `${indicador.etiqueta}: ${formato(v)}`;
+    const pieza = rasgoDe.get(id);
+    const [ax, ay0] = pieza ? pieza.centro : [ancho / 2, alto / 2];
+    const ay = ay0 + margen - (pieza && pieza.dentro ? 0 : altoBloque + sube);
+    guiaEt.attr("x1", ax).attr("y1", ay).attr("x2", ax).attr("y2", ay - 14);
+    puntoEt.attr("cx", ax).attr("cy", ay);
+    capaEtiqueta.attr("opacity", 1).raise();
+    // Del lienzo a la pantalla: la ficha se coloca en píxeles reales y se acota al ancho del mapa.
+    const rSvg = svg.node().getBoundingClientRect(), rCaja = envoltorio.getBoundingClientRect();
+    const k = rSvg.width / ancho;
+    ficha.innerHTML = `<strong></strong><span></span>`;
+    ficha.firstChild.textContent = nombre;
+    ficha.lastChild.textContent = cuerpo;
+    ficha.hidden = false;
+    ficha.style.left = `${Math.max(4, Math.min(rCaja.width - ficha.offsetWidth - 4,
+      rSvg.left - rCaja.left + ax * k - ficha.offsetWidth / 2))}px`;
+    // Encima de la unidad, salvo cuando la unidad ya está pegada al borde de arriba: entonces debajo, o la
+    // ficha taparía justo lo que acaba de levantarse.
+    const arribaDeTodo = rSvg.top - rCaja.top + ay * k < ficha.offsetHeight + 26;
+    ficha.style.top = `${Math.max(4, rSvg.top - rCaja.top + ay * k +
+      (arribaDeTodo ? 16 : -18 * k - ficha.offsetHeight))}px`;
+
+    if (nivel === "departamento") {
+      bajar.textContent = `Ver los municipios de ${nombre}`;
+      bajar.hidden = false;
+      bajar.onclick = () => {
+        memoria.grupo = nombre;
+        viewof vista.value = "municipios";
+        viewof vista.dispatchEvent(new CustomEvent("input"));
+      };
+    }
+  });
+  invalidation.then(quitar);
+
+  return envoltorio;
+}
+```
+:::
+
+::: {.atlas-carril-der}
+```{ojs}
+//| echo: false
+// CARRIL DERECHO: reparto por región y ranking. El ranking hace también de vista de tabla: da el número
+// exacto que el color solo insinúa, que es lo que exige una escala continua con pasos claros.
+panelContexto = {
+  const caja = d3.create("div");
+
+  // --- Reparto por región. Se calcula sobre TODAS las unidades y atenúa las que quedan fuera del filtro:
+  // su trabajo es situar la selección en el país, así que recalcularlo dentro del filtro lo dejaría sin
+  // nada que decir.
+  const bReg = caja.append("div").attr("class", "atlas-bloque");
+  bReg.append("h3").text(nivel === "departamento" ? "Por región" : "Por departamento");
+  const porGrupo = d3.rollups(
+    datos.ids.map((id, i) => ({g: etiquetaGrupo[i], v: valores[i]})).filter(o => o.v !== null && o.g),
+    vs => d3.median(vs, o => o.v), o => o.g
+  ).sort((a, b) => d3.descending(a[1], b[1])).slice(0, 12);
+  const wr = 250, hf = 19, hr = porGrupo.length * hf + 6;
+  const svgReg = bReg.append("svg").attr("viewBox", [0, 0, wr, hr]).attr("width", "100%")
+    .attr("style", "height:auto;display:block");
+  const maxAbs = d3.max(porGrupo, d => Math.abs(d[1])) || 1;
+  const ejeR = indicador.escala === "divergente"
+    ? d3.scaleLinear().domain([-maxAbs, maxAbs]).range([92, wr - 30])
+    : d3.scaleLinear().domain([0, d3.max(porGrupo, d => d[1])]).range([92, wr - 30]);
+  porGrupo.forEach((d, k) => {
+    const y = k * hf + 2;
+    const dentro = grupo === "Todas" || grupo === d[0];
+    svgReg.append("text").attr("x", 0).attr("y", y + 10).attr("font-size", 10.5)
+      .attr("fill", tok("--atl-ink-2")).attr("opacity", dentro ? 1 : 0.4)
+      .text(d[0].length > 15 ? d[0].slice(0, 14) + "…" : d[0]);
+    svgReg.append("rect").attr("y", y + 2).attr("height", 9).attr("rx", 2)
+      .attr("x", Math.min(ejeR(0), ejeR(d[1]))).attr("width", Math.max(1.5, Math.abs(ejeR(d[1]) - ejeR(0))))
+      .attr("fill", escala(d[1])).attr("opacity", dentro ? 1 : 0.35);
+    svgReg.append("text").attr("x", wr).attr("y", y + 10).attr("font-size", 10)
+      .attr("text-anchor", "end").attr("fill", tok("--atl-ink")).attr("opacity", dentro ? 1 : 0.4)
+      .attr("font-variant-numeric", "tabular-nums").text(formato(d[1]));
+  });
+
+  // --- Ranking, que es a la vez la vista de tabla.
+  const filas = datos.ids.map((id, i) => ({id, nombre: datos.nombres[i], valor: valores[i], i}))
+    .filter(f => f.valor !== null && enGrupo(f.i))
+    .sort((a, b) => d3.descending(a.valor, b.valor));
+  const tope = 12;
+  const mostradas = filas.length <= tope + 5 ? filas : [...filas.slice(0, tope), null, ...filas.slice(-4)];
+  const anchoBarra = d3.scaleLinear()
+    .domain([d3.min(filas, f => Math.min(0, f.valor)), d3.max(filas, f => f.valor)]).range([0, 52]).clamp(true);
+
+  const bRank = caja.append("div").attr("class", "atlas-bloque");
+  bRank.append("h3").text(`Ranking · ${filas.length} con dato`);
+  const tabla = bRank.append("table").attr("class", "atlas-tabla");
+  tabla.append("colgroup").selectAll("col").data(["42px", "auto", "66px", "58px"])
+    .join("col").attr("style", d => `width:${d}`);
+  tabla.append("thead").append("tr").selectAll("th")
+    .data(["#", nivel === "departamento" ? "Departamento" : "Municipio", "Valor", ""])
+    .join("th").text(d => d);
+  const cuerpo = tabla.append("tbody");
+  const filasDom = new Map();
+  mostradas.forEach((f) => {
+    const tr = cuerpo.append("tr");
+    if (f === null) {
+      tr.append("td").attr("colspan", 4)
+        .attr("style", "text-align:center;color:var(--atl-muted);padding:5px")
+        .text(`… ${filas.length - tope - 4} unidades intermedias`);
+      return;
+    }
+    tr.attr("data-id", f.id).attr("tabindex", 0).attr("role", "button")
+      .on("pointerenter", () => foco.sobrevolar(f.id))
+      .on("pointerleave", () => foco.sobrevolar(null))
+      .on("click", () => foco.alternarFijado(f.id))
+      .on("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); foco.alternarFijado(f.id); } });
+    tr.append("td").attr("class", "num").attr("style", "color:var(--atl-muted)")
+      .text(filas.indexOf(f) + 1);
+    tr.append("td").text(f.nombre);
+    tr.append("td").attr("class", "num").text(formato(f.valor));
+    tr.append("td").append("span").attr("class", "atlas-pastilla")
+      .attr("style", `width:${Math.max(2, anchoBarra(f.valor))}px;background:${escala(f.valor)}`);
+    filasDom.set(f.id, tr);
+  });
+
+  const quitar = foco.escuchar(({id}) => {
+    for (const [k, tr] of filasDom) tr.attr("data-activa", k === id ? "si" : null);
+    if (id && filasDom.has(id)) filasDom.get(id).node().scrollIntoView({block: "nearest"});
+  });
+  invalidation.then(quitar);
+  return caja.node();
+}
+```
+:::
+:::
+
+::: {.atlas-nota}
+Fuente: Superintendencia Financiera de Colombia (CC BY-SA 4.0), DANE, MinTIC y MEN. Geometría del Marco
+Geoestadístico Nacional 2024, simplificada para la web; las islas menores que la resolución del mapa se
+descartan y `atlas_meta.json` dice cuántas. El índice y sus pesos están en
+[Metodología](../metodologia/indice.qmd); los datos de esta página se generan con `uv run iif atlas`.
+:::
+
+:::
+
+```{ojs}
+//| echo: false
+//| output: false
+// Estado derivado. `nivel` lo manda la vista: municipios tiene su propio nivel de datos.
+memoria = ({grupo: null})
+nivel = vista === "municipios" ? "municipio" : "departamento"
+datos = nivel === "departamento" ? serieDep : serieMun
+geo = nivel === "departamento" ? geoDep : geoMun
+indicador = meta.indicadores[nivel].find(i => i.id === indicadorId) ?? meta.indicadores[nivel][0]
+nombreDepartamento = new Map(serieDep.ids.map((id, i) => [id, serieDep.nombres[i]]))
+etiquetaGrupo = nivel === "departamento"
+  ? datos.region
+  : datos.dpto_ccdgo.map(c => nombreDepartamento.get(c) ?? c)
+grupos = Array.from(new Set(etiquetaGrupo.filter(d => d))).sort((a, b) => a.localeCompare(b, "es"))
+indiceAnio = Math.max(0, datos.anios.indexOf(anio))
+valores = datos.series[indicador.id][indiceAnio]
+enGrupo = (i) => grupo === "Todas" || etiquetaGrupo[i] === grupo
+posDe = new Map(datos.ids.map((id, i) => [id, i]))
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Medidas del lienzo, en un solo sitio: el mapa, la matriz de la vista y las etiquetas tienen que estar
+// de acuerdo o el relieve se sale del marco (R-15).
+LIENZO = ({ancho: 660, marco: 700, margen: 54, pad: 14})
+// El archipiélago (DIVIPOLA 88) se dibuja aparte y tampoco cuenta para el encuadre: si contara, el marco
+// tendría que abarcar 700 km de mar y Colombia se dibujaría una quinta parte más pequeña.
+ES_INSULAR = (id) => String(id).slice(0, 2) === "88"
+// Capas y paso del bloque, en unidades del lienzo. El canto son copias apiladas de la misma silueta, así
+// que el paso tiene que quedar por debajo del punto o el borde sale peinado; la profundidad se consigue con
+// más capas, no con pasos más largos.
+RELIEVE = ({plano: {capas: 0, paso: 0}, relieve: {capas: 26, paso: 1.2}, municipios: {capas: 4, paso: 1.6}})
+
+// La geometría se decodifica y se proyecta UNA vez por nivel. Cambiar de año, de indicador o de vista solo
+// cambia colores y una matriz; volver a decodificar el TopoJSON de 1.121 municipios en cada cambio sería el
+// gasto más caro de la página y no haría falta para nada.
+proyeccion = {
+  const objeto = Object.values(geo.objects)[0];
+  const rasgos = topojson.feature(geo, objeto).features;
+  const coleccion = {type: "FeatureCollection", features: rasgos};
+  const continente = {type: "FeatureCollection", features: rasgos.filter(f => !ES_INSULAR(f.properties.id))};
+  const proy = d3.geoMercator().fitSize([LIENZO.ancho, LIENZO.marco - LIENZO.margen], coleccion);
+  const trazo = d3.geoPath(proy);
+  return {rasgos, trazo, proy: (lonlat) => proy(lonlat), limites: trazo.bounds(continente)};
+}
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// La geometría de la vista: UNA matriz afín que gira, aplasta y encaja el país en el lienzo. Girar sobre un
+// encuadre ya ajustado saca el mapa del marco —Colombia girada 28° mide unos 780 px de ancho sobre un lienzo
+// de 660—, así que la escala de ajuste se calcula sobre las esquinas ya giradas, no sobre las originales.
+// La misma matriz sirve para el mapa y para las etiquetas, que viven fuera del grupo inclinado.
+vistaGeo = {
+  const {ancho, marco, margen, pad} = LIENZO;
+  const rel = RELIEVE[vista];
+  const t = (vista === "municipios" ? -28 : vista === "relieve" ? -17 : 0) * Math.PI / 180;
+  const ky = vista === "municipios" ? 0.66 : vista === "relieve" ? 0.74 : 1;
+  // SVG: x' = a·x + c·y + e ; y' = b·x + d·y + f. Esto es aplastar(ky) ∘ girar(t).
+  const [a, b, c, d] = [Math.cos(t), ky * Math.sin(t), -Math.sin(t), ky * Math.cos(t)];
+  // El encuadre sigue al filtro. Con "Todas" es el país; al elegir una región o un departamento el mapa se
+  // acerca a él y los vecinos siguen dibujados, sangrando por el borde: el recorte del lienzo los corta
+  // solo. Sin esto, bajar a los 118 municipios de Antioquia dejaba una mancha del tamaño de una uña.
+  const enFoco = proyeccion.rasgos.filter(f => {
+    if (ES_INSULAR(f.properties.id)) return false;
+    if (grupo === "Todas") return true;
+    const i = posDe.get(f.properties.id);
+    return i !== undefined && enGrupo(i);
+  });
+  const [[x0, y0], [x1, y1]] = enFoco.length
+    ? proyeccion.trazo.bounds({type: "FeatureCollection", features: enFoco})
+    : proyeccion.limites;
+  const esquinas = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => [a * x + c * y, b * x + d * y]);
+  const X = d3.extent(esquinas, q => q[0]), Y = d3.extent(esquinas, q => q[1]);
+  // Alto reservado arriba: el bloque más la altura extra de la unidad levantada, o el norte se sale.
+  const alzada = (rel.capas + 4) * rel.paso;
+  const s = Math.min((ancho - 2 * pad) / (X[1] - X[0]), (marco - margen - alzada - pad) / (Y[1] - Y[0]));
+  const contenido = s * (Y[1] - Y[0]);
+  // El lienzo se recorta al contenido por los dos lados. Colombia es más alta que ancha, así que con un
+  // marco cuadrado un tercio del ancho se iba en margen y el mapa salía pequeño sin motivo. El mínimo de
+  // 430 es lo que necesita la leyenda para caber en una línea.
+  const anchoUtil = Math.max(430, s * (X[1] - X[0]) + 2 * pad);
+  const [A, B, C, D] = [a * s, b * s, c * s, d * s];
+  const E = anchoUtil / 2 - (s * (X[0] + X[1])) / 2;
+  const F = alzada - s * Y[0];
+  const det = A * D - B * C;
+  return {
+    margen, escala: s, paso: rel.paso, capas: rel.capas, lineal: [A, B, C, D], ancho: anchoUtil,
+    // El lienzo se recorta al contenido: girado, el país es más ancho que alto y un marco fijo dejaría
+    // una franja muerta arriba y otra abajo que encogen el mapa sin dar nada a cambio.
+    alto: margen + alzada + contenido + pad,
+    matriz: `matrix(${[A, B, C, D, E, F].map(v => v.toFixed(4)).join(",")})`,
+    aPantalla: (q) => [A * q[0] + C * q[1] + E, B * q[0] + D * q[1] + F],
+    // Un desplazamiento que en pantalla sale recto hacia arriba. Dentro del grupo inclinado "arriba" ya no
+    // es (0,−1): hay que resolver M·v = (0,−px) o el bloque se levantaría torcido, siguiendo el giro.
+    subir: (px) => [(C * px) / det, (-A * px) / det]
+  };
+}
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Escala de color. Divergente con dominio simétrico alrededor del cero, para que el mismo color signifique
+// la misma distancia al centro a los dos lados; secuencial del mínimo al máximo observados.
+escala = {
+  const visibles = valores.filter((v, i) => v !== null && enGrupo(i));
+  if (!visibles.length) return () => tok("--atl-sin-dato");
+  if (indicador.escala === "divergente") {
+    const m = d3.max(visibles, Math.abs) || 1;
+    return d3.scaleLinear().domain(d3.range(7).map(i => -m + (2 * m * i) / 6))
+      .range(rampas.divergente()).clamp(true).interpolate(d3.interpolateLab);
+  }
+  const [lo, hi] = d3.extent(visibles);
+  const r = rampas.secuencial();
+  return d3.scaleLinear().domain(r.map((_, i) => lo + ((hi - lo) * i) / (r.length - 1)))
+    .range(r).clamp(true).interpolate(d3.interpolateLab);
+}
+formato = indicador.decimales >= 3 ? d3.format("+.2f")
+  : indicador.decimales === 0 ? d3.format(",.0f") : d3.format(",.2f")
+```
+
+```{ojs}
+//| echo: false
+//| output: false
+// Leyenda continua, siempre presente, con el cero marcado cuando la escala es divergente y una muestra
+// de "sin dato" para que la ausencia no se confunda con el extremo bajo.
+leyenda = (g, ancho) => {
+  const w = Math.min(300, ancho - 130), h = 9, x = 0, y = 22;
+  const id = "grad-" + ancho + "-" + indicador.id;
+  const dom = escala.domain ? escala.domain() : [0, 1];
+  const [lo, hi] = [dom[0], dom[dom.length - 1]];
+  const grad = g.append("defs").append("linearGradient").attr("id", id);
+  d3.range(0, 1.001, 0.05).forEach(t => grad.append("stop")
+    .attr("offset", `${t * 100}%`).attr("stop-color", escala(lo + t * (hi - lo))));
+  g.append("text").attr("x", x).attr("y", y - 8).attr("fill", tok("--atl-ink-2"))
+    .attr("font-size", 12.5).attr("font-weight", 600).text(`${indicador.etiqueta} · ${anio}`);
+  g.append("rect").attr("x", x).attr("y", y).attr("width", w).attr("height", h)
+    .attr("rx", 2).attr("fill", `url(#${id})`).attr("stroke", tok("--atl-ring"));
+  const ejeX = d3.scaleLinear().domain([lo, hi]).range([x, x + w]);
+  const marcas = indicador.escala === "divergente" ? [lo, 0, hi] : [lo, (lo + hi) / 2, hi];
+  g.selectAll("text.marca").data(marcas).join("text").attr("class", "marca")
+    .attr("x", d => ejeX(d)).attr("y", y + h + 12)
+    .attr("text-anchor", (d, i) => i === 0 ? "start" : i === marcas.length - 1 ? "end" : "middle")
+    .attr("fill", tok("--atl-muted")).attr("font-size", 10.5)
+    .attr("font-variant-numeric", "tabular-nums").text(d => formato(d));
+  g.append("g").attr("transform", `translate(${x + w + 18},${y})`).call(gg => {
+    gg.append("rect").attr("width", h).attr("height", h).attr("rx", 2)
+      .attr("fill", tok("--atl-sin-dato")).attr("stroke", tok("--atl-ring"));
+    gg.append("text").attr("x", h + 6).attr("y", h - 1)
+      .attr("fill", tok("--atl-muted")).attr("font-size", 10.5).text("sin dato");
+  });
+}
+```
+
+## Cómo leerlo
+
+El índice está estandarizado: **cero es el promedio de los departamentos en la ventana de calibración
+(2018 y 2019)** y las unidades son desviaciones estándar de esa ventana. Un valor de 2 significa dos
+desviaciones por encima de aquel promedio, no "el doble de inclusión". Por eso la escala del índice es
+divergente, con el gris en el cero, y la de las variables es de un solo color: "corresponsales por 10.000
+habitantes" no tiene un centro natural, solo más y menos.
+
+Las tres vistas muestran los mismos datos. El **relieve** existe para separar una unidad de sus vecinas y
+poder mirarla: la altura de los bloques es constante y no codifica nada, porque una altura que dependiera
+del valor haría que las unidades de adelante taparan a las de atrás, y el dato de una unidad no debe
+depender de dónde cae en el mapa. El color sigue siendo el que lleva la magnitud, en las tres vistas.
+
+::: {.callout-warning}
+## Los límites del mapa
+Los territorios sin color no son territorios sin inclusión financiera: son territorios de los que ninguna
+entidad vigilada reportó operaciones ese año. La diferencia importa y confundirlas es el error más fácil de
+cometer con estos datos.
+
+El nivel municipal hereda además una limitación de la fuente: el valor agregado municipal del DANE es un
+reparto del PIB departamental, no una medición independiente, así que las razones que lo usan como
+denominador son aproximaciones.
+
+El archipiélago de San Andrés no se dibuja con su forma: está a 700 km del continente y mide 26 km², de modo
+que dentro del encuadre encoge Colombia una quinta parte para pintar un punto, y en un inserto proporcional
+lo que ocupa el recuadro es el mar entre las dos islas. Va como ficha rotulada, fuera de escala, y responde
+igual que cualquier otro departamento. Dos municipios del panel (1.123 unidades) no tienen polígono en el
+Marco Geoestadístico 2024: aparecen en el ranking y en las cifras, pero no en el mapa.
+:::

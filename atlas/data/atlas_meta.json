@@ -1,0 +1,168 @@
+{
+ "version": 1,
+ "generado_en": "2026-09-06T22:53:11Z",
+ "indicadores": {
+  "departamento": [
+   {
+    "id": "iif_compuesto",
+    "etiqueta": "Índice compuesto",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_acceso",
+    "etiqueta": "Acceso",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_uso",
+    "etiqueta": "Uso",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_profundidad",
+    "etiqueta": "Profundidad",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "nro_corresp_activos",
+    "etiqueta": "Corresponsales activos por 10.000 habitantes",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "nro_total",
+    "etiqueta": "Transacciones en corresponsales por 10.000 habitantes",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 0
+   },
+   {
+    "id": "monto_total",
+    "etiqueta": "Monto transado en corresponsales, % del PIB",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "nro_total_cta_ahorros",
+    "etiqueta": "Cuentas de ahorro por 10.000 habitantes",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 0
+   },
+   {
+    "id": "saldo_total_cta_ahorros",
+    "etiqueta": "Saldo en cuentas de ahorro, % del PIB",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "monto_total_cred_consumo",
+    "etiqueta": "Crédito de consumo, % del PIB",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "monto_total_cred_vivienda",
+    "etiqueta": "Crédito de vivienda, % del PIB",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "monto_total_micro",
+    "etiqueta": "Microcrédito, % del PIB",
+    "grupo": "variable",
+    "escala": "secuencial",
+    "decimales": 2
+   },
+   {
+    "id": "pib_real_per_capita",
+    "etiqueta": "PIB real por habitante",
+    "grupo": "contexto",
+    "escala": "secuencial",
+    "decimales": 0
+   },
+   {
+    "id": "crecimiento_pib_real_pc",
+    "etiqueta": "Crecimiento del PIB real por habitante",
+    "grupo": "contexto",
+    "escala": "divergente",
+    "decimales": 4
+   },
+   {
+    "id": "poblacion_total",
+    "etiqueta": "Población",
+    "grupo": "contexto",
+    "escala": "secuencial",
+    "decimales": 0
+   }
+  ],
+  "municipio": [
+   {
+    "id": "iif_compuesto",
+    "etiqueta": "Índice compuesto",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_acceso",
+    "etiqueta": "Acceso",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_uso",
+    "etiqueta": "Uso",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "iif_profundidad",
+    "etiqueta": "Profundidad",
+    "grupo": "indice",
+    "escala": "divergente",
+    "decimales": 3
+   },
+   {
+    "id": "va_per_capita_corriente",
+    "etiqueta": "Valor agregado por habitante",
+    "grupo": "contexto",
+    "escala": "secuencial",
+    "decimales": 0
+   },
+   {
+    "id": "poblacion_total",
+    "etiqueta": "Población",
+    "grupo": "contexto",
+    "escala": "secuencial",
+    "decimales": 0
+   }
+  ]
+ },
+ "unidades": {
+  "departamentos": 33,
+  "municipios": 1121
+ },
+ "islas_descartadas": {
+  "departamentos": 43,
+  "municipios": 44
+ },
+ "fuente": "Superintendencia Financiera (CC BY-SA 4.0), DANE, MinTIC y MEN. Índice: ADR-015.",
+ "nota": "Un valor ausente es una unidad no observada, no un cero.",
+ "nota_geometria": "Se descartan las islas menores que la tolerancia de simplificación; `islas_descartadas` dice cuántas por nivel. Ninguna unidad se queda sin geometría."
+}

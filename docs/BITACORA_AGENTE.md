@@ -333,6 +333,16 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: `data/processed/indice_diagnosticos.csv` (KMO por dimensión); `metodologia/indice.qmd` publica la tabla.
 - Estado: cerrada. El método publicado son pesos iguales dentro de cada dimensión; el componente principal queda como sensibilidad, con correlación de rangos 0,96 frente al publicado.
 
+## B-039 · 2026-09-06 · El mapa salía como un rectángulo de color: el sentido de giro de los anillos
+- Contexto: primera versión del atlas, coropleta de departamentos con d3 y TopoJSON sobre la geometría del MGN 2024.
+- Qué pasó: el mapa se dibujaba como un rectángulo azul que ocupaba todo el lienzo, con Colombia reducida a una mancha de diez píxeles en el centro. Los datos exportados eran correctos: 33 rasgos, códigos completos, límites en lon [−81,7; −66,8] y lat [−4,2; 13,4].
+- Causa raíz: **TopoJSON y la geometría esférica de d3 esperan el anillo exterior en sentido horario, que es el contrario del que pide RFC 7946 para GeoJSON.** Con el giro de RFC, d3 interpreta cada anillo como el complemento del polígono. Medido con la propia d3: `d3.geoArea` de Bogotá daba 12,566, es decir 4π, la esfera entera; la suma de los 33 departamentos daba 590 estereorradianes cuando la esfera mide 12,57. Al ajustar la proyección a ese contorno, todo lo demás se encogía.
+- Se agravaba con un segundo defecto: una isla de Bolívar (que tiene 51 polígonos) colapsaba a un anillo de área cero al simplificar, y un anillo degenerado produce el mismo efecto.
+- Cómo se encontró: no mirando el código, sino midiendo. Primero el área con signo de cada anillo en Python, después `d3.geoArea` en el navegador, que fue la que dio el número imposible.
+- Regla: la geometría publicada se valida contra una cantidad física conocida antes de darla por buena. La suma de las áreas esféricas de los departamentos tiene que dar el área de Colombia: 0,0281 estereorradianes. Ahora da 0,02817.
+- Evidencia: `src/iif/export/atlas.py::_limpiar` (giro horario y descarte de islas por debajo de la resolución, con el conteo publicado en `atlas_meta.json`).
+- Estado: cerrada.
+
 ---
 
 ## Aciertos
@@ -402,3 +412,55 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Qué funcionó: medir la correlación de cada candidata con la población departamental. Va de 0,58 a 0,94 (pagos 0,94; cuentas de ahorro 0,92). Un índice sobre variables sin normalizar tendría como primer factor el tamaño del departamento. Con conteos por 10.000 habitantes y montos como porcentaje del producto, la correlación cae a un rango de −0,28 a 0,69, que ya es relación económica y no aritmética.
 - Dónde se reutiliza: `config/index.yaml` (normalización), ADR-015, `tests/test_index.py::test_normalizacion_elimina_la_escala_de_la_unidad`, que reproduce el problema en un panel sintético antes de comprobar que la normalización lo quita.
 
+## S-014 · 2026-09-06 · Medir el mapa contra el área real de Colombia
+- Contexto: B-039. Un mapa mal proyectado puede verse "casi bien" y pasar la revisión a ojo.
+- Qué funcionó: comprobar que la suma de las áreas esféricas de los 33 departamentos coincide con el área conocida de Colombia (1.142.000 km² sobre una esfera de 510 millones: 0,0281 estereorradianes). El exportador daba 590 antes del arreglo y 0,02817 después. Es una prueba de una línea que detecta el fallo de giro, los anillos degenerados y una proyección equivocada, sin mirar el mapa.
+- Dónde se reutiliza: la comprobación entra como prueba del exportador del atlas.
+
+## S-015 · 2026-09-06 · El atlas no depende de ningún CDN
+- Contexto: al abrir la página en un navegador sin salida a internet, los cuatro filtros y el mapa se caían: Quarto carga Observable Inputs desde jsDelivr y las celdas quedaban esperando ese módulo.
+- Qué funcionó: vendorizar d3 y topojson-client en `atlas/lib/` y construir los filtros con HTML plano. La página entera se dibuja sin una sola petición externa, que es lo que corresponde a un artefacto de investigación pensado para durar; además la guía de visualización pide justamente que los filtros sean interfaz corriente y no componentes del gráfico.
+- Dónde se reutiliza: `atlas/index.qmd` (helper `control`), `atlas/lib/`.
+
+
+## B-040 · 2026-09-06 · Ninguna capital se rotulaba: un booleano que viajó como texto
+- Contexto: el mapa municipal rotula solo las capitales departamentales; el exportador manda `es_capital` en `series_municipio.json`.
+- Qué pasó: la capa de nombres no dibujaba nada y el mapa no daba ningún aviso.
+- Causa raíz: `build_series` pasaba **todos** los acompañantes por `str()`, regla pensada para los códigos DIVIPOLA, que llevan ceros a la izquierda y un número los perdería. Con un booleano, `str(True)` produce `"True"`, y en el navegador `"True"` no es ni `true` ni `"true"`: la comparación era falsa en las 1.123 filas.
+- Regla: un fallo de tipo que solo se manifiesta como "no se dibuja" hay que convertirlo en un fallo de prueba. Los datos publicados declaran su tipo y una prueba lo comprueba.
+- Evidencia: `src/iif/export/atlas.py::_escalar`; `tests/test_atlas.py::test_los_acompanantes_conservan_su_tipo`.
+
+## B-041 · 2026-09-06 · Girar sobre un encuadre ya ajustado saca el mapa del marco
+- Contexto: las vistas en volumen inclinan el país con una matriz sobre el grupo de SVG, en vez de reproyectar 1.121 geometrías en cada cambio.
+- Qué pasó: la vista municipal salía cortada por los dos lados.
+- Causa raíz: la proyección se ajustaba al lienzo (660 × 646) y **después** se giraba 28°. Un rectángulo de 544 × 646 girado mide 783 de ancho: 123 puntos fuera del marco por lado.
+- Cómo se encontró: midiendo en el navegador la caja del grupo del mapa contra la caja del SVG, no mirando la captura.
+- Regla: la escala de ajuste se calcula sobre las esquinas **ya transformadas**. Toda vista que gire o aplaste calcula su encuadre después de la transformación, nunca antes.
+- Segundo hallazgo del mismo sitio: el archipiélago de San Andrés está a 700 km del continente y se llevaba una quinta parte del ancho del lienzo para dibujar un punto. Sale del encuadre y va como ficha rotulada fuera de escala, viva para el ratón como cualquier departamento; un inserto proporcional no servía porque lo que ocupa el recuadro es el mar entre las dos islas.
+- Evidencia: `atlas/index.qmd`, celda `vistaGeo` (`ES_INSULAR`, `anchoUtil`, `subir`).
+
+## B-042 · 2026-09-06 · La limpieza de oyentes colgaba de un evento que el navegador ya no dispara
+- Contexto: los tres paneles del atlas se suscriben al bus de foco y tienen que darse de baja cuando OJS los reemplaza.
+- Qué pasó: la baja nunca ocurría. Cada cambio de año, indicador o vista dejaba tres oyentes más apuntando a nodos ya desechados.
+- Causa raíz: la baja se registraba con `DOMNodeRemovedFromDocument`, un evento de mutación **retirado de Chromium**. No falla: simplemente no se dispara nunca.
+- Regla: en OJS la baja se hace con `invalidation`, que es el mecanismo del propio entorno. Una suscripción sin baja comprobada es una fuga; se comprueba contando, no leyendo.
+- Evidencia: `atlas/index.qmd` (`invalidation.then(quitar)` en los tres paneles); comprobado en el navegador con ocho cambios de año seguidos.
+
+## B-043 · 2026-09-06 · El atenuado en la cara dejaba los cantos a plena tinta
+- Contexto: al filtrar por región o departamento, las unidades de fuera se atenúan para dar contexto sin competir.
+- Qué pasó: al bajar a los municipios de Antioquia, el resto del país aparecía como una masa gris oscura, más llamativa que la selección.
+- Causa raíz: la opacidad estaba puesta en la cara del bloque y no en el grupo, así que las 26 copias del canto seguían pintándose enteras. El mismo error de encuadre agravaba el efecto: el mapa no se acercaba al filtro y los 118 municipios elegidos eran una mancha del tamaño de una uña.
+- Regla: una propiedad que describe a la unidad (atenuar, ocultar, resaltar) va en el grupo de la unidad, nunca en una de sus piezas.
+- Evidencia: `atlas/index.qmd` (`opacidadDe` sobre `g.unidad`; `enFoco` en `vistaGeo`).
+
+## B-044 · 2026-09-06 · `table-layout: fixed` lee la primera fila, y los anchos estaban en el cuerpo
+- Contexto: el ranking del atlas con nombres municipales largos.
+- Qué pasó: al fijar el reparto de la tabla para que los nombres no empujaran las cifras, el encabezado se solapó ("DEPARTAMENTO" encima de "VALOR").
+- Causa raíz: con `table-layout: fixed` mandan los anchos de la **primera** fila; los anchos estaban en las celdas del cuerpo, así que el encabezado se repartió a partes iguales.
+- Regla: con reparto fijo, los anchos van en un `<colgroup>`, que es el único sitio que no depende de qué fila se dibuje primero.
+- Evidencia: `atlas/index.qmd`, `panelContexto`.
+
+## S-016 · 2026-09-06 · Medir la página en el navegador, no mirarla
+- Contexto: B-041, B-042 y B-043 son defectos que una captura enseña a medias o no enseña: un recorte de 60 puntos parece encuadre, una fuga de oyentes no se ve, y un gris de más parece una decisión de diseño.
+- Qué funcionó: un guion de Playwright que, además de las capturas, imprime números por vista: cuántas unidades y cuántos nodos hay, la caja del mapa contra la caja del lienzo (desbordes por los cuatro lados), el tiempo de ocho cambios de año seguidos y cuántos mapas quedan vivos en el documento. Los tres defectos aparecieron como números malos antes que como imágenes feas.
+- Dónde se reutiliza: el mismo guion vale para cualquier página del sitio con gráficos; la comprobación de desbordes es la que hay que repetir cuando cambie el encuadre.

@@ -33,3 +33,23 @@ El atlas depende solo de los archivos de `atlas/data/`. Cualquier otro front (Re
 ## Adenda 2026-09-06: Vercel en lugar de GitHub Pages
 
 El autor ya despliega su portafolio en Vercel y no quiere una segunda plataforma. Vercel no puede correr Quarto ni Python en su build, así que el flujo es: CI renderiza `_site` en cada push a `main` y lo empuja, con un `vercel.json` mínimo, a la rama `site`; el proyecto de Vercel (`financial-inclusion-colombia`, enlazado al repositorio) despliega esa rama. En `main` hay un `vercel.json` con `ignoreCommand` que cancela cualquier build de Vercel sobre el código fuente. Único ajuste manual del autor, una sola vez: en Vercel, Settings → Git → Production Branch = `site`. Verificado el 2026-09-06: el proyecto existe, la rama `site` se despliega y las ramas de código quedan ignoradas. URL: https://financial-inclusion-colombia.vercel.app. La página de reproducción del trabajo de grado se retira del sitio: los resultados de la tesis no se publican (decisión del autor, misma fecha).
+
+## Adenda 2026-09-06 (2): promover el primer despliegue a mano, y republicar a demanda
+
+Cambiar la rama de producción en Vercel **no promueve los despliegues que ya existen**: solo hace de
+producción los commits siguientes. Como `main` está deliberadamente ignorada, el dominio de producción se
+quedó sin ningún despliegue asignado y respondía `DEPLOYMENT_NOT_FOUND`, que no es un fallo de compilación
+sino "este dominio no apunta a nada". El arreglo es de diez segundos y del autor: Deployments → el
+despliegue de la rama `site` → Promote to Production. A partir de ahí cada push de CI renueva producción.
+
+De ahí salió un hueco real: CI solo publicaba con un push a `main`, así que no había forma de republicar el
+sitio sin un commit de código. `ci.yml` acepta ahora `workflow_dispatch`; la condición de los pasos de
+publicación (`github.ref == 'refs/heads/main'`) sigue valiendo porque el disparo manual se hace sobre `main`.
+
+## Adenda 2026-09-06 (3): el atlas se dibuja sin CDN y con un solo tema
+
+Quarto carga Observable Inputs desde jsDelivr: sin salida a internet los filtros y el mapa se caían (S-015).
+d3 y topojson-client viven en `atlas/lib/` y los filtros son HTML plano. Y el atlas no lleva tokens de tema
+oscuro: el sitio publica un único tema claro (`cosmo`), y unos tokens oscuros dejarían el mapa oscuro sobre
+una página clara para quien tenga el sistema en oscuro. Cuando el sitio tenga tema oscuro, vuelven.
+
