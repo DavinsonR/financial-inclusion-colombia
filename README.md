@@ -144,7 +144,7 @@ make reproduce       # pipeline legado → docs/legacy/reproduccion.md
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 
-Solo `uv`; nunca `pip install`. `make check` corre ruff, 57 pruebas de pytest, `dbt build` en DuckDB (127 nodos y pruebas) y `quarto render`; `make test-data` añade las pruebas que leen `data/interim/`. Reglas para el asistente: [`CLAUDE.md`](CLAUDE.md).
+Solo `uv`; nunca `pip install`. `make check` corre ruff, 62 pruebas de pytest, `dbt build` en DuckDB (127 nodos y pruebas) y `quarto render`; `make test-data` añade las pruebas que leen `data/interim/`. Reglas para el asistente: [`CLAUDE.md`](CLAUDE.md).
 
 ## Estructura
 
