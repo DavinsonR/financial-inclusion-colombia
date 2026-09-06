@@ -243,3 +243,48 @@ seeds:
       - name: kx2f_column
       - name: descripcion
         data_tests: [not_null]
+
+  - name: map_sfc_columns
+    description: "Bloque `tipo_id` al que pertenece cada columna numérica de las tablas SFC, derivado de los datos con `iif crosswalk derive-blocks` (columnas con algún valor distinto de cero dentro del bloque). Fuera de su bloque una columna solo trae ceros estructurales (ADR-008)."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, columna]
+    columns:
+      - name: fuente
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ptgf, kx2f]
+      - name: tipo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('map_sfc_tipo')
+                field: tipo_id
+      - name: columna
+        data_tests: [not_null]
+
+  - name: dim_municipio_extra
+    description: "Códigos municipales que no están en el MGN 2024 ni en las tablas del DANE pero sí en alguna fuente (con motivo). Se unen a dim_municipio."
+    columns:
+      - name: mpio_ccdgo
+        data_tests: [unique, not_null]
+
+  - name: sfc_column_names
+    description: "Nombre original (metadatos de Socrata, `api/views/<id>.json`) de cada columna de ptgf y kx2f; Socrata trunca y transforma los fieldName y aquí queda el significado completo."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [fuente, columna]
+
+  - name: xw_sfc_columns_empalme
+    description: "Correspondencia posicional ptgf → kx2f: la numeración (1) a (78) de kx2f sigue el orden de las columnas de ptgf; kx2f no trae las cuentas de ahorro electrónicas (33 a 40) y añade 79 a 98 (corresponsales móviles y activos por tipo). ADR-009."
+    columns:
+      - name: ptgf_column
+        data_tests: [unique, not_null]
+      - name: kx2f_column
+        data_tests: [unique]
+      - name: numero
+        data_tests: [unique, not_null]

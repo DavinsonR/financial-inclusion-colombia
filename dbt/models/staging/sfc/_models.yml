@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: stg_sfc__ptgf
+    description: "SFC legado tipado con dpto_ccdgo, mpio_ccdgo (por renglon) y tipo_id. 603.232 filas."
+    columns:
+      - name: fecha_corte
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: tipo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('map_sfc_tipo')
+                field: tipo_id
+      - name: dpto_ccdgo
+        description: "Nulo fuera de las unidades geográficas (unicap > 33)."
+      - name: mpio_ccdgo
+        description: "Código DIVIPOLA de 5 dígitos; nulo en totales departamentales y bloques no geográficos."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+  - name: stg_sfc__kx2f
+    description: "SFC vigente tipada con dpto_ccdgo, mpio_ccdgo (por renglon, igual que ptgf) y tipo_id. 1.749.411 filas."
+    columns:
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: tipo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('map_sfc_tipo')
+                field: tipo_id
+      - name: mpio_ccdgo
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+  - name: stg_sfc__vkbt
+    description: "Puntos de atención por canal y municipio, mensual. La fuente repite (corte, entidad, municipio, canal) en 1.199 claves con valores distintos y sin columna que las distinga: se suman al agregar, nunca se deduplican."
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: codigo_canal
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_canal')
+                field: codigo_canal

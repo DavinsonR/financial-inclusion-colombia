@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import requests
 import responses
 
 from iif.acquire import dane, mgn, soda
@@ -339,3 +340,48 @@ def test_soda_unknown_partition_column_raises(tmp_path: Path):
         soda.fetch_soda(
             _source(tmp_path, partition_col="fecha_de_corte"), out_dir=tmp_path, manifest=tmp_path / "m.jsonl"
         )
+
+
+def _mock_soda_head(rsps: responses.RequestsMock, n: int):
+    rsps.get(META_URL, json={"name": "t", "rowsUpdatedAt": 1, "license": {"name": "CC"}, "columns": []})
+    rsps.get(
+        RES_URL,
+        json=[{"n": str(n)}],
+        match=[responses.matchers.query_param_matcher({"$select": "count(*) as n"})],
+    )
+
+
+_PAGE0 = responses.matchers.query_param_matcher({"$limit": "2", "$offset": "0", "$order": ":id"})
+
+
+@responses.activate
+def test_soda_page_is_retried_after_timeout(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(soda.time, "sleep", lambda _s: None)
+    rows = _rows(2)
+    _mock_soda_head(responses, 2)
+    calls = {"n": 0}
+
+    def flaky(request):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise requests.exceptions.ReadTimeout("corte")
+        return (200, {}, json.dumps(rows))
+
+    responses.add_callback(responses.GET, RES_URL, callback=flaky, match=[_PAGE0])
+    responses.get(
+        RES_URL,
+        json=[],
+        match=[responses.matchers.query_param_matcher({"$limit": "2", "$offset": "2", "$order": ":id"})],
+    )
+    recs = soda.fetch_soda(_source(tmp_path), out_dir=tmp_path / "raw", manifest=tmp_path / "m.jsonl")
+    assert sum(r.row_count for r in recs) == 2 and calls["n"] == 2
+
+
+@responses.activate
+def test_soda_client_error_is_not_retried(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(soda.time, "sleep", lambda _s: None)
+    _mock_soda_head(responses, 2)
+    responses.get(RES_URL, status=400, json={"error": True}, match=[_PAGE0])
+    with pytest.raises(requests.HTTPError):
+        soda.fetch_soda(_source(tmp_path), out_dir=tmp_path / "raw", manifest=tmp_path / "m.jsonl")
+    assert len([c for c in responses.calls if "offset" in c.request.url]) == 1

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import time
 from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -22,7 +23,7 @@ from iif.acquire.manifest import PullRecord, append_record, latest_record, make_
 
 BASE = "https://www.datos.gov.co"
 DEFAULT_PAGE = 50_000
-TIMEOUT = 180
+TIMEOUT = 600
 
 
 class SizeGateError(RuntimeError):
@@ -79,15 +80,37 @@ def iter_soda_pages(
         params = {"$limit": page_size, "$offset": offset, "$order": order}
         if where:
             params["$where"] = where
-        r = s.get(f"{BASE}/resource/{dataset_id}.json", params=params, timeout=TIMEOUT)
-        r.raise_for_status()
-        page = r.json()
+        page = _get_json_with_retries(s, f"{BASE}/resource/{dataset_id}.json", params)
         if not page:
             return
         yield page
         if len(page) < page_size:
             return
         offset += page_size
+
+
+def _get_json_with_retries(s: requests.Session, url: str, params: dict, attempts: int = 4):
+    """Una página de 50.000 filas de kx2f pesa más de 100 MB: los cortes de lectura se reintentan con espera
+    exponencial (2, 4, 8 s). Los errores 4xx no se reintentan."""
+    last: Exception | None = None
+    for i in range(attempts):
+        try:
+            r = s.get(url, params=params, timeout=TIMEOUT)
+            if 500 <= r.status_code < 600:
+                raise requests.HTTPError(f"{r.status_code} en {url}", response=r)
+            r.raise_for_status()
+            return r.json()
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as exc:
+            if (
+                isinstance(exc, requests.HTTPError)
+                and exc.response is not None
+                and exc.response.status_code < 500
+            ):
+                raise
+            last = exc
+            if i < attempts - 1:
+                time.sleep(2 ** (i + 1))
+    raise RuntimeError(f"sin respuesta tras {attempts} intentos: {url}") from last
 
 
 def type_frame(

@@ -30,3 +30,7 @@ La SFC publica dos tablas: `ptgf-ywrb` (2017Q4 a 2021Q1, congelada, con cuentas 
 ## Cómo revertirla
 
 La preferencia en 2021Q1 es un `CASE` en `int_sfc_geo_long`. Los umbrales de la prueba están en la prueba singular. Cambiar cualquiera exige actualizar este ADR.
+
+## Adenda 2026-09-06: primeros números
+
+Correspondencia posicional de columnas en `dbt/seeds/xw_sfc_columns_empalme.csv` (70 pares; las cuentas de ahorro electrónicas no existen en `kx2f`). Totales departamentales de 2021Q1: mediana global de la diferencia relativa 0,02 %; peor departamento por mediana 1,8 % (Antioquia); por bloque, corresponsales físicos 3,4 % y microcrédito con p90 de 12 %. Umbral de la prueba `assert_sfc_empalme_2021q1`: mediana por departamento ≤ 2 %. Detalle en B-033 y en `data/interim/sfc/empalme_2021q1_departamento.csv`.

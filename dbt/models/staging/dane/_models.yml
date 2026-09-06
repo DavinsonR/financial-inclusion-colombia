@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg_dane__pib_departamento_anual
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+    columns:
+      - name: dpto_ccdgo
+        data_tests: [not_null]
+  - name: stg_dane__va_municipio_anual
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+  - name: stg_dane__poblacion_municipio_anual
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio, area]
+  - name: stg_dane__itaed_departamento_trimestre
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio, trimestre]
+  - name: stg_mgn__municipios
+    columns:
+      - name: mpio_ccdgo
+        data_tests: [not_null, unique]
+  - name: stg_men__educacion
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+  - name: stg_mintic__internet
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo

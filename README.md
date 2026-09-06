@@ -70,6 +70,7 @@ Panel de la tesis, tal como está congelado en `data/legacy/`:
 | Variable dependiente | Crecimiento del PIB real per cápita departamental: 5 valores anuales por departamento, no 14. El 64,3 % de sus diferencias intra-anuales es cero |
 | N efectivo | 165 departamento-años (33 × 5). T = 14 trimestres de datos financieros, T = 5 años de PIB |
 | Robustez | PIB agregado departamental |
+| Niveles SFC | Valen el doble del dato de la Superintendencia: el panel sumó las filas municipales y la fila de total departamental (`renglon = 999`) de `ptgf-ywrb`. Reconstrucción exacta en `tests/test_legacy_vs_ptgf.py` (B-031). Las log-diferencias y el PCA no cambian; las razones flujo/PIB sí |
 | Regresor de interés | IIF_Multidim, índice compuesto de inclusión financiera (PCA, 4 componentes) |
 
 Dicho sin rodeos: la tesis estimó un panel trimestral cuya variable dependiente solo cambia una vez al año. Esa es la razón del nulo bajo efectos fijos de tiempo y del β grande y positivo sin ellos: la correlación es la de dos tendencias nacionales (el índice sube en todos los departamentos; el PIB cae 7,7 % en 2020 y sube 10,6 % en 2021). Detalle en `docs/legacy/reproduccion.md` (diagnóstico D1) y en la bitácora (B-001).
@@ -144,7 +145,7 @@ make reproduce       # pipeline legado → docs/legacy/reproduccion.md
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 
-Solo `uv`; nunca `pip install`. `make check` corre ruff, 62 pruebas de pytest, `dbt build` en DuckDB (127 nodos y pruebas) y `quarto render`; `make test-data` añade las pruebas que leen `data/interim/`. Reglas para el asistente: [`CLAUDE.md`](CLAUDE.md).
+Solo `uv`; nunca `pip install`. `make check` corre ruff, 75 pruebas (13 leen datos descargados) de pytest, `dbt build` en DuckDB (127 nodos y pruebas) y `quarto render`; `make test-data` añade las pruebas que leen `data/interim/`. Reglas para el asistente: [`CLAUDE.md`](CLAUDE.md).
 
 ## Estructura
 
@@ -189,7 +190,8 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, 62 pruebas de pytest, `
 | Documentos de gobierno (guía, bitácora, 14 ADR, licencias) | En el repositorio |
 | Proyecto dbt (DuckDB y Snowflake), sitio Quarto, CI, `requirements.txt` exportado | Fase 0, hecho |
 | Descarga con manifiesto de las 17 fuentes pequeñas (DANE, MEN, MGN, SFC `ptgf` y `vkbt`) y parsers DANE/MGN a Parquet | Fase 1, hecho |
-| SFC `kx2f` y MinTIC por año, crosswalk a DIVIPOLA, staging SFC en largo, empalme 2021Q1 | Fase 1, pendiente (S11 a S13) |
+| SFC `kx2f` y MinTIC por año, claves DIVIPOLA por `renglon`, staging de las 13 tablas, `dim_municipio`, SFC en largo, empalme 2021Q1 medido | Fase 1, hecho |
+| Marts de hechos y paneles anuales, índice en dos etapas, atlas | Fase 2, pendiente |
 | Descargas con manifiesto, crosswalk a DIVIPOLA, staging, empalme 2021Q1 | Fase 1, pendiente |
 | Índice en dos etapas, marts anuales, atlas | Fase 2, pendiente |
 | Econometría nueva | Fase 3, pendiente |
