@@ -4,7 +4,7 @@
 
 Nace del trabajo de grado *Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia* (Maestría en Economía, Pontificia Universidad Javeriana, 2026; director: Gabriel Penagos Londoño). Ese trabajo es el borrador y la inspiración: aquí no se reutiliza ninguno de sus resultados. Todo se rehace desde las fuentes, con más años, nivel municipal y un diseño que enfrenta de frente la correlación espuria entre inclusión y crecimiento.
 
-Sitio del proyecto: <https://inclusion-financiera-colombia.vercel.app>. Autor: Davirson Novoa Ramírez.
+Sitio del proyecto: <https://financial-inclusion-colombia.vercel.app>. Autor: Davirson Novoa Ramírez.
 
 *English summary: see [Abstract](#abstract).*
 
@@ -149,7 +149,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 Ver [`CITATION.cff`](CITATION.cff). En texto:
 
-> Novoa Ramírez, D. (2026). *Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible* [código y datos]. <https://github.com/DavinsonR/inclusion-financiera-colombia>
+> Novoa Ramírez, D. (2026). *Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible* [código y datos]. <https://github.com/DavinsonR/financial-inclusion-colombia>
 
 ## Licencia
 

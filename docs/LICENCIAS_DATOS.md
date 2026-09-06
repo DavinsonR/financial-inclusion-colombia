@@ -8,7 +8,7 @@ Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que es
 
 - Conjuntos: `ptgf-ywrb` (inclusión financiera por entidad y municipio, 2017Q4 a 2021Q1, congelado), `kx2f-xjdq` (mismo grano, 2021Q1 a 2025Q4, vigente), `vkbt-desu` (puntos de atención por entidad y municipio, mensual, 2023-01 en adelante).
 - Licencia: Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0), según la ficha de cada conjunto en datos.gov.co.
-- Atribución que se usa: "Contiene datos de la Superintendencia Financiera de Colombia publicados en datos.gov.co bajo CC BY-SA 4.0, conjunto <id>, descargado el <fecha> (`rowsUpdatedAt` <fecha de la fuente>), transformado por el proyecto inclusion-financiera-colombia."
+- Atribución que se usa: "Contiene datos de la Superintendencia Financiera de Colombia publicados en datos.gov.co bajo CC BY-SA 4.0, conjunto <id>, descargado el <fecha> (`rowsUpdatedAt` <fecha de la fuente>), transformado por el proyecto financial-inclusion-colombia."
 - Nota: los ceros fuera del bloque de producto de cada fila son relleno de la plataforma, no datos (ADR-008).
 
 ### DANE: PIB departamental, valor agregado municipal, población, ITAED, PIB trimestral de Bogotá, ISE, EMMET
