@@ -1,0 +1,127 @@
+version: 1
+calibracion:
+  anio_desde: 2018
+  anio_hasta: 2019
+normalizacion:
+  count: por_10k_habitantes
+  cop: pct_producto
+dimensiones:
+  acceso:
+    metodo: variable_unica
+    variables:
+    - variable_id: nro_corresp_activos
+      signo_esperado: 1
+  uso:
+    metodo: pesos_iguales
+    variables:
+    - variable_id: nro_total
+      signo_esperado: 1
+    - variable_id: monto_total
+      signo_esperado: 1
+    - variable_id: nro_total_cta_ahorros
+      signo_esperado: 1
+    - variable_id: saldo_total_cta_ahorros
+      signo_esperado: 1
+  profundidad:
+    metodo: pesos_iguales
+    variables:
+    - variable_id: monto_total_cred_consumo
+      signo_esperado: 1
+    - variable_id: monto_total_cred_vivienda
+      signo_esperado: 1
+    - variable_id: monto_total_micro
+      signo_esperado: 1
+compuesto:
+  metodo: promedio_dimensiones
+  pesos:
+    acceso: 0.3333333333333333
+    uso: 0.3333333333333333
+    profundidad: 0.3333333333333333
+sensibilidad:
+- pca
+- sarma
+excluidas:
+  monto_total_cred_consumo_bajo: cobertura 79,5 % departamental y 59,5 % municipal
+  nro_total_cred_consumo_bajo: cobertura 79,5 % departamental y 59,5 % municipal
+  nro_depositos: componente del total de transacciones, que ya entra
+  nro_pagos: componente del total de transacciones
+  nro_retiros: componente del total de transacciones
+  nro_transfer: componente del total de transacciones
+  nro_giros_env: componente del total de transacciones
+  nro_giros_rec: componente del total de transacciones
+  monto_depositos: componente del monto total de transacciones
+  monto_pagos: componente del monto total de transacciones
+  monto_retiros: componente del monto total de transacciones
+  monto_transfer: componente del monto total de transacciones
+  monto_giros_env: componente del monto total de transacciones
+  monto_giros_rec: componente del monto total de transacciones
+  nro_total_cred_consumo: el monto mide profundidad; el conteo duplicaría el concepto
+  nro_total_cred_vivienda: el monto mide profundidad; el conteo duplicaría el concepto
+  nro_total_micro: el monto mide profundidad; el conteo duplicaría el concepto
+  nro_corresp: corresponsales contratados; el acceso efectivo lo miden los activos
+pesos_congelados:
+  acceso:
+    dimension: acceso
+    metodo: variable_unica
+    variables:
+    - nro_corresp_activos
+    media:
+      nro_corresp_activos: 18.072869751841626
+    desviacion:
+      nro_corresp_activos: 9.058070237566344
+    cargas:
+      nro_corresp_activos: 1.0
+    varianza_explicada: null
+    kmo: null
+    bartlett_chi2: null
+    bartlett_p: null
+  uso:
+    dimension: uso
+    metodo: pesos_iguales
+    variables:
+    - nro_total
+    - monto_total
+    - nro_total_cta_ahorros
+    - saldo_total_cta_ahorros
+    media:
+      nro_total: 52585.62086191203
+      monto_total: 14.970974644413179
+      nro_total_cta_ahorros: 9883.06946877577
+      saldo_total_cta_ahorros: 13.050061472700474
+    desviacion:
+      nro_total: 29702.325867853822
+      monto_total: 7.618689567655815
+      nro_total_cta_ahorros: 4820.524016467745
+      saldo_total_cta_ahorros: 7.871092871327574
+    cargas:
+      nro_total: 0.25
+      monto_total: 0.25
+      nro_total_cta_ahorros: 0.25
+      saldo_total_cta_ahorros: 0.25
+    varianza_explicada: null
+    kmo: 0.3141834248405618
+    bartlett_chi2: 52.47340562649277
+    bartlett_p: 1.4976448921480028e-09
+  profundidad:
+    dimension: profundidad
+    metodo: pesos_iguales
+    variables:
+    - monto_total_cred_consumo
+    - monto_total_cred_vivienda
+    - monto_total_micro
+    media:
+      monto_total_cred_consumo: 2.507275768656007
+      monto_total_cred_vivienda: 0.3573451379503323
+      monto_total_micro: 0.3198229531776648
+    desviacion:
+      monto_total_cred_consumo: 1.1024797320728141
+      monto_total_cred_vivienda: 0.23298661790798306
+      monto_total_micro: 0.23204566532692025
+    cargas:
+      monto_total_cred_consumo: 0.3333333333333333
+      monto_total_cred_vivienda: 0.3333333333333333
+      monto_total_micro: 0.3333333333333333
+    varianza_explicada: null
+    kmo: 0.4042434056414627
+    bartlett_chi2: 41.36374499105547
+    bartlett_p: 5.47481672843153e-09

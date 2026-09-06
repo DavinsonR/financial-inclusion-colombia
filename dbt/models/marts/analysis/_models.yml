@@ -1,0 +1,108 @@
+version: 2
+
+models:
+  - name: mart_panel_departamento_anual
+    description: >
+      Panel departamental anual 2018-2025: 33 departamentos por 8 años. Inclusión financiera en columnas
+      (las variables presentes en las dos tablas de la SFC), PIB del DANE, población, ITAED, educación e
+      internet. `crecimiento_pib_real_pc` es la log-diferencia anual del PIB real per cápita: una serie
+      anual verdadera, sin valores repetidos dentro del año (R-05).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+    columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: anio
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2018
+                max_value: 2025
+      - name: pib_real_per_capita
+        data_tests:
+          - not_null
+      - name: crecimiento_pib_real_pc
+        description: "Nulo solo en el primer año de cada departamento (2018), que no tiene rezago."
+
+  - name: mart_panel_municipio_anual
+    description: >
+      Panel municipal anual 2018-2024. El valor agregado municipal del DANE es una distribución del PIB
+      departamental, no una medición municipal: `crecimiento_va_pc_nominal` hereda esa limitación y además
+      es nominal, porque el DANE no publica valor agregado municipal a precios constantes.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: anio
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2018
+                max_value: 2024
+
+  - name: fct_actividad_departamento_anual
+    description: "PIB departamental del DANE con población por área y PIB real per cápita derivado."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+  - name: fct_actividad_municipio_anual
+    description: "Valor agregado municipal (distribución del PIB departamental) con población."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+  - name: fct_internet_municipio_anual
+    description: "Accesos fijos a internet por municipio y año (stock del cuarto trimestre)."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+  - name: fct_educacion_municipio_anual
+    description: "Educación por municipio y año; quiebre metodológico en 2018."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+
+  - name: mart_indice_departamento_anual
+    description: >
+      Índice de inclusión financiera por departamento y año (ADR-015), con sus tres subíndices, las dos
+      versiones de sensibilidad y las variables del panel que consume la econometría.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+    columns:
+      - name: iif_compuesto
+        description: "Nulo cuando falta alguna de las tres dimensiones; `dimensiones_observadas` dice cuántas hay."
+      - name: dimensiones_observadas
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 3
+
+  - name: mart_indice_municipio_anual
+    description: "Índice por municipio y año, con los pesos calibrados en el panel departamental."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]

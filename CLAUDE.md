@@ -18,6 +18,7 @@ Proyecto de investigación reproducible sobre inclusión financiera y crecimient
 - R-14 Los datos derivados de SFC, MinTIC y MEN son CC BY-SA 4.0: atribuir y compartir igual (ADR-012).
 - R-15 Una sola fuente de verdad por constante: `dbt/seeds/*.csv` o `config/*.yaml`. Sin mapas duplicados en Python.
 - R-16 Una sesión termina con pruebas verdes, bitácora al día y hoja de ruta de la guía marcada.
+- R-17 Antes de elegir un método se mide su supuesto (KMO < 0,5 descarta PCA); el índice publica sus pesos implícitos y ninguno puede ser negativo (ADR-015).
 
 ## Comandos
 - `make setup`           dependencias con uv y kernel de Jupyter

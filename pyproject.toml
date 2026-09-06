@@ -13,6 +13,7 @@ dependencies = [
   "duckdb>=1.1",
   "dbt-core>=1.9",
   "dbt-duckdb>=1.9",
+  "dbt-bigquery>=1.9",
   "dbt-snowflake>=1.9",
   "pandera>=0.20",
   "linearmodels>=6.0",

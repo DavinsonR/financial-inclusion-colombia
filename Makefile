@@ -4,7 +4,7 @@ export IIF_DUCKDB_PATH ?= $(CURDIR)/db/iif.duckdb
 export QUARTO_PYTHON := $(CURDIR)/.venv/bin/python
 DBT_FLAGS := --profiles-dir dbt --project-dir dbt
 
-.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check acquire parse manifest clean
+.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check acquire parse index manifest clean
 
 setup:            ## dependencias de Python (uv) y kernel de Jupyter
 	uv sync --all-groups --all-extras
@@ -42,6 +42,9 @@ acquire:          ## descarga todas las fuentes registradas en config/sources.ya
 parse:            ## XLSX/GeoJSON del DANE y MGN a Parquet tidy
 	uv run iif parse dane
 	uv run iif parse mgn
+
+index:            ## construye el índice de inclusión financiera (ADR-015)
+	uv run iif index
 
 manifest:
 	uv run iif manifest verify

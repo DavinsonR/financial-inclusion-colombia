@@ -1,4 +1,6 @@
-# Perfil `iif`. Objetivo por defecto: duckdb (local y CI). IIF_DBT_TARGET=snowflake lo cambia.
+# Perfil `iif`. Objetivo por defecto: duckdb (local, CI y el sitio).
+# IIF_DBT_TARGET=bigquery apunta al warehouse en la nube (sandbox gratuito, ver bigquery/README.md);
+# IIF_DBT_TARGET=snowflake al demo posterior (ADR-014).
 # Snowflake: autenticación por par de claves; ninguna credencial vive en el repositorio.
 # Nota: dbt cambia el directorio de trabajo a dbt/, así que la ruta por defecto del archivo DuckDB
 # es relativa a dbt/; el Makefile exporta IIF_DUCKDB_PATH absoluto y por eso no importa.
@@ -11,6 +13,22 @@ iif:
       schema: main
       extensions: [parquet]
       threads: 4
+    bigquery:
+      type: bigquery
+      # `oauth` usa las credenciales de `gcloud auth application-default login`; en CI se usa
+      # `service-account` con la clave en el secret BIGQUERY_KEYFILE (archivo JSON escrito por el runner).
+      method: "{{ 'service-account' if env_var('BIGQUERY_KEYFILE', '') else 'oauth' }}"
+      keyfile: "{{ env_var('BIGQUERY_KEYFILE', '') }}"
+      project: "{{ env_var('BIGQUERY_PROJECT', '') }}"
+      dataset: marts
+      location: "{{ env_var('BIGQUERY_LOCATION', 'us-central1') }}"
+      threads: 4
+      priority: interactive
+      job_execution_timeout_seconds: 600
+      job_retries: 1
+      # Tope duro por consulta: 1 GB. El sandbox da 1 TB al mes, así que ninguna consulta del proyecto
+      # puede acercarse al límite por accidente (bigquery/03_cost_controls.sql).
+      maximum_bytes_billed: 1073741824
     snowflake:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"

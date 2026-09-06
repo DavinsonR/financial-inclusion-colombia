@@ -1,7 +1,7 @@
 {#-
-  Lee un Parquet del repositorio por ruta relativa a la raíz (IIF_ROOT). Solo tiene sentido en DuckDB:
-  en Snowflake los Parquet entran por stage interno + COPY INTO (snowflake/02_database_stages_copy.sql)
-  y los modelos deben leer de source() en el esquema raw, por eso aquí se falla en compilación.
+  Lee un Parquet del repositorio por ruta relativa a la raíz (IIF_ROOT). Solo tiene sentido en DuckDB.
+  En BigQuery los Parquet se cargan antes con `bash bigquery/01_load_parquet.sh` y en Snowflake con
+  stage interno + COPY INTO; en ambos los modelos leen de source(), por eso aquí se falla en compilación.
   dbt cambia el cwd a dbt/, de ahí que el valor por defecto de IIF_ROOT sea '..'.
 -#}
 {% macro read_parquet_path(relative) -%}

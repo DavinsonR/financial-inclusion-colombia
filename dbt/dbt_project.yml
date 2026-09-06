@@ -107,6 +107,6 @@ seeds:
         frac_no_cero: double
     dim_variable:
       +column_types:
-        en_indice: boolean
+        es_total_bloque: boolean
         ptgf_column: varchar
         kx2f_column: varchar

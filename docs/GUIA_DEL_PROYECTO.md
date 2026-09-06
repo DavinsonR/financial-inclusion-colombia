@@ -18,13 +18,13 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 |---|---|---|---|
 | 0 | Reestructura del repo, limpieza y subida de los tres artefactos legados, paquete `iif`, documentos de gobierno, dbt, Quarto, CI | Hecha: S1 a S8 completos | verde |
 | 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (77 MB), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
-| 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice en dos etapas | En curso (F1 a F5) | amarillo |
+| 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
 | 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Pendiente | rojo |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
 
 Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto, CI con publicación en Vercel y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
 
-Lo que no hay todavía: hechos y paneles anuales, mapa columna a variable completo en `dim_variable`, índice nuevo, atlas, econometría nueva. `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
+Lo que no hay todavía: el atlas y la econometría. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
 
 ## 3. Mapa del repo
 
@@ -48,7 +48,8 @@ data/raw/                     descargas con manifest.jsonl (pendiente); no se ed
 data/interim/, data/processed/ Parquet derivado; se regenera, no se edita
 db/                           iif.duckdb local, ignorado por git
 dbt/                          seeds, staging, intermediate, marts, tests; toca seeds si cambia un mapa
-snowflake/                    roles, warehouse, stages, clonación por vintage (pendiente)
+bigquery/                     datasets, carga de Parquet, particionado, control de coste y vistas autorizadas
+snowflake/                    material del demo posterior: roles, warehouse, stages, clonación por vintage
 src/iif/config.py             rutas del proyecto; toca esto si aparece una carpeta nueva
 src/iif/cli.py                comandos `iif`; toca esto si aparece un comando
 src/iif/legacy/               port del notebook; no se cambia el modo `notebook`, se extiende el modo `corrected`
@@ -99,7 +100,8 @@ paper/                        PDF tras el depósito institucional; congelado (R-
 | Internet en el índice | dentro; fuera; como control | fuera (es infraestructura, no inclusión financiera) | el índice pierde la variable con más cobertura de Bogotá | ADR-004; `config/index.yaml` |
 | Regla de retención de componentes | 80 % de varianza; Kaiser; fijo | Kaiser por dimensión, con pesos implícitos publicados | menos varianza explicada declarada | ADR-004; `config/index.yaml` |
 | Ventana de pesos | toda la muestra; ventana inicial congelada | ventana inicial (2018 a 2019) congelada | el índice no "aprende" de años posteriores | ADR-004; `config/index.yaml` |
-| Escalado del índice | min-max con EPS; estandarización | estandarización (media 0, desviación 1) | pierde la lectura "0 a 1" | ADR-004 |
+| Escalado del índice | min-max con EPS; estandarización | estandarización con media y desviación congeladas en la calibración | pierde la lectura "0 a 1"; a cambio el índice es comparable entre años | ADR-004, ADR-015 |
+| Combinación dentro de cada dimensión | componente principal; pesos iguales | pesos iguales, tras medir KMO de 0,31 y 0,40 y ver pesos negativos con PCA | se renuncia a ponderar por estructura factorial, que estos datos no tienen | ADR-015 (adenda); `config/index.yaml` |
 | Bogotá | dentro de Cundinamarca; separada | separada (33 unidades, como el DANE) | un clúster más, sin municipios | ADR-013; `dbt/seeds/xw_sfc_departamento.csv` |
 | Áreas no municipalizadas | descartar; agregar al departamento; conservar con tipo ANM | conservar con `mpio_tipo = ANM` | filas con población pequeña | ADR-013; `dbt/seeds/` |
 | Empalme 2021Q1 | promedio; preferir ptgf; preferir kx2f | kx2f, con la diferencia guardada | una ruptura documentada en la serie | ADR-009; `dbt/models/intermediate/` |
@@ -107,7 +109,7 @@ paper/                        PDF tras el depósito institucional; congelado (R-
 | Licencia de datos derivados | MIT; CC BY 4.0; CC BY-SA 4.0 | CC BY-SA 4.0, obligada por SFC, MinTIC y MEN | quien reutilice debe compartir igual | ADR-012; `docs/LICENCIAS_DATOS.md` |
 | Datos en el repo o en Releases | todo en git; todo fuera; Parquet < 45 MB en git y desborde en Releases | Parquet en git, desborde en Releases | el autor sube los assets a mano | ADR-003; `config/sources.yaml` (`max_file_mb`) |
 | DVC | ahora; diferido; nunca | diferido hasta que el desborde supere 5 archivos | sin versionado fino de datos grandes | ADR-003 |
-| Motor del warehouse | Snowflake en producción; BigQuery; Databricks; solo DuckDB | solo DuckDB; Snowflake como demo posterior | cero coste; el demo de Snowflake queda pendiente para el portafolio | ADR-014 (adenda); `dbt/profiles.yml` |
+| Motor del warehouse | Snowflake en producción; BigQuery; Databricks; solo DuckDB | DuckDB para local, CI y sitio; BigQuery como warehouse en la nube (sandbox gratuito, sin tarjeta); Snowflake como demo posterior | cero coste mientras el proyecto quepa en 10 GB y 1 TB de consulta al mes; en el sandbox las tablas expiran a los 60 días y se recargan con un comando | ADR-014 (adendas); `dbt/profiles.yml`, `bigquery/` |
 | Publicación del sitio | GitHub Pages; Vercel | Vercel desde la rama `site` que construye CI | una sola plataforma con el portafolio; Vercel no compila Quarto, por eso CI renderiza | ADR-005 (adenda); `.github/workflows/ci.yml` |
 
 ## 6. Hoja de ruta por fases
@@ -152,6 +154,7 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 
 ## 8. Cómo verificar
 
+- Semillas: al cambiar las columnas de una semilla hay que recargarla con `uv run dbt seed --select <semilla> --full-refresh`; si no, dbt copia sobre la tabla vieja y el error habla del CSV cuando el problema es el esquema (B-037).
 - Local: `make setup && make quarto-install && make check`. `check` corre ruff, pytest sin la marca `data`, `dbt build` en DuckDB y `quarto render`. Con datos crudos descargados, `make test-data` añade las pruebas que los leen.
 - Auditoría interna (no publicada): `make reproduce` regenera `docs/legacy/reproduccion.md`, que sirve de evidencia para las entradas B-001 a B-015 de la bitácora. Mientras el panel congelado no cambie, el informe no cambia (sha256 en `data/legacy/SHA256SUMS`).
 - Limpieza: `tests/test_repo.py::test_no_private_strings_in_published_trees` recorre `data/legacy`, `notebooks` y `docs` con la lista de cadenas privadas de `iif.data.scrub`; debe dar cero.
@@ -163,7 +166,8 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 Del lado del autor:
 - En Vercel, proyecto `financial-inclusion-colombia`: Settings, Git, Production Branch = `site`. Es el único ajuste manual; CI se encarga del resto.
 - Subir a Release cualquier partición que supere 45 MB (arrastrar en el navegador; desde la sesión no se puede, B-023).
-- Cuando quiera el demo de Snowflake: cuenta de prueba, usuario con par de claves y los cinco secrets; entonces se recrea el job de CI (ADR-014).
+- BigQuery: crear el proyecto en modo sandbox (sin tarjeta), correr `bash bigquery/01_load_parquet.sh <proyecto>` y, si quiere que CI lo verifique, añadir los secrets `BIGQUERY_PROJECT`, `BIGQUERY_LOCATION` y `BIGQUERY_KEYFILE_JSON`.
+- Cuando quiera el demo de Snowflake: cuenta de prueba, usuario con par de claves y los cinco secrets; entonces se recrea su job de CI (ADR-014).
 
 Riesgos que no se maquillan:
 - El traslape municipal entre inclusión y valor agregado es de 7 años (2018 a 2024) con un cambio de esquema de la SFC en 2021Q1. El departamental es de 8 años con 2025 preliminar.

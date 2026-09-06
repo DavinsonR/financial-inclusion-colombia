@@ -75,3 +75,36 @@ jobs:
           git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bigquery:
+    name: dbt en BigQuery (solo con credenciales)
+    runs-on: ubuntu-latest
+    needs: check
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: ¿Hay credenciales?
+        id: creds
+        run: echo "ok=${{ secrets.BIGQUERY_PROJECT != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: astral-sh/setup-uv@v6
+        if: steps.creds.outputs.ok == 'true'
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - name: Clave de servicio
+        if: steps.creds.outputs.ok == 'true'
+        run: |
+          printf '%s' "${{ secrets.BIGQUERY_KEYFILE_JSON }}" > "$RUNNER_TEMP/bq.json"
+          echo "BIGQUERY_KEYFILE=$RUNNER_TEMP/bq.json" >> "$GITHUB_ENV"
+      - name: dbt build --target bigquery
+        if: steps.creds.outputs.ok == 'true'
+        env:
+          BIGQUERY_PROJECT: ${{ secrets.BIGQUERY_PROJECT }}
+          BIGQUERY_LOCATION: ${{ secrets.BIGQUERY_LOCATION }}
+        run: |
+          uv sync --all-groups
+          uv run dbt deps --profiles-dir dbt --project-dir dbt
+          uv run dbt build --profiles-dir dbt --project-dir dbt --target bigquery
+      - name: Sin credenciales
+        if: steps.creds.outputs.ok != 'true'
+        run: echo "Sin BIGQUERY_PROJECT, se omite el objetivo bigquery (ADR-014)."
