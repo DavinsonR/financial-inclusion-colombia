@@ -159,6 +159,11 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 - Auditoría interna (no publicada): `make reproduce` regenera `docs/legacy/reproduccion.md`, que sirve de evidencia para las entradas B-001 a B-015 de la bitácora. Mientras el panel congelado no cambie, el informe no cambia (sha256 en `data/legacy/SHA256SUMS`).
 - Limpieza: `tests/test_repo.py::test_no_private_strings_in_published_trees` recorre `data/legacy`, `notebooks` y `docs` con la lista de cadenas privadas de `iif.data.scrub`; debe dar cero.
 - Sitio: `_site/index.html`, `_site/datos/fuentes.html` (manifiesto) y `_site/datos/crosswalk.html` (cobertura y empalme) se renderizan con datos reales; el atlas y la metodología del índice ya están publicados y solo el panel econométrico y el anexo siguen como borrador.
+- Sitio publicado: CI despliega producción en Vercel con la CLI y luego comprueba que
+  `https://financial-inclusion-colombia.vercel.app/` devuelve 200; si no, el build falla. Necesita un solo
+  secreto de repositorio, `VERCEL_TOKEN`, creado en <https://vercel.com/account/tokens> con ámbito
+  `Davinson_Project` (ADR-005, adenda 4). Para republicar el sitio sin tocar el código: pestaña Actions del
+  repositorio, workflow «CI», «Run workflow» sobre `main`.
 - Atlas: `uv run iif atlas` deja `atlas/data/` por debajo de 3 MB y `pytest tests/test_atlas.py` comprueba el giro de los anillos, el área esférica de Colombia, el presupuesto y el tipo de cada acompañante. Lo que una prueba no ve (encuadre, colisiones de rótulos, fugas de oyentes) se mide en el navegador; el procedimiento está en S-016.
 - CI: `ci.yml` corre lo mismo que `make check`, publica `_site` como artefacto y, en `main`, lo empuja a la rama `site` que despliega Vercel.
 
