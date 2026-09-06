@@ -325,6 +325,14 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: `dbt/seeds/dim_variable.csv` con 12 columnas; el error citaba 10.
 - Estado: cerrada.
 
+## B-038 · 2026-09-06 · El PCA por dimensión iba a repetir el defecto del índice auditado
+- Contexto: ADR-015 fijó un componente principal por dimensión como método del índice nuevo, por analogía con la literatura y con el índice del trabajo de grado.
+- Qué pasó: al estimarlo, el KMO salió 0,314 en uso y 0,404 en profundidad (por debajo de 0,5 las variables no comparten varianza común suficiente) y el primer componente dio peso implícito **negativo** al microcrédito y al monto de transacciones. Es exactamente el defecto B-005: una variable que debería sumar entrando restando.
+- Causa raíz: se eligió el método antes de medir si sus supuestos se cumplían. El ADR se escribió con el método ya decidido en vez de dejarlo abierto a la medición.
+- Regla: R-17. Antes de fijar un método se mide su supuesto y la medición se publica; el índice publica siempre sus pesos implícitos y una prueba falla si alguno es negativo → CLAUDE.md, ADR-015 (adenda), `tests/test_index.py::test_pesos_implicitos_nunca_negativos`.
+- Evidencia: `data/processed/indice_diagnosticos.csv` (KMO por dimensión); `metodologia/indice.qmd` publica la tabla.
+- Estado: cerrada. El método publicado son pesos iguales dentro de cada dimensión; el componente principal queda como sensibilidad, con correlación de rangos 0,96 frente al publicado.
+
 ---
 
 ## Aciertos
@@ -388,4 +396,9 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Contexto: el defecto que originó el proyecto fue un panel trimestral cuya dependiente solo cambiaba una vez al año (64,3 % de log-diferencias exactamente cero).
 - Qué funcionó: construir la dependiente a frecuencia anual verdadera sobre el PIB real per cápita del DANE. El panel departamental 2018-2025 tiene 231 observaciones de crecimiento, **ninguna** exactamente cero, siete valores distintos por departamento y el perfil esperado de la pandemia (mediana de −9,3 % en 2020 y +8,4 % en 2021). Una prueba dbt (`assert_panel_departamento_varia_dentro_del_anio`) falla si los ceros exactos superan el 5 %.
 - Dónde se reutiliza: `mart_panel_departamento_anual`, `mart_panel_municipio_anual`; R-05.
+
+## S-013 · 2026-09-06 · Las variables crudas de la SFC miden población
+- Contexto: antes de construir el índice había que decidir la normalización.
+- Qué funcionó: medir la correlación de cada candidata con la población departamental. Va de 0,58 a 0,94 (pagos 0,94; cuentas de ahorro 0,92). Un índice sobre variables sin normalizar tendría como primer factor el tamaño del departamento. Con conteos por 10.000 habitantes y montos como porcentaje del producto, la correlación cae a un rango de −0,28 a 0,69, que ya es relación económica y no aritmética.
+- Dónde se reutiliza: `config/index.yaml` (normalización), ADR-015, `tests/test_index.py::test_normalizacion_elimina_la_escala_de_la_unidad`, que reproduce el problema en un panel sintético antes de comprobar que la normalización lo quita.
 

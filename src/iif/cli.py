@@ -159,6 +159,20 @@ def crosswalk(
 
 
 @app.command()
+def index(
+    recalibrar: bool = typer.Option(
+        False, help="reestima los pesos y los vuelve a congelar en config/index.yaml (decisión de valor)"
+    ),
+) -> None:
+    """Construye el índice de inclusión financiera en los dos niveles (ADR-015)."""
+    from iif.index.run import run
+
+    escritos = run(recalibrar=recalibrar)
+    for nombre, ruta in escritos.items():
+        typer.echo(f"✓ {nombre}: {ruta.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
 def manifest(action: str = typer.Argument("verify")) -> None:
     """verify: comprueba que cada archivo del manifiesto existe y su sha256 coincide."""
     from iif.acquire.manifest import read_records, verify_manifest

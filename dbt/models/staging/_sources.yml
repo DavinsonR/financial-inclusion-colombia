@@ -68,3 +68,14 @@ sources:
         description: "33 departamentos: dpto_ccdgo, nombre, área."
       - name: municipios
         description: "1.121 municipios, áreas no municipalizadas e isla: mpio_ccdgo (5 dígitos), tipo, área."
+
+  - name: indice
+    description: "Índice de inclusión financiera calculado por `uv run iif index` (ADR-015) y escrito como Parquet en data/processed/. No lo produce dbt: el ajuste vive en Python porque necesita PCA y estandarización con pesos congelados."
+    schema: processed
+    meta:
+      external_location: "{{ env_var('IIF_ROOT', '..') }}/data/processed/{name}.parquet"
+    tables:
+      - name: indice_departamento_anual
+        description: "Subíndices de acceso, uso y profundidad, compuesto y las dos versiones de sensibilidad, por departamento y año."
+      - name: indice_municipio_anual
+        description: "Lo mismo por municipio y año, con los pesos calibrados en el panel departamental para que las dos escalas sean comparables."
