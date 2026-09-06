@@ -1,0 +1,20 @@
+codigo_canal,nombre_canal,grupo_canal,tipo_canal,en_vkbt
+1,Aplicaciones móviles,otro,no_presencial,true
+2,Cajeros automáticos administrados,cajero,presencial,true
+3,Cajeros automáticos no propios,cajero,presencial,true
+4,Cajeros automáticos propios,cajero,presencial,true
+5,Centro de atención telefónica (Call center/Contac center),otro,no_presencial,true
+6,Asistente virtual,otro,no_presencial,true
+7,Corresponsales digitales propios,corresponsal_digital,no_presencial,true
+8,Corresponsales digitales tercerizados,corresponsal_digital,no_presencial,true
+9,Corresponsales físicos propios,corresponsal_fisico,presencial,true
+10,Corresponsales físicos tercerizados,corresponsal_fisico,presencial,true
+11,Corresponsales móviles propios,corresponsal_movil,presencial,true
+12,Corresponsales móviles tercerizados,corresponsal_movil,presencial,true
+13,Internet,otro,no_presencial,true
+14,Oficinas,oficina,presencial,true
+15,POS administrados,datafono,presencial,false
+16,POS no propios,datafono,presencial,true
+17,POS propios,datafono,presencial,true
+18,Sistema de acceso remoto para clientes (RAS),otro,no_presencial,false
+19,Sistema de Audio Respuesta (IVR),otro,no_presencial,true

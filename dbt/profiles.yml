@@ -1,0 +1,28 @@
+# Perfil `iif`. Objetivo por defecto: duckdb (local y CI). IIF_DBT_TARGET=snowflake lo cambia.
+# Snowflake: autenticación por par de claves; ninguna credencial vive en el repositorio.
+# Nota: dbt cambia el directorio de trabajo a dbt/, así que la ruta por defecto del archivo DuckDB
+# es relativa a dbt/; el Makefile exporta IIF_DUCKDB_PATH absoluto y por eso no importa.
+iif:
+  target: "{{ env_var('IIF_DBT_TARGET', 'duckdb') }}"
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('IIF_DUCKDB_PATH', 'db/iif.duckdb') }}"
+      schema: main
+      extensions: [parquet]
+      threads: 4
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      # Una de las dos: ruta a la clave privada (.p8, ignorada por git) o la clave en texto (secreto de CI).
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '') }}"
+      private_key: "{{ env_var('SNOWFLAKE_PRIVATE_KEY', '') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'WH_IIF_XS') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'IIF') }}"
+      schema: marts
+      threads: 4
+      client_session_keep_alive: false
+      query_tag: iif_dbt

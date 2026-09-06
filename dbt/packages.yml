@@ -1,0 +1,7 @@
+# dbt_utils fijado por etiqueta git. Forma equivalente vía hub (usa descargas de codeload.github.com,
+# bloqueadas por el proxy del entorno de desarrollo remoto; en local o en GitHub Actions ambas sirven):
+#   - package: dbt-labs/dbt_utils
+#     version: [">=1.3.0", "<2.0.0"]
+packages:
+  - git: "https://github.com/dbt-labs/dbt-utils.git"
+    revision: "1.3.1"

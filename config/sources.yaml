@@ -1,0 +1,121 @@
+# Fuentes registradas. `kind`: soda (datos.gov.co), http (archivo directo), arcgis (MGN).
+# Todo lo descargado va a data/raw/ y se registra en data/raw/manifest.jsonl (ADR-003).
+sources:
+  sfc-ptgf-ywrb:
+    kind: soda
+    dataset: ptgf-ywrb
+    descripcion: "Inclusión Financiera (SFC), legado 2017Q4–2021Q1, municipal × trimestre × entidad"
+    partition_col: fechacorte
+    code_cols: [tipoentidad, codigoentidad, unicap, renglon]
+    license: CC-BY-SA-4.0
+    max_file_mb: 45
+  sfc-kx2f-xjdq:
+    kind: soda
+    dataset: kx2f-xjdq
+    descripcion: "Inclusión Financiera (SFC), vigente 2021Q1–2025Q4, municipal × trimestre × entidad × bloque"
+    partition_col: fecha_corte
+    code_cols: [tipo_entidad, codigo_entidad, unicap, renglon]
+    page_size: 20000  # 99 columnas: una página de 50.000 filas supera los 100 MB y corta la lectura
+    license: CC-BY-SA-4.0
+    max_file_mb: 45
+  sfc-vkbt-desu:
+    kind: soda
+    dataset: vkbt-desu
+    descripcion: "Puntos de atención de canales por municipio (SFC), mensual 2023-01→, con DIVIPOLA"
+    partition_col: fecha_corte
+    code_cols: [tipo_entidad, codigo_entidad, unidad_captura, codigo_canal, codigo_departamento, codigo_municipio]
+    license: CC-BY-SA-4.0
+    max_file_mb: 45
+  mintic-n48w-gutb:
+    kind: soda
+    dataset: n48w-gutb
+    descripcion: "Internet fijo: accesos por tecnología y segmento, municipal trimestral 2016Q1–2023Q3"
+    partition_col: anno
+    numeric_cols: [no_de_accesos, velocidad_bajada, velocidad_subida]
+    code_cols: [anno, trimestre, cod_departamento, cod_municipio]
+    license: CC-BY-SA-4.0
+    max_file_mb: 45
+  men-nudc-7mev:
+    kind: soda
+    dataset: nudc-7mev
+    descripcion: "MEN estadísticas en educación por municipio, anual 2011–2024"
+    partition_col: a_o
+    numeric_cols: [poblaci_n_5_16]
+    code_cols: [a_o, c_digo_municipio, c_digo_departamento, c_digo_etc]
+    license: CC-BY-SA-4.0
+  dane-pib-departamento:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-departamento-2025pr.xlsx
+    descripcion: "PIB por departamento, base 2015, 2005–2025pr"
+    license: DANE
+  dane-pib-total:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-TotalDep-2025pr.xlsx
+    descripcion: "PIB total por departamentos 2005–2025pr"
+    license: DANE
+  dane-pib-actividad:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-Activecono-2025pr.xlsx
+    descripcion: "Valor agregado por actividad económica y departamento 2005–2025pr"
+    license: DANE
+  dane-pib-retropolacion:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-RetropoDepart-2025pr.xlsx
+    descripcion: "Retropolación del PIB departamental 1980–2025pr"
+    license: DANE
+  dane-va-municipio:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBDep-ValorAgreMuni-2011-2024p.xlsx
+    descripcion: "Valor agregado por municipio 2011–2024p (distribución del PIB departamental)"
+    license: DANE
+  dane-poblacion-municipal:
+    kind: http
+    url: https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Municipal/PPED-AreaMun-2018-2042_VP.xlsx
+    descripcion: "Proyecciones de población municipal por área 2018–2042 (post-COVID)"
+    license: DANE
+  dane-poblacion-municipal-retro:
+    kind: http
+    url: https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Municipal/DCD-area-proypoblacion-Mun-2005-2017_VP.xlsx
+    descripcion: "Retroproyecciones de población municipal 2005–2017"
+    license: DANE
+  dane-poblacion-departamental:
+    kind: http
+    url: https://www.dane.gov.co/files/censo2018/proyecciones-de-poblacion/Departamental/PPED-AreaDep-2018-2050_VP.xlsx
+    descripcion: "Proyecciones de población departamental 2018–2050"
+    license: DANE
+  dane-itaed:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/ITAED/anex-ITAED-Itrim2026.xlsx
+    descripcion: "Indicador Trimestral de Actividad Económica Departamental 2015Q1–2026Q1pr"
+    license: DANE
+  dane-pib-bogota-trimestral:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/PIB/anex-PIBBog-ProdConstante-IVtrim2025.xlsx
+    descripcion: "PIB trimestral de Bogotá a precios constantes"
+    license: DANE
+  dane-ise:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/ISE/anex-ISE-12actividades-jun2026.xlsx
+    descripcion: "Indicador de Seguimiento a la Economía, nacional mensual"
+    license: DANE
+  dane-emmet-territorial:
+    kind: http
+    url: https://www.dane.gov.co/files/operaciones/EMMET/anex-EMMET-EnfoqueTerritorial-jun2026.xlsx
+    descripcion: "EMMET con enfoque territorial, mensual"
+    license: DANE
+  # Capas del FeatureServer MGN2024 (el MapServer devuelve geometría nula). `max_allowable_offset` en grados:
+  # 0.0005 ≈ 55 m y 0.001 ≈ 110 m; suficiente para un atlas nacional, no para cartografía local.
+  mgn-departamentos:
+    kind: arcgis
+    layer: 319
+    precision: 4
+    max_allowable_offset: 0.0005
+    descripcion: "MGN 2024, capa Departamento (33), simplificada en servidor (~1,4 MB)"
+    license: DANE
+  mgn-municipios:
+    kind: arcgis
+    layer: 317
+    precision: 4
+    max_allowable_offset: 0.001
+    descripcion: "MGN 2024, capa Municipio (1.121), simplificada en servidor (~3 MB)"
+    license: DANE

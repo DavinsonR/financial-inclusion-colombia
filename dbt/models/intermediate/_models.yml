@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: int_sfc_geo_long
+    description: "SFC geográfica en largo por bloque y columna (ptgf). Totales departamentales marcados, nunca sumados con municipios."
+    columns:
+      - name: valor
+        data_tests: [not_null]
+      - name: columna
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('map_sfc_columns')
+                field: columna
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo

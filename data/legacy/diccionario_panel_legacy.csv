@@ -1,0 +1,103 @@
+indice,columna,nombre_notebook,dtype,n_unicos,min,max,frecuencia_real,fuente_estimada,derivada,usada_por_notebook
+0,Año,anio,int64,5,2017,2021,clave,clave,False,True
+1,Mes,,int64,4,3,12,clave,clave,False,False
+2,short quarter,,str,4,,,clave,clave,False,False
+3,quarter,,str,14,,,clave,clave,False,False
+4,Meses Nombre,,str,4,,,clave,clave,False,False
+5,Fecha,,datetime64[us],14,,,clave,clave,False,True
+6,Depto Base,departamento,str,33,,,clave,clave,False,True
+7,NRO CORRESPONSALES PROPIOS,nro_corresp_propios,int64,353,0,13492,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+8,NRO CORRESPONSALES TERCERIZADOS,nro_corresp_terceros,int64,440,28,112728,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+9,NRO CORRESPONSALES ACTIVOS,nro_corresp_activos,int64,430,26,86578,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,True
+10,NRO CORRESPONSALES,,int64,446,34,125098,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+11,NRO DEPOSITOS,nro_depositos,int64,462,3408,21126134,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,True
+12,MONTO DEPOSITOS,monto_depositos,float64,462,1934338537.0,9469292661477.121,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+13,NRO GIROS ENVIADOS,nro_giros_env,int64,385,0,130058,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+14,MONTO GIROS ENVIADOS,monto_giros_env,int64,444,0,14519918548,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+15,NRO GIROS RECIBIDOS,nro_giros_rec,int64,440,0,285154,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+16,MONTO GIROS RECIBIDOS,monto_giros_rec,int64,450,0,81630967132,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+17,NRO PAGOS,nro_pagos,int64,462,3822,34131878,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,True
+18,MONTO PAGOS,monto_pagos,float64,462,1103738148.0,9354455512013.38,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+19,NRO RETIROS,nro_retiros,int64,462,386,26150462,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+20,MONTO RETIROS,monto_retiros,float64,462,179592800.0,10900925738568.0,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+21,NRO TRANSFERENCIAS,nro_transf,int64,458,60,1383084,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,True
+22,MONTO TRANSFERENCIAS,monto_transf,int64,462,34127000,753058305266,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+23,NRO TOTAL,nro_total,int64,462,8492,67447736,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,True
+24,MONTO TOTAL,monto_total,float64,462,3336651137.4,30495224721586.46,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+25,NRO CTA AHORRO HASTA 1 SMMLV,nro_cta_ah_hasta1smmlv,float64,462,18288.0,28114186.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+26,SALDO CTA AHORRO HASTA 1 SMMLV,saldo_cta_ah_hasta1smmlv,float64,462,1095725266.32,1738206827425.42,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+27,NRO CTA AHORRO > 1 SMMLV HASTA 3 SMMLV,nro_cta_ah_1a3smmlv,float64,459,1002.0,2128380.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+28,SALDO CTA AHORRO> 1 SMMLV HASTA 3 SMMLV,saldo_cta_ah_1a3smmlv,float64,462,1469829150.48,3401760936635.96,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+29,NRO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV,nro_cta_ah_3a5smmlv,float64,454,270.0,890184.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+30,SALDO CTA AHORRO> 3 SMMLV HASTA 5 SMMLV,saldo_cta_ah_3a5smmlv,float64,462,924902038.88,2803561450433.258,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+31,NRO CTA AHORRO ACTIVAS,nro_cta_ah_activas,int64,462,9458,14124324,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+32,SALDO CTA AHORRO ACTIVAS,saldo_cta_ah_activas,float64,462,105707736823.02,256717572507852.6,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+33,NRO CTA AHORRO MUJERES,nro_cta_ah_mujeres,int64,462,8950,16656000,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+34,SALDO CTA AHORRO MUJERES,,float64,462,5358368847.92,29806787155821.5,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+35,NRO CTA AHORRO HOMBRES,nro_cta_ah_hombres,int64,462,11114,17614030,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+36,SALDO CTA AHORRO HOMBRES,,float64,462,6601980321.9,31768011505753.56,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+37,NRO TOTAL CTA AHORROS,nro_total_cta_ah,float64,462,20680.0,39276608.0,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,True
+38,SALDO TOTAL CTA AHORROS,saldo_total_cta_ah,float64,462,115476480955.28,271596759728116.5,trimestral,SFC / Banca de las Oportunidades (productos),True,False
+39,NRO CTA AHORRO ELECTRONICAS ACTIVAS,nro_cta_elect_activas,int64,456,4,562806,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+40,SALDO CTA AHORRO ELECTRONICAS ACTIVAS,saldo_cta_elect_activas,float64,462,111194.0,65609014361.74,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+41,NRO CTA AHORRO ELECTRONICAS MUJERES,nro_cta_elect_mujeres,int64,438,2660,813880,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+42,SALDO CTA AHORRO ELECTRONICAS MUJERES,,float64,462,71672206.0,66422728777.74,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+43,NRO CTA AHORRO ELECTRONICAS HOMBRES,nro_cta_elect_hombres,int64,420,494,140604,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+44,SALDO CTA AHORRO ELECTRONICAS HOMBRES,,float64,462,10235610.0,10048221188.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+45,NRO TOTAL CTA AHORROS ELECTRONICAS,nro_total_cta_elect,int64,442,3156,954484,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+46,SALDO TOTAL CTA AHORROS ELECTRONICAS,saldo_total_cta_elect,float64,462,88678368.0,76470949965.73999,trimestral,SFC / Banca de las Oportunidades (productos),True,False
+47,NRO CREDITO CONSUMO MUJERES,nro_cred_cons_mujeres,int64,457,14,22869566,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+48,MONTO CREDITO CONSUMO MUJERES,monto_cred_cons_mujeres,float64,462,147338488.0,13024879950485.86,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+49,NRO CREDITO CONSUMO HOMBRES,nro_cred_cons_hombres,int64,460,24,21915546,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+50,MONTO CREDITO CONSUMO  HOMBRES,,float64,462,109089200.0,17011268901830.82,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+51,NRO TOTAL CREDITO CONSUMO,nro_total_cred_cons,int64,462,50,44785112,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+52,MONTO TOTAL CREDITO CONSUMO,monto_total_cred_cons,float64,462,336506860.0,30036148852316.69,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,True
+53,NRO CRED CONS BAJO MONTO MUJERES,,int64,51,0,66528,trimestral,sin clasificar,False,False
+54,MONTO CRED CONS BAJO MONTO MUJERES,,int64,118,0,37128332400,trimestral,sin clasificar,False,False
+55,NRO CRED CONS BAJO MONTO HOMBRES,,int64,49,0,40776,trimestral,sin clasificar,False,False
+56,MONTO CRED CONS BAJO MONTO HOMBRES,,int64,125,0,28571971000,trimestral,sin clasificar,False,False
+57,NRO TOTAL CRED CONS BAJO MONTO,,int64,65,0,107304,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+58,MONTO TOTAL CRED CONS BAJO MONTO,,int64,152,0,64094516864,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+59,NRO CREDITO VIVIENDA MUJERES,nro_cred_viv_mujeres,int64,305,0,18622,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+60,MONTO CREDITO VIVIENDA MUJERES,monto_cred_viv_mujeres,float64,436,0.0,2395676002497.3,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+61,NRO CREDITO VIVIENDA HOMBRES,nro_cred_viv_hombres,int64,316,0,19478,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+62,MONTO CREDITO VIVIENDA HOMBRES,monto_cred_viv_hombres,float64,441,0.0,3063996648450.881,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+63,NRO TOTAL CREDITO VIVIENDA,nro_total_cred_viv,int64,345,0,38100,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+64,MONTO TOTAL CREDITO VIVIENDA,monto_total_cred_viv,float64,443,0.0,5459672650948.18,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,True
+65,NRO MICROCREDITO HASTA 1 SMMLV,nro_micro_hasta1smmlv,int64,379,0,23232,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+66,MONTO MICROCREDITO HASTA 1 SMMLV,monto_micro_hasta1smmlv,float64,433,0.0,5863277406.4,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+67,NRO MICROCREDITO > 1 SMMLV HASTA 2 SMMLV,,int64,408,0,25614,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+68,MONTO MICROCREDITO> 1SMMLV HASTA 2SMMLV,,float64,450,0.0,29864465492.8,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+69,NRO MICROCREDITO> 2 SMMLV HASTA 3 SMMLV,,int64,411,0,15578,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+70,MONTO MICROCREDITO> 2SMMLV HASTA 3SMMLV,,float64,457,0.0,28795537104.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+71,NRO MICROCREDITO> 3 SMMLV HASTA 4 SMMLV,,int64,393,2,10848,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+72,MONTO MICROCREDITO> 3SMMLV HASTA 4SMMLV,,float64,462,6000000.0,48662172650.0,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+73,NRO MICROCREDITO> 4 SMMLV HASTA 10 SMMLV,,int64,421,26,29410,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+74,MONTO MICROCREDITO> 4SMMLV HASTA 10SMML,,float64,462,141236324.0,168655782930.36,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+75,NRO MICROCREDITO> 10SMMLV HASTA 25SMMLV,,int64,402,8,18014,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+76,MONTO MICROCREDI> 10SMMLV HASTA 25SMMLV,,float64,462,123600000.0,243782269901.04,trimestral,sin clasificar,False,False
+77,NRO MICROCREDITO MUJERES,nro_micro_mujeres,int64,447,28,57962,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+78,MONTO MICROCREDITO MUJERES,monto_micro_mujeres,float64,462,216200000.0,324551228925.26,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+79,NRO MICROCREDITO HOMBRES,nro_micro_hombres,int64,433,26,36912,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+80,MONTO MICROCREDITO HOMBRES,monto_micro_hombres,float64,462,159010750.0,284695975742.02,trimestral,SFC / Banca de las Oportunidades (productos),False,False
+81,NRO TOTAL MICROCREDITO,nro_total_micro,int64,456,58,94590,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,False
+82,MONTO TOTAL MICROCREDITO,monto_total_micro,float64,462,395834992.0,644384814785.6,trimestral,SFC / Banca de las Oportunidades (transaccional y corresponsales),True,True
+83,NRO PROD DEPOSITO NIVEL NACIONAL,,int64,1,0,0,muerta (1 valor),SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+84,MONTO PROD DEPOSITO NIVEL NACIONAL,,int64,1,0,0,muerta (1 valor),SFC / Banca de las Oportunidades (transaccional y corresponsales),False,False
+85,Llave,,str,165,,,anual repetida,derivada / catálogo,True,False
+86,Poblacion,poblacion,float64,165,39811.0,7823334.0,anual repetida,DANE proyecciones de población,False,True
+87,Capital,capital,str,32,,,anual repetida,derivada / catálogo,False,False
+88,Total General Hogar Internet,hogares_internet_total,int64,106,0,2865,anual repetida,MinTIC (internet),True,False
+89,Conexión a internet %,internet_pct,float64,127,0.0,81.5248913,anual repetida,MinTIC (internet),False,True
+90,Fijo %,internet_fijo_pct,float64,124,0.0,94.3,anual repetida,MinTIC (internet),True,False
+91,Movil %,internet_movil_pct,float64,125,21.6226371,100.0,anual repetida,MinTIC (internet),True,False
+92,Fijo Movil %,internet_fijo_movil_pct,float64,122,0.0,47.7019796,anual repetida,MinTIC (internet),True,False
+93,Años promedio de educación,educacion_anios,float64,163,4.84513926,10.6091607,anual repetida,DANE GEIH (educación),False,True
+94,IPC %,IPC_pct,float64,105,0.22,6.54,anual repetida,DANE IPC por ciudad,True,True
+95,Empleo Formal,Empleo_Formal,float64,165,1025.304,2488404.433333333,anual repetida,DANE GEIH (empleo),False,True
+96,Empleo Informal,Empleo_Informal,float64,165,4491.552000000001,1743007.166666666,anual repetida,DANE GEIH (empleo),False,True
+97,Superficie Km2,Superficie_km2,int64,33,52,109665,estática (33 valores),IGAC / DANE,False,False
+98,Densidad Poblacional,Densidad_Poblacional,float64,165,0.640244746532296,4405.030405405405,anual repetida,DANE proyecciones de población,True,True
+99,PIB Contribucion Al Total,pib_contribucion_pct,float64,165,-1.724514703585951,2.885431970358399,anual repetida,DANE cuentas departamentales,True,False
+100,PIB Percapita,pib_percapita,float64,165,5677781.246329342,38767030.87797157,anual repetida,DANE cuentas departamentales,False,True
+101,PIB Crecimiento,pib_crecimiento,float64,165,-23.56920140067959,28.07547481399314,anual repetida,DANE cuentas departamentales,False,True
