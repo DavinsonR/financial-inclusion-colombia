@@ -1,4 +1,4 @@
-# CLAUDE.md · inclusion-financiera-colombia
+# CLAUDE.md · financial-inclusion-colombia
 Proyecto de investigación reproducible sobre inclusión financiera y crecimiento regional en Colombia; el trabajo de grado de 2026 es el origen. Guía completa: docs/GUIA_DEL_PROYECTO.md. Errores y aciertos: docs/BITACORA_AGENTE.md.
 
 ## Reglas duras

@@ -293,6 +293,22 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Evidencia: dbt/tests/assert_sfc_empalme_2021q1.sql; data/interim/sfc/empalme_2021q1_departamento.csv.
 - Estado: cerrada.
 
+## B-034 · 2026-09-06 · El repositorio publicaba resultados de la tesis como si fueran del proyecto
+- Contexto: el autor pidió desde el inicio que la tesis fuera el borrador del proyecto nuevo. El README y el sitio quedaron llenos de sus cifras (β, p, N, KMO, tabla de discrepancias, diagnósticos).
+- Qué pasó: se interpretó "reproducción honesta" como "publicar la tesis auditada". El resultado leído por un tercero era el de la tesis, no el del proyecto; además fijaba como conclusión algo que el proyecto todavía no ha estimado.
+- Causa raíz: se confundió el insumo (el trabajo de grado y su auditoría) con el producto (los resultados nuevos). La instrucción original decía "expansión de dominio", no "publicación de la tesis".
+- Regla: ninguna cifra del trabajo de grado aparece en README, sitio o portafolio como resultado. Los artefactos legados son insumo congelado y evidencia de esta bitácora; `src/iif/legacy/` es auditoría interna. Las secciones de resultado dicen "todavía no hay" hasta que la fase 3 los produzca → ADR-006 (adenda), README, `_quarto.yml`.
+- Evidencia: ADR-006 adenda; `_quarto.yml` sin `reproduccion-tesis.qmd`; README con `#main-result` vacío y explícito.
+- Estado: cerrada.
+
+## B-035 · 2026-09-06 · Dos plataformas de despliegue para un solo autor
+- Contexto: el sitio del proyecto se configuró en GitHub Pages mientras el portafolio del autor ya vivía en Vercel.
+- Qué pasó: el autor tuvo que preguntar qué era Pages. Se le pedía activar y mantener una segunda plataforma sin ninguna ventaja.
+- Causa raíz: se eligió Pages por costumbre (repositorio de GitHub → Pages) sin mirar dónde despliega ya el autor.
+- Regla: antes de elegir plataforma, mirar qué usa el autor. El sitio va a Vercel; como Vercel no compila Quarto ni Python, CI renderiza y empuja `_site` a la rama `site`, y Vercel despliega esa rama → ADR-005 (adenda), `.github/workflows/ci.yml`.
+- Evidencia: `.github/workflows/ci.yml` (paso "Publicar la rama site"); `vercel.json` en `main` con `ignoreCommand`.
+- Estado: cerrada.
+
 ---
 
 ## Aciertos

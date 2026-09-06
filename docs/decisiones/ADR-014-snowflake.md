@@ -1,7 +1,7 @@
-# ADR-014 · Snowflake en producción, DuckDB en local y CI
+# ADR-014 · DuckDB como motor; Snowflake como demo posterior
 
 - Fecha: 2026-09-06
-- Estado: propuesta (la configuración queda escrita y marcada "sin probar contra una cuenta" hasta que existan credenciales)
+- Estado: aceptada con cambio de alcance el 2026-09-06 (ver adenda): DuckDB es el único motor del proyecto; Snowflake queda como demo posterior, sin fecha y sin job de CI
 
 ## Contexto
 
@@ -32,3 +32,12 @@ El autor quiere una tecnología nueva que sirva para cargos internacionales. Sno
 ## Cómo revertirla
 
 Borrar el objetivo `snowflake` de `profiles.yml`, el job de CI y la carpeta `snowflake/`. Nada más depende de ellos.
+
+## Adenda 2026-09-06: decisión del autor
+
+El autor pidió dejar BigQuery y Databricks fuera de consideración y tratar Snowflake como un demo a posterior, no como producción. En consecuencia:
+
+1. DuckDB es el motor del proyecto en local, en CI y para todo lo que publica el sitio. No hay "producción" separada.
+2. `dbt/profiles.yml` conserva el objetivo `snowflake` y `snowflake/*.sql` se mantienen como material del demo; nada del proyecto los ejecuta.
+3. El job `snowflake` de `ci.yml` se elimina; se recreará cuando exista el demo.
+4. Las alternativas (BigQuery, Databricks, MotherDuck) quedan descartadas por decisión del autor, no por análisis técnico nuevo.
