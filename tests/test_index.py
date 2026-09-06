@@ -72,7 +72,9 @@ def test_normalizacion_elimina_la_escala_de_la_unidad(contrato):
     """El punto 1 del ADR: sin normalizar el índice mediría población. Con normalizar, no."""
     panel = _panel_sintetico()
     crudo = panel[["nro_total", "monto_total_cred_consumo"]].corrwith(panel.poblacion_total)
-    assert (crudo > 0.8).all(), f"el panel sintético debe reproducir el problema que se quiere evitar: {crudo.to_dict()}"
+    assert (crudo > 0.8).all(), (
+        f"el panel sintético debe reproducir el problema que se quiere evitar: {crudo.to_dict()}"
+    )
     norm = normalize_panel(panel, contrato, UNIDADES)
     tras = norm[["nro_total", "monto_total_cred_consumo"]].corrwith(norm.poblacion_total).abs()
     assert (tras < 0.2).all(), f"la normalización no quitó la escala: {tras.to_dict()}"

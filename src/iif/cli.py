@@ -173,6 +173,20 @@ def index(
 
 
 @app.command()
+def atlas() -> None:
+    """Exporta la geometría y las series que consume el atlas (ADR-005)."""
+    from iif.export.atlas import export_atlas
+
+    escritos = export_atlas()
+    total = 0.0
+    for nombre, ruta in escritos.items():
+        mb = ruta.stat().st_size / 1e6
+        total += mb
+        typer.echo(f"✓ {nombre}: {ruta.relative_to(config.REPO_ROOT)} ({mb:.2f} MB)")
+    typer.echo(f"  total {total:.2f} MB")
+
+
+@app.command()
 def manifest(action: str = typer.Argument("verify")) -> None:
     """verify: comprueba que cada archivo del manifiesto existe y su sha256 coincide."""
     from iif.acquire.manifest import read_records, verify_manifest
