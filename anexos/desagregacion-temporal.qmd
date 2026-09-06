@@ -1,0 +1,10 @@
+---
+title: "Anexo: desagregación temporal del crecimiento"
+draft: true
+---
+
+::: {.callout-warning}
+Este anexo no se usa para estimar. Ilustra qué pasa cuando el crecimiento anual se desagrega a trimestres con indicadores (Chow-Lin, Denton, Fernández) y por qué la variación "prestada" puede reintroducir la correlación espuria. Decisión: ADR-010.
+:::
+
+En construcción (Fase 3).

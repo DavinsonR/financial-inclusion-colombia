@@ -1,0 +1,22 @@
+---
+title: "Modelo de datos"
+subtitle: "Esquema estrella con vintages, en DuckDB para desarrollo y Snowflake para producción"
+---
+
+```{mermaid}
+erDiagram
+    dim_departamento ||--o{ dim_municipio : contiene
+    dim_municipio ||--o{ fct_inclusion_municipio_trimestre : mide
+    dim_periodo ||--o{ fct_inclusion_municipio_trimestre : fecha
+    dim_variable ||--o{ fct_inclusion_municipio_trimestre_long : define
+    dim_vintage ||--o{ fct_pib_departamento_anual : versiona
+    dim_departamento ||--o{ fct_pib_departamento_anual : mide
+    dim_municipio ||--o{ fct_va_municipio_anual : mide
+    dim_municipio ||--o{ fct_poblacion_municipio_anual : cuenta
+    dim_canal ||--o{ fct_puntos_atencion_municipio_mes : clasifica
+    dim_departamento ||--o{ fct_itaed_departamento_trimestre : mide
+```
+
+Dimensiones: geografía (municipio → departamento → región, con DIVIPOLA), periodo (anual, trimestral, mensual), entidad, canal, variable y **vintage** (una fila por descarga, con la fecha de actualización de la fuente). Todos los hechos llevan `pull_id` e `is_current`; los del DANE llevan además `estado_dato` (definitivo, provisional, preliminar).
+
+Las reglas de construcción viven en `dbt/` y se prueban en cada `dbt build`. La misma estrella se materializa en DuckDB (local y CI) y en Snowflake (producción, con clones por vintage). Ver ADR-002 y ADR-014.

@@ -1,0 +1,5 @@
+---
+title: "Bitácora del agente"
+---
+
+{{< include docs/BITACORA_AGENTE.md >}}

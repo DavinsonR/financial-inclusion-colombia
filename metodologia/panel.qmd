@@ -1,0 +1,6 @@
+---
+title: "Panel anual y batería contra la correlación espuria"
+draft: true
+---
+
+En construcción (Fase 3). Decisión: ADR-001.

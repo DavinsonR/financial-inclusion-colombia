@@ -1,0 +1,112 @@
+# Proyecto dbt del almacén de inclusión financiera (esquema estrella, ver docs/adr y el plan D3).
+# Dos objetivos: `duckdb` (local y CI, archivo en db/iif.duckdb) y `snowflake` (producción, sin probar
+# hasta que existan credenciales). Los modelos son idénticos; el dialecto se resuelve en macros/.
+name: iif
+version: "0.1.0"
+config-version: 2
+profile: iif
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+flags:
+  send_anonymous_usage_stats: false
+
+vars:
+  # Ruta del panel legado, relativa a la raíz del repositorio (IIF_ROOT).
+  legacy_panel_parquet: "data/legacy/panel_fintech_colombia_trimestral.parquet"
+  # Umbrales de la prueba de empalme ptgf/kx2f en 2021Q1 (mediana y máximo de la diferencia
+  # relativa por departamento, en %). Los primeros valores reales se anotan en la bitácora antes
+  # de fijarlos definitivamente.
+  overlap_median_pct: 2
+  overlap_max_pct: 10
+  # Tolerancia relativa entre la fila de total departamental (renglon 999) y la suma de las municipales.
+  # ptgf es exacta; en kx2f los totales de corresponsales difieren hasta 2,2 % desde 2022Q3 (B-032).
+  sfc_total_tol_ptgf: 0.000001
+  sfc_total_tol_kx2f: 0.03
+  # Rango de dim_periodo.
+  periodo_anual_desde: 2005
+  periodo_anual_hasta: 2026
+  periodo_trimestral_desde: 2015
+  periodo_mensual_desde: 2023
+
+models:
+  iif:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  iif:
+    +schema: seeds
+    +quote_columns: false
+    # Tipos explícitos donde la inferencia de dbt fallaría: códigos DIVIPOLA con cero a la izquierda,
+    # banderas booleanas y columnas vacías (que dbt tiparía como entero).
+    xw_departamento_region:
+      +column_types:
+        dpto_ccdgo: varchar(2)
+        region_id: integer
+    xw_sfc_departamento:
+      +column_types:
+        fuente: varchar
+        unicap: integer
+        dpto_ccdgo: varchar(2)
+    sfc_unidades_no_geograficas:
+      +column_types:
+        fuente: varchar
+        unicap: integer
+    map_sfc_tipo:
+      +column_types:
+        fuente: varchar
+        tipo_raw: varchar
+        tipo_id: varchar
+        n_filas: bigint
+    dim_canal:
+      +column_types:
+        codigo_canal: integer
+        en_vkbt: boolean
+    xw_sfc_municipio_overrides:
+      +column_types:
+        fuente: varchar
+        unicap: integer
+        renglon: integer
+        nombre_raw: varchar
+        mpio_ccdgo: varchar(5)
+        motivo: varchar
+    dim_municipio_extra:
+      +column_types:
+        mpio_ccdgo: varchar(5)
+        dpto_ccdgo: varchar(2)
+    xw_sfc_columns_empalme:
+      +column_types:
+        numero: integer
+        ptgf_column: varchar
+        kx2f_column: varchar
+    map_sfc_columns:
+      +column_types:
+        fuente: varchar
+        tipo_id: varchar
+        columna: varchar
+        n_no_cero: bigint
+        frac_no_cero: double
+    dim_variable:
+      +column_types:
+        en_indice: boolean
+        ptgf_column: varchar
+        kx2f_column: varchar

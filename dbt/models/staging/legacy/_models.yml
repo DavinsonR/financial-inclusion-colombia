@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: stg_legacy__panel_trimestral
+    description: >
+      Panel legado de la tesis (data/legacy/panel_fintech_colombia_trimestral.parquet) como vista:
+      21 columnas usadas por el notebook original, en snake_case, más periodo_id. 462 filas.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [departamento, fecha]
+    columns:
+      - name: departamento
+        description: "Nombre del departamento tal como viene en el libro legado (`Depto Base`); enlaza con xw_departamento_region.nombre_legacy."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('xw_departamento_region')
+                field: nombre_legacy
+      - name: anio
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [2017, 2018, 2019, 2020, 2021]
+                quote: false
+      - name: fecha
+        description: "Primer día del último mes del trimestre (2017-12-01 … 2021-03-01)."
+        data_tests:
+          - not_null
+      - name: periodo_id
+        description: "Clave trimestral 'YYYYQn' derivada de fecha; enlaza con dim_periodo."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: nro_corresp_activos
+        data_tests: [not_null]
+      - name: nro_depositos
+        data_tests: [not_null]
+      - name: nro_pagos
+        data_tests: [not_null]
+      - name: nro_transf
+        data_tests: [not_null]
+      - name: nro_total
+        data_tests: [not_null]
+      - name: nro_total_cta_ah
+        data_tests: [not_null]
+      - name: monto_total_cred_cons
+        data_tests: [not_null]
+      - name: monto_total_cred_viv
+        data_tests: [not_null]
+      - name: monto_total_micro
+        data_tests: [not_null]
+      - name: poblacion
+        data_tests: [not_null]
+      - name: internet_pct
+        description: "Porcentaje de hogares con internet; contiene ceros que son faltantes (se corrigen aguas abajo, no aquí)."
+      - name: educacion_anios
+      - name: ipc_pct
+      - name: empleo_formal
+      - name: empleo_informal
+      - name: densidad_poblacional
+      - name: pib_percapita
+        data_tests: [not_null]
+      - name: pib_crecimiento

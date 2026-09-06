@@ -1,0 +1,128 @@
+---
+title: "Reproducción del notebook de la tesis"
+subtitle: "Lo que da el código publicado, frente a lo que dice el documento"
+execute:
+  echo: false
+---
+
+```{python}
+#| output: false
+import os
+from IPython.display import Markdown
+from iif import config
+from iif.legacy.pipeline import run_legacy_pipeline
+from iif.legacy.panel import format_row
+res = run_legacy_pipeline(config.LEGACY_PARQUET, mode="notebook")
+```
+
+::: {.callout-warning}
+## Tres objetos distintos
+El **documento** defendido, el **notebook consolidado** que lo acompaña y el **análisis corregido** de este proyecto no dicen lo mismo. Esta página compara los dos primeros. El tercero está en construcción en [Metodología](metodologia/panel.qmd).
+:::
+
+## Entorno
+
+```{python}
+Markdown("\n".join(f"- **{k}**: `{v}`" for k, v in res.env.items()))
+```
+
+## D1: la dependiente es anual repetida en trimestres
+
+```{python}
+d = res.d1
+rows = "\n".join(f"| `{c}` | {v['min']} | {v['max']} |" for c, v in d["distintos_por_depto_anio"].items())
+Markdown(f"""
+| Variable | mín. distintos por (depto, año) | máx. |
+|---|---|---|
+{rows}
+
+- `pib_percapita` toma **{d['pib_pc_distintos_por_depto']['media']:.0f}** valores distintos por departamento en 14 trimestres (uno por año).
+- El crecimiento es idéntico al del trimestre anterior en el **{d['frac_crec_identico_lag']:.1%}** de las observaciones.
+- `crec_pib_pc` es exactamente cero en el **{res.frac_cero_crec_pc:.1%}**.
+
+Consecuencia: el panel tiene 462 filas pero 165 departamento-años de información sobre el crecimiento.
+""")
+```
+
+## El índice
+
+```{python}
+i = res.index
+Markdown(f"""
+- KMO = **{i.kmo:.4f}**, Bartlett χ² = {i.bartlett:.2f} (p = {i.p_bartlett:.4f}).
+- Regla de retención del notebook: varianza acumulada ≥ 80 % → **{i.n_comp} componentes** ({i.var_ac[i.n_comp-1]:.2f} %). Kaiser (λ > 1) retendría 3.
+- Pesos de los componentes: {[round(float(x), 4) for x in i.pesos]}. Correlación con cuentas de ahorro: {i.corr_orient:.4f} (forzada por construcción).
+- Sin internet: corr(IIF, IIF sin internet) = {res.corr_iif_sin_net:.4f}. Con pesos de 2017–2019: corr = {res.corr_iif_oos:.4f}.
+""")
+```
+
+### Cargas factoriales
+
+```{python}
+Markdown(i.loadings.round(4).to_markdown())
+```
+
+### Pesos implícitos por variable
+
+Lo que el notebook nunca imprimió: el índice pondera el microcrédito con signo negativo.
+
+```{python}
+Markdown(i.implied_weights.round(4).to_frame("peso implícito").to_markdown())
+```
+
+## Tabla 6
+
+```{python}
+Markdown("```text\n" + "\n".join(format_row(r) for r in res.tabla6.values()) + "\n```")
+```
+
+```{python}
+a2, a3, b2, b4 = res.tabla6["A2"], res.tabla6["A3"], res.tabla6["B2"], res.tabla6["B4"]
+Markdown(f"""
+Sobre la **misma muestra**, añadir efectos de tiempo mueve el coeficiente del IIF de **{a2.beta:+.2f}** (p = {a2.p:.4f}, N = {a2.N:.0f}) a **{a3.beta:+.2f}** (p = {a3.p:.4f}, N = {a3.N:.0f}) en el bloque per cápita, y de {b2.beta:+.2f} a {b4.beta:+.2f} en el agregado. El efecto que queda después de quitar el ciclo nacional es cero.
+""")
+```
+
+## Diagnósticos
+
+```{python}
+h, m, n = res.hausman, res.mundlak, res.nickell
+lines = [
+    f"- Hausman como lo calcula el notebook: χ²({h.df}) = {h.chi2:.2f}. **No es un test válido**: ambos modelos usan covarianza clusterizada, así que la diferencia de covarianzas no es definida positiva. Se conserva solo para la comparación con el documento (33,93).",
+    f"- Mundlak: β_within = {m['beta_within']:+.3f} (p = {m['p_within']:.4f}), β_mean = {m['beta_mean']:+.3f} (p = {m['p_mean']:.4f}).",
+    f"- Correlación between = {res.corr_between:+.4f}, within = {res.corr_within:+.4f}.",
+    f"- Pesaran CD = **{res.pesaran['CD']:.2f}** (p = {res.pesaran['p']:.4f}): dependencia transversal extrema; la dependiente es un ciclo nacional repetido 33 veces.",
+    f"- Error estándar de B2: clusterizado {res.dk_vs_cluster['clustered']:.3f} → Driscoll-Kraay {res.dk_vs_cluster['driscoll_kraay']:.3f}. El resultado principal deja de ser significativo.",
+]
+for k, v in n.items():
+    lines.append(f"- Nickell ({k}): ρ̂ = {v['rho']:+.4f}, sesgo ≈ {v['sesgo']:+.4f} ({v['pct_de_rho']:.0f} % de ρ̂). Fórmula de AR(1) puro aplicada a un modelo con regresores: orientativa.")
+Markdown("\n".join(lines))
+```
+
+## Robustez y heterogeneidad
+
+```{python}
+Markdown("```text\n" + "\n".join(format_row(r) for r in res.robustez if r) + "\n```")
+```
+
+```{python}
+Markdown(res.regional.round(4).to_markdown(index=False) + "\n\nPacífica y Orinoquía se estiman con 4 clústeres: un p = 0,0000 ahí es un artefacto de la inferencia clusterizada.")
+```
+
+## Verificación contra el documento
+
+```{python}
+v = res.ledger_frame.copy()
+for c in ("obtenido", "documento"):
+    v[c] = v[c].map(lambda x: "" if x is None or (isinstance(x, float) and x != x) else f"{x:,.4f}")
+Markdown(v.to_markdown(index=False) + f"\n\n**Discrepancias: {res.ledger.n_discrepancias} de {len(v)} filas.**")
+```
+
+### Por qué difieren
+
+- Todas las N de la Tabla 6 del documento son exactamente **33 menos** (una sección transversal) que las del notebook, salvo B2. El documento construyó los rezagos sobre una muestra ya recortada; el notebook los construye una vez sobre el panel completo. Cambiar la muestra cambia cada β.
+- El SE de B2 en la tabla del documento (9,5553) es una errata: el texto dice 5,96 y el notebook da 5,9553.
+- El Hausman difiere en un orden de magnitud porque, tal como está implementado, no es un estadístico estable.
+- Trece cifras guardadas en el notebook (`DOC_OTROS`) nunca se verifican: recorte, winsorización, Driscoll-Kraay, semi-elasticidad. Contadas a mano, las discrepancias reales rondan 32.
+
+Conclusión operativa: el documento defendido no se reproduce desde el código publicado. Este proyecto no intenta rescatar aquellas cifras: rehace el análisis desde las fuentes primarias y publica la trazabilidad completa.
