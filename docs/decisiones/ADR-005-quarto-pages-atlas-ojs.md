@@ -1,7 +1,7 @@
-# ADR-005 · Quarto + GitHub Pages + atlas en Observable JS
+# ADR-005 · Quarto + Vercel + atlas en Observable JS
 
 - Fecha: 2026-09-06
-- Estado: aceptada
+- Estado: aceptada, con adenda
 
 ## Contexto
 
@@ -29,3 +29,7 @@ El autor quiere un sitio interactivo y útil para curiosos: un atlas del índice
 ## Cómo revertirla
 
 El atlas depende solo de los archivos de `atlas/data/`. Cualquier otro front (React, Svelte, Power BI) puede leer el mismo contrato. Cambiar el generador del sitio exige rehacer las páginas `.qmd`, no los datos.
+
+## Adenda 2026-09-06: Vercel en lugar de GitHub Pages
+
+El autor ya despliega su portafolio en Vercel y no quiere una segunda plataforma. Vercel no puede correr Quarto ni Python en su build, así que el flujo es: CI renderiza `_site` en cada push a `main` y lo empuja, con un `vercel.json` mínimo, a la rama `site`; el proyecto de Vercel (`inclusion-financiera-colombia`, enlazado al repositorio) despliega esa rama. En `main` hay un `vercel.json` con `ignoreCommand` que cancela cualquier build de Vercel sobre el código fuente. Único ajuste manual del autor, una sola vez: en Vercel, Settings → Git → Production Branch = `site`. URL: https://inclusion-financiera-colombia.vercel.app. La página de reproducción del trabajo de grado se retira del sitio: los resultados de la tesis no se publican (decisión del autor, misma fecha).

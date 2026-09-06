@@ -1,6 +1,6 @@
-# Snowflake: almacén de producción del proyecto
+# Snowflake: material para un demo posterior
 
-**Estado: sin probar contra una cuenta real.** Estos scripts se escribieron y revisaron sin credenciales;
+**Estado (2026-09-06): demo a posterior, sin fecha. El proyecto corre solo en DuckDB (ADR-014, adenda).** Los scripts siguen sin probarse contra una cuenta real. Estos scripts se escribieron y revisaron sin credenciales;
 se ejecutarán y corregirán la primera vez que exista la cuenta de prueba (30 días / 400 USD). Hasta
 entonces todo el proyecto corre en DuckDB (`make dbt-build`), que es el objetivo por defecto de dbt y el que
 usa CI. Nada del sitio ni de la reproducción depende de que Snowflake exista o siga vivo.

@@ -14,6 +14,8 @@ jobs:
     name: Lint, pruebas, dbt (DuckDB) y sitio
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -58,33 +60,18 @@ jobs:
           name: sitio
           path: _site
 
-  snowflake:
-    name: dbt en Snowflake (solo con secrets)
-    runs-on: ubuntu-latest
-    needs: check
-    if: ${{ github.ref == 'refs/heads/main' }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: ¿Hay credenciales?
-        id: creds
-        run: echo "ok=${{ secrets.SNOWFLAKE_ACCOUNT != '' }}" >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v6
-        if: steps.creds.outputs.ok == 'true'
-        with:
-          python-version: "3.11"
-          enable-cache: true
-      - name: dbt build --target snowflake
-        if: steps.creds.outputs.ok == 'true'
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      # El sitio se publica en Vercel desde la rama `site`, que solo contiene el HTML renderizado.
+      # Vercel no puede correr Quarto ni Python en su build; por eso CI renderiza y empuja.
+      - name: Publicar la rama site (la despliega Vercel)
+        if: github.ref == 'refs/heads/main'
         run: |
-          uv sync --all-groups
-          uv run dbt deps --profiles-dir dbt --project-dir dbt
-          uv run dbt build --profiles-dir dbt --project-dir dbt --target snowflake
-      - name: Sin credenciales
-        if: steps.creds.outputs.ok != 'true'
-        run: echo "Sin SNOWFLAKE_ACCOUNT, se omite el objetivo snowflake (ADR-014)."
+          cp .github/site/vercel.json _site/vercel.json
+          cd _site
+          git init -q -b site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Sitio renderizado desde ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,24 +1,24 @@
 ---
 title: "Inclusión financiera y crecimiento regional en Colombia"
-subtitle: "De una tesis de maestría a un proyecto de investigación reproducible"
+subtitle: "Un proyecto de investigación reproducible: datos abiertos, índice por dimensiones, paneles anuales y atlas"
 ---
 
-Este sitio acompaña al repositorio del proyecto. Nace de un trabajo de grado de la Maestría en Economía de la Pontificia Universidad Javeriana que preguntó si el desarrollo fintech y la inclusión financiera predicen el crecimiento económico de los departamentos de Colombia. La respuesta honesta de aquel trabajo, bajo la especificación más exigente, fue que no.
+Este sitio acompaña al repositorio del proyecto. Nace de un trabajo de grado de la Maestría en Economía de la Pontificia Universidad Javeriana que preguntó si la inclusión financiera predice el crecimiento económico de los departamentos de Colombia. Aquel trabajo es el borrador: aquí no se reutiliza ninguno de sus resultados. Todo se rehace desde las fuentes.
 
-El proyecto hace tres cosas con ese punto de partida:
+El proyecto hace tres cosas:
 
-1. **Reproduce** el notebook publicado sobre el panel congelado y muestra, cifra por cifra, dónde el documento y el código divergen. Ver [Reproducción](reproduccion-tesis.qmd).
-2. **Reconstruye los datos** desde las fuentes primarias (Superintendencia Financiera, DANE, MinTIC, MEN) en un warehouse abierto con esquema estrella y vintages, a nivel departamental y municipal.
-3. **Vuelve a estimar** con la frecuencia correcta (anual), un índice por dimensiones y una batería explícita contra la correlación espuria, y publica un atlas interactivo del índice.
+1. **Reconstruye los datos** desde las fuentes primarias (Superintendencia Financiera, DANE, MinTIC, MEN, MGN) en un warehouse abierto con esquema estrella y vintages, a nivel departamental y municipal, de 2005 a 2026. Ver [Fuentes](datos/fuentes.qmd) y [Claves geográficas](datos/crosswalk.qmd).
+2. **Construye un índice** de inclusión financiera en dos etapas (acceso, uso, profundidad) con pesos congelados y publicados por variable, y lo lleva a un atlas interactivo.
+3. **Vuelve a estimar** con la frecuencia correcta (anual), dos paneles (departamental y municipal) y una batería explícita contra la correlación espuria. Los resultados se publican cuando existan, con su prueba.
 
 ## Estado
 
 | Fase | Qué | Estado |
 |---|---|---|
-| 0 | Reestructura, limpieza, documentos de gobierno, reproducción | en esta versión |
-| 1 | Adquisición programática y warehouse | parcial |
-| 2 | Índice en dos etapas y atlas | pendiente |
-| 3 | Econometría anual y anexos | pendiente |
-| 4 | Manuscrito | pendiente |
+| 0 | Reestructura, paquete `iif`, documentos de gobierno, dbt, sitio, CI | hecha |
+| 1 | Las 19 fuentes con manifiesto, claves DIVIPOLA, staging, SFC en largo, empalme 2021Q1 | hecha |
+| 2 | Hechos y paneles anuales, índice en dos etapas | en curso |
+| 3 | Atlas y econometría | pendiente |
+| 4 | Anexos y manuscrito | pendiente |
 
 Las decisiones de valor están en [Decisiones](decisiones.qmd); los errores y aciertos del proceso, en la [Bitácora](bitacora.qmd).

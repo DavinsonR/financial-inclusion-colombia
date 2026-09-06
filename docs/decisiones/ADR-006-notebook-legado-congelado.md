@@ -1,7 +1,7 @@
-# ADR-006 · Notebook legado congelado y reproducción con discrepancias
+# ADR-006 · Artefactos del trabajo de grado congelados como insumo, no como resultado
 
 - Fecha: 2026-09-06
-- Estado: aceptada
+- Estado: aceptada, con adenda (2026-09-06)
 
 ## Contexto
 
@@ -30,3 +30,12 @@ La auditoría encontró que el documento de la tesis no reproduce desde el noteb
 ## Cómo revertirla
 
 No se revierte: es un registro histórico. Si aparece el código original del documento, se añade como segundo artefacto congelado y el libro compara tres columnas.
+
+## Adenda 2026-09-06: los resultados de la tesis no se publican
+
+El autor decidió que el trabajo de grado es el borrador del proyecto y que ninguno de sus resultados debe aparecer como resultado del proyecto. En consecuencia:
+
+1. Se retira la página `reproduccion-tesis.qmd` del sitio y toda cifra de la tesis del README (resultado, diagnósticos, tabla de discrepancias, N efectivo).
+2. Los tres artefactos siguen congelados en `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` como insumo histórico y como evidencia de la bitácora, con su sha256.
+3. `src/iif/legacy/` y `make reproduce` se conservan como herramienta de auditoría interna: son lo que sostiene las entradas B-001 a B-015 y lo que permitió descubrir hechos sobre las fuentes que sí valen (B-031). Su salida vive en `docs/legacy/reproduccion.md`, fuera de la navegación del sitio.
+4. Los puntos 4 y 5 de la decisión original quedan sin efecto.
