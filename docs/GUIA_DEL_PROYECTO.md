@@ -22,7 +22,7 @@ El tercer paso es el proyecto nuevo: un warehouse dimensional con todas las fuen
 
 Lo que hay hoy en el repo: `data/legacy/` (panel congelado en xlsx y Parquet, diccionario de 102 columnas, SHA256SUMS), `notebooks/legacy/TESIS_CONSOLIDADO.ipynb` limpio, `docs/legacy/` (dump original y reproducción con 40 filas de libro y 25 discrepancias), `src/iif/` con `config`, `cli`, `data/scrub`, `data/dictionary` y `legacy/` (port del notebook en modos `notebook` y `corrected`), `config/tesis_documento.yaml`, `pyproject.toml`, `uv.lock`, `Makefile`, `scripts/install_quarto.sh`, y los documentos de gobierno.
 
-Lo que no hay todavía: descargas de `kx2f` y MinTIC, crosswalk nombre a DIVIPOLA, staging de la SFC en largo y prueba del empalme, índice nuevo, atlas, econometría nueva. `make check` corre en cero (ruff, 57 pruebas, `dbt build` con 127 nodos y pruebas en DuckDB, `quarto render`).
+Lo que no hay todavía: descargas de `kx2f` y MinTIC, crosswalk nombre a DIVIPOLA, staging de la SFC en largo y prueba del empalme, índice nuevo, atlas, econometría nueva. `make check` corre en cero (ruff, 62 pruebas, `dbt build` con 127 nodos y pruebas en DuckDB, `quarto render`).
 
 ## 3. Mapa del repo
 
