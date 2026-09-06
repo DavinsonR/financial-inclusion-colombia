@@ -13,7 +13,11 @@ format:
           <script src="lib/d3.min.js"></script>
           <script src="lib/topojson-client.min.js"></script>
 resources:
+  # Quarto copia a `_site` lo que ve enlazado en el HTML, y las rutas de `FileAttachment` viven dentro de una
+  # celda de OJS, donde no las descubre. Sin declararlas, el render pasa y la pagina publicada se cae con
+  # seis "Unable to load file" (B-046).
   - lib/*.js
+  - data/*.json
 ---
 
 ```{=html}
