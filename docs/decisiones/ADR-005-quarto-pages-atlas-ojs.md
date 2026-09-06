@@ -53,3 +53,33 @@ d3 y topojson-client viven en `atlas/lib/` y los filtros son HTML plano. Y el at
 oscuro: el sitio publica un único tema claro (`cosmo`), y unos tokens oscuros dejarían el mapa oscuro sobre
 una página clara para quien tenga el sistema en oscuro. Cuando el sitio tenga tema oscuro, vuelven.
 
+## Adenda 2026-09-06 (4): producción se despliega por CLI desde CI, no por la rama de producción
+
+La adenda anterior dejaba el despliegue colgando de un ajuste de consola (Production Branch = `site`) que
+nadie podía leer desde el repositorio y que no llegó a quedar puesto: el dominio de producción estuvo en 404
+con CI en verde (B-045). El mecanismo cambia:
+
+- CI, tras `quarto render` y solo sobre `main`, despliega `_site` a producción con la CLI de Vercel
+  (`vercel deploy _site --prod`). Un despliegue por CLI **no está atado a ninguna rama**, así que la
+  Production Branch deja de decidir nada.
+- El destino queda escrito en `.github/workflows/ci.yml`: `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID` son
+  identificadores, no credenciales, y ya eran públicos en el comentario del bot de Vercel. El único secreto
+  es `VERCEL_TOKEN`, un secreto de repositorio en GitHub.
+- Después del despliegue, CI comprueba que `https://financial-inclusion-colombia.vercel.app/` devuelve 200 y
+  **falla si no**. Un sitio inalcanzable no puede convivir con un build verde.
+- Sin el secreto, los dos pasos se saltan y CI sigue en verde: el repositorio no queda roto para quien lo
+  clone.
+- La rama `site` se sigue publicando. Ya no es el mecanismo de despliegue, sino el registro público y
+  legible de qué se publicó, y el plan B si algún día se retira el token.
+
+**El token.** Se crea en <https://vercel.com/account/tokens> con ámbito `Davinson_Project` (con ámbito
+personal la CLI no encuentra el proyecto y el paso falla con 403) y se guarda como secreto `VERCEL_TOKEN`
+del repositorio. Da poder sobre la cuenta en ese ámbito, así que se rota o se revoca desde esa misma página;
+revocarlo no tira el sitio ya desplegado, solo impide los despliegues nuevos. Si expira, CI falla en el paso
+de comprobación, que es exactamente lo que debe pasar.
+
+**Deployment Protection.** El proyecto tiene la autenticación de Vercel activa: las URL de vista previa
+redirigen al SSO. En el plan Hobby eso cubre solo las vistas previas y producción queda pública. Si alguna
+vez el paso de comprobación devuelve 302, es que la protección alcanza a producción: Settings, Deployment
+Protection, Vercel Authentication, «Off» u «Only Preview Deployments».
+
