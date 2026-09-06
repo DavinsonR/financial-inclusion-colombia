@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  - name: fct_inclusion_departamento_trimestre
+    description: >
+      Inclusión financiera por departamento, trimestre y variable, tomada de la fila de total departamental
+      que reporta cada entidad (renglon = 999) y sumada sobre entidades. 96 de las 98 variables: las dos de
+      `productos_nivel_nacional` viven en unidades de captura no geográficas y no tienen departamento.
+      En 2021Q1, único trimestre presente en las dos tablas, se conserva kx2f y `valor_fuente_anterior`
+      guarda el valor de ptgf (ADR-009).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, variable_id, periodo_id]
+    columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: variable_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_variable')
+                field: variable_id
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: fuente
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ptgf, kx2f]
+
+  - name: fct_inclusion_municipio_trimestre
+    description: >
+      Inclusión financiera por municipio, trimestre y variable: suma de las entidades que reportan en el
+      municipio. La ausencia de fila es un no observado, nunca un cero (R-13).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, variable_id, periodo_id]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+
+  - name: fct_inclusion_departamento_anual
+    description: >
+      Inclusión financiera anual por departamento: los flujos suman los cuatro trimestres y solo se publican
+      con los cuatro presentes; los stocks toman el valor del cuarto trimestre. `valor_anual` es nulo cuando
+      la regla no se puede aplicar (2017 tiene un solo trimestre y 2026 aún no está completo).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, variable_id, anio]
+    columns:
+      - name: trimestres_observados
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 4
+
+  - name: fct_inclusion_municipio_anual
+    description: "Igual que el anual departamental, por municipio."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, variable_id, anio]
+
+  - name: fct_puntos_atencion_municipio_mes
+    description: >
+      Puntos de atención por municipio, canal y mes (SFC vkbt, desde 2023-01). Se suman las filas repetidas
+      de la fuente: 1.199 claves (corte, entidad, municipio, canal) aparecen más de una vez con valores
+      distintos y sin columna que las distinga.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, codigo_canal, periodo_id]
+    columns:
+      - name: puntos_atencion
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0

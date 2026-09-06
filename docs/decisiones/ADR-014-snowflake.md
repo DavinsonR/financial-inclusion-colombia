@@ -1,7 +1,7 @@
-# ADR-014 · DuckDB como motor; Snowflake como demo posterior
+# ADR-014 · DuckDB como motor, BigQuery como warehouse en la nube, Snowflake como demo posterior
 
 - Fecha: 2026-09-06
-- Estado: aceptada con cambio de alcance el 2026-09-06 (ver adenda): DuckDB es el único motor del proyecto; Snowflake queda como demo posterior, sin fecha y sin job de CI
+- Estado: aceptada, con dos adendas del 2026-09-06: DuckDB es el motor del proyecto; BigQuery es el warehouse en la nube (sandbox gratuito); Snowflake queda como demo posterior
 
 ## Contexto
 
@@ -40,4 +40,24 @@ El autor pidió dejar BigQuery y Databricks fuera de consideración y tratar Sno
 1. DuckDB es el motor del proyecto en local, en CI y para todo lo que publica el sitio. No hay "producción" separada.
 2. `dbt/profiles.yml` conserva el objetivo `snowflake` y `snowflake/*.sql` se mantienen como material del demo; nada del proyecto los ejecuta.
 3. El job `snowflake` de `ci.yml` se elimina; se recreará cuando exista el demo.
-4. Las alternativas (BigQuery, Databricks, MotherDuck) quedan descartadas por decisión del autor, no por análisis técnico nuevo.
+4. Databricks y MotherDuck quedan descartados por decisión del autor, no por análisis técnico nuevo.
+
+## Adenda 2: BigQuery sí entra (2026-09-06, misma tarde)
+
+El autor aclaró que sí quiere la implementación de BigQuery. Es la opción con mejor relación entre lo que
+demuestra y lo que cuesta:
+
+1. **Sandbox gratuito permanente y sin tarjeta**: 10 GB de almacenamiento activo y 1 TB de consulta al mes.
+   El proyecto pesa menos de 100 MB, así que no puede generar factura. Snowflake, en cambio, exige tarjeta
+   tras 30 días.
+2. **Objetivo `bigquery` en `dbt/profiles.yml`**, con los mismos modelos, semillas y pruebas que DuckDB.
+   `maximum_bytes_billed` fijado en 1 GB por consulta como tope duro.
+3. **Scripts en `bigquery/`**: datasets por capa, carga de los Parquet del repositorio con `bq load`,
+   particionado y agrupación de las cuatro tablas grandes, control de coste (cuotas y la consulta que mide
+   el gasto real) y vistas autorizadas para publicar marts sin exponer las tablas crudas.
+4. **CI**: el job `bigquery` corre `dbt build --target bigquery` en `main` solo si existen los secrets
+   `BIGQUERY_PROJECT`, `BIGQUERY_LOCATION` y `BIGQUERY_KEYFILE_JSON`. El job DuckDB corre siempre.
+5. **Límite conocido del sandbox**: sin cuenta de facturación, toda tabla y partición expira a los 60 días.
+   Aceptable porque las tablas se reconstruyen desde el repositorio con un comando; queda escrito en
+   `bigquery/README.md` para que nadie lo descubra por sorpresa.
+6. Lo público (sitio y atlas) sigue sin pasar por ninguna nube: sale de DuckDB y de los Parquet del repo.

@@ -1,8 +1,9 @@
 version: 2
 
 # Fuentes crudas del almacén. En DuckDB se leen con read_parquet() desde el repositorio vía
-# `meta.external_location` (dbt-duckdb); `{name}` es el nombre de la tabla. En Snowflake las mismas
-# tablas viven en IIF.RAW e IIF.INTERIM tras COPY INTO (snowflake/02_database_stages_copy.sql).
+# `meta.external_location` (dbt-duckdb); `{name}` es el nombre de la tabla. En BigQuery las mismas tablas
+# viven en los datasets `raw` e `interim` tras `bash bigquery/01_load_parquet.sh`, y en Snowflake en
+# IIF.RAW e IIF.INTERIM tras COPY INTO; en ambos casos `external_location` se ignora.
 # IIF_ROOT apunta a la raíz del repositorio; dbt corre desde dbt/, de ahí el '..' por defecto.
 # Descargas: data/raw/<fuente_id>/anio=YYYY/part-0.parquet (config/sources.yaml, manifest.jsonl).
 # Parseados: data/interim/{dane,mgn}/<tabla>.parquet (`iif parse dane`, `iif parse mgn`).
