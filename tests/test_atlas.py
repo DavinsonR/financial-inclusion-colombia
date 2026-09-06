@@ -97,6 +97,19 @@ def test_las_series_declaran_lo_que_traen():
     assert meta["islas_descartadas"], "el descarte de islas debe publicarse, no ser silencioso"
 
 
+def test_los_acompanantes_conservan_su_tipo():
+    """Un booleano llega como booleano y un codigo DIVIPOLA como texto.
+
+    `str(True)` produce `"True"`, que en el navegador no es ni `true` ni `"true"`: la comparacion falla en
+    silencio y la capa que dependa de ella deja de dibujarse sin que nada avise (B-040).
+    """
+    datos = json.loads((DATA / "series_municipio.json").read_text(encoding="utf-8"))
+    assert all(isinstance(v, bool) for v in datos["es_capital"])
+    assert sum(datos["es_capital"]) == 33, "una capital por departamento"
+    assert all(v is None or isinstance(v, str) for v in datos["dpto_ccdgo"])
+    assert all(len(v) == 2 for v in datos["dpto_ccdgo"] if v), "el codigo de departamento lleva su cero"
+
+
 def test_build_series_deja_nulo_lo_no_observado():
     import pandas as pd
 

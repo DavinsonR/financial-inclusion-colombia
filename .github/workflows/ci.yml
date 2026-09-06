@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
   pull_request:
+  # Republicar el sitio sin un commit de codigo. La rama `site` solo se reescribe cuando corre sobre `main`,
+  # y el disparo manual se hace sobre `main`, asi que la condicion de los pasos de publicacion ya vale.
+  workflow_dispatch:
 
 env:
   IIF_ROOT: ${{ github.workspace }}

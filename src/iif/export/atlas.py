@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 
 from iif import config
@@ -27,13 +28,51 @@ NIVELES = {
         tabla="marts.mart_indice_municipio_anual",
         clave="mpio_ccdgo",
         nombre="municipio",
-        extra=("dpto_ccdgo", "mpio_tipo"),
+        extra=("dpto_ccdgo", "mpio_tipo", "es_capital"),
     ),
 }
 
 
 def load_contract(path: Path | None = None) -> dict:
     return config.load_yaml(path or config.CONFIG_DIR / "atlas.yaml")
+
+
+MINUSCULAS = {"de", "del", "la", "las", "los", "el", "y", "e", "en"}
+
+
+def _titular(nombre: str) -> str:
+    """El nombre como se escribe, no como lo guarda la fuente.
+
+    La SFC y el DANE traen los municipios en mayúsculas ("VILLA DE SAN DIEGO DE UBATÉ"), que en un mapa
+    ocupa un tercio más de ancho y se lee peor. Se baja a capitalización normal dejando quietas las
+    abreviaturas con punto (D.C.) y los enlaces que en español van en minúscula.
+    """
+    if nombre != nombre.upper():
+        return nombre
+    palabras = nombre.split(" ")
+    salida = []
+    for i, palabra in enumerate(palabras):
+        if "." in palabra or palabra in {"-", "("}:
+            salida.append(palabra)
+        elif i and palabra.lower().strip(",") in MINUSCULAS:
+            salida.append(palabra.lower())
+        else:
+            salida.append(palabra.capitalize())
+    return " ".join(salida)
+
+
+def _escalar(valor: object) -> object:
+    """Un acompañante de la unidad, tal cual lo entiende JavaScript.
+
+    Los códigos DIVIPOLA van a texto porque llevan ceros a la izquierda y un número los perdería. Un booleano,
+    en cambio, tiene que llegar como booleano: `str(True)` produce `"True"`, y en el navegador `"True"` no es
+    ni `true` ni `"true"`, así que la comparación falla en silencio y la capa que dependa de ella no se dibuja.
+    """
+    if valor is None or (not isinstance(valor, bool) and pd.isna(valor)):
+        return None
+    if isinstance(valor, (bool, np.bool_)):
+        return bool(valor)
+    return str(valor)
 
 
 def _limpiar(rasgo: dict, tolerancia: float) -> tuple[dict, int]:
@@ -126,11 +165,11 @@ def build_series(nivel: str, indicadores: list[dict], df: pd.DataFrame) -> dict:
         "nivel": nivel,
         "ids": ids,
         "anios": anios,
-        "nombres": [str(meta[spec["nombre"]].get(i, "")) for i in ids],
+        "nombres": [_titular(str(meta[spec["nombre"]].get(i, ""))) for i in ids],
         "series": {},
     }
     for campo in spec["extra"]:
-        salida[campo] = [None if pd.isna(meta[campo].get(i)) else str(meta[campo].get(i)) for i in ids]
+        salida[campo] = [_escalar(meta[campo].get(i)) for i in ids]
 
     for ind in indicadores:
         matriz = []
