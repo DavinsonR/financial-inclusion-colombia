@@ -1,0 +1,34 @@
+dpto_ccdgo,departamento,nombre_corto,region_id,region,nombre_legacy
+05,Antioquia,Antioquia,0,Andina,Antioquia
+08,Atlántico,Atlántico,1,Caribe,Atlantico
+11,"Bogotá, D.C.",Bogotá D.C.,0,Andina,Bogota D.C.
+13,Bolívar,Bolívar,1,Caribe,Bolivar
+15,Boyacá,Boyacá,0,Andina,Boyaca
+17,Caldas,Caldas,0,Andina,Caldas
+18,Caquetá,Caquetá,4,Amazonía,Caqueta
+19,Cauca,Cauca,2,Pacífica,Cauca
+20,Cesar,Cesar,1,Caribe,Cesar
+23,Córdoba,Córdoba,1,Caribe,Cordoba
+25,Cundinamarca,Cundinamarca,0,Andina,Cundinamarca
+27,Chocó,Chocó,2,Pacífica,Choco
+41,Huila,Huila,0,Andina,Huila
+44,La Guajira,La Guajira,1,Caribe,La Guajira
+47,Magdalena,Magdalena,1,Caribe,Magdalena
+50,Meta,Meta,3,Orinoquía,Meta
+52,Nariño,Nariño,2,Pacífica,Nariño
+54,Norte de Santander,Norte de Santander,0,Andina,Norte de Santander
+63,Quindío,Quindío,0,Andina,Quindio
+66,Risaralda,Risaralda,0,Andina,Risaralda
+68,Santander,Santander,0,Andina,Santander
+70,Sucre,Sucre,1,Caribe,Sucre
+73,Tolima,Tolima,0,Andina,Tolima
+76,Valle del Cauca,Valle del Cauca,2,Pacífica,Valle del Cauca
+81,Arauca,Arauca,3,Orinoquía,Arauca
+85,Casanare,Casanare,3,Orinoquía,Casanare
+86,Putumayo,Putumayo,4,Amazonía,Putumayo
+88,"Archipiélago de San Andrés, Providencia y Santa Catalina",San Andrés y Providencia,1,Caribe,"San Andres,Prov Y Santa Catalina"
+91,Amazonas,Amazonas,4,Amazonía,Amazonas
+94,Guainía,Guainía,4,Amazonía,Guainia
+95,Guaviare,Guaviare,4,Amazonía,Guaviare
+97,Vaupés,Vaupés,4,Amazonía,Vaupes
+99,Vichada,Vichada,3,Orinoquía,Vichada

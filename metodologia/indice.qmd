@@ -1,0 +1,6 @@
+---
+title: "Índice de inclusión financiera en dos etapas"
+draft: true
+---
+
+En construcción (Fase 2). Decisión: ADR-004.

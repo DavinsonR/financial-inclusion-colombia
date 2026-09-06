@@ -1,0 +1,17 @@
+fuente,unicap,descrip_uc,tipo_bloque
+kx2f,34,TOTAL NACIONAL,total_nacional
+kx2f,35,CORRESPONSALES TIPO NEGOCIO,corresponsales_desglose
+kx2f,36,AGREGADORES DE CORRESPONSALES,corresponsales_desglose
+kx2f,37,DEPOSITOS ORDINARIOS,productos_nacional
+kx2f,38,DEPOSITOS DE BAJO MONTO,productos_nacional
+kx2f,39,CUENTAS DE AHORRO,productos_nacional
+kx2f,41,DEPOSITOS DE BAJO MONTO INCLUSIVO,productos_nacional
+kx2f,42,CORRESPONSALES DIGITALES,productos_nacional
+ptgf,34,TOTAL NACIONAL,total_nacional
+ptgf,35,CORRESPONSALES TIPO NEGOCIO,corresponsales_desglose
+ptgf,36,AGREGADORES DE CORRESPONSALES,corresponsales_desglose
+ptgf,37,DEPOSITOS DINERO ELECTRONICO,productos_nacional
+ptgf,38,DEPOSITOS DINERO ELECT TRAMITE SIMPLIFI,productos_nacional
+ptgf,39,CUENTAS DE AHORRO,productos_nacional
+ptgf,40,CUENTAS DE AHORRO TRAMITE SIMPLIFICADO,productos_nacional
+ptgf,41,CUENTAS DE AHORRO ELECTRONICAS,productos_nacional

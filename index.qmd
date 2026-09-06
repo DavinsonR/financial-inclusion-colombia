@@ -1,0 +1,24 @@
+---
+title: "Inclusión financiera y crecimiento regional en Colombia"
+subtitle: "De una tesis de maestría a un proyecto de investigación reproducible"
+---
+
+Este sitio acompaña al repositorio del proyecto. Nace de un trabajo de grado de la Maestría en Economía de la Pontificia Universidad Javeriana que preguntó si el desarrollo fintech y la inclusión financiera predicen el crecimiento económico de los departamentos de Colombia. La respuesta honesta de aquel trabajo, bajo la especificación más exigente, fue que no.
+
+El proyecto hace tres cosas con ese punto de partida:
+
+1. **Reproduce** el notebook publicado sobre el panel congelado y muestra, cifra por cifra, dónde el documento y el código divergen. Ver [Reproducción](reproduccion-tesis.qmd).
+2. **Reconstruye los datos** desde las fuentes primarias (Superintendencia Financiera, DANE, MinTIC, MEN) en un warehouse abierto con esquema estrella y vintages, a nivel departamental y municipal.
+3. **Vuelve a estimar** con la frecuencia correcta (anual), un índice por dimensiones y una batería explícita contra la correlación espuria, y publica un atlas interactivo del índice.
+
+## Estado
+
+| Fase | Qué | Estado |
+|---|---|---|
+| 0 | Reestructura, limpieza, documentos de gobierno, reproducción | en esta versión |
+| 1 | Adquisición programática y warehouse | parcial |
+| 2 | Índice en dos etapas y atlas | pendiente |
+| 3 | Econometría anual y anexos | pendiente |
+| 4 | Manuscrito | pendiente |
+
+Las decisiones de valor están en [Decisiones](decisiones.qmd); los errores y aciertos del proceso, en la [Bitácora](bitacora.qmd).

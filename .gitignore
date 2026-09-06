@@ -3,11 +3,34 @@ __pycache__/
 *.pyc
 .venv/
 .ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
 
-# Datos crudos: se documentan, no se versionan (ver data/raw/README.md)
-data/raw/*
-!data/raw/README.md
+# Warehouse y dbt
+db/*.duckdb
+db/*.duckdb.wal
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+logs/
+
+# Quarto
+_site/
+.quarto/
+/.jupyter_cache/
+
+# Datos que no se versionan
+data/raw/_large/
+data/raw/**/*.tmp
+
+# Secretos
+.env
+*.p8
+*.pem
 
 # Sistema
 .DS_Store
 Thumbs.db
+
+/.quarto/

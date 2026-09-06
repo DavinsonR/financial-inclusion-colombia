@@ -1,0 +1,7 @@
+*.parquet binary
+*.duckdb binary
+*.xlsx binary
+*.geojson -diff
+*.topojson -diff
+atlas/data/* linguist-generated
+_freeze/** linguist-generated

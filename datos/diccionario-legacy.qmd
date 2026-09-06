@@ -1,0 +1,19 @@
+---
+title: "Diccionario del panel legado"
+subtitle: "Las 102 columnas del panel de la tesis, con su frecuencia real y si el notebook las usó"
+---
+
+```{python}
+import os
+import pandas as pd
+from IPython.display import Markdown
+from iif import config
+dic = pd.read_csv(config.DATA_LEGACY / "diccionario_panel_legacy.csv")
+resumen = dic["frecuencia_real"].value_counts().rename_axis("frecuencia").reset_index(name="columnas")
+Markdown(resumen.to_markdown(index=False) + f"\n\nUsadas por el notebook: **{int(dic['usada_por_notebook'].sum())}** de 102.")
+```
+
+```{python}
+cols = ["indice", "columna", "frecuencia_real", "fuente_estimada", "derivada", "usada_por_notebook", "n_unicos"]
+Markdown(dic[cols].to_markdown(index=False))
+```

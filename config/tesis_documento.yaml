@@ -1,0 +1,38 @@
+# Cifras tal como aparecen en el documento del trabajo de grado (agosto de 2026).
+# Fuente: constantes DOC y DOC_OTROS del notebook consolidado. `tol` es relativa.
+tabla6:
+  A1: {beta: 31.1133, se: 6.6263, N: 396, r2: 0.0488}
+  A2: {beta: 62.4924, se: 8.3614, N: 363, r2: 0.1247}
+  A3: {beta: -0.1470, se: 7.2027, N: 363, r2: 0.0077}
+  A4: {beta: null, se: null, N: null, r2: null}
+  B1: {beta: 5.7043, se: 5.5871, N: 429, r2: 0.0906}
+  B2: {beta: 35.5537, se: 9.5553, N: 429, r2: 0.1992, nota: "la tabla dice 9,5553; el texto dice 5,96: errata de tabla"}
+  B3: {beta: 28.5079, se: 4.8183, N: 396, r2: 0.1946}
+  B4: {beta: -4.9256, se: 4.3580, N: 396, r2: 0.1748}
+otros:
+  KMO: 0.7189
+  Bartlett_chi2: 2543.45
+  var_acum_4pc: 84.4
+  Hausman_chi2: 33.93
+  Mundlak_IIF_mean: 4.11
+  corr_between: 0.094
+  corr_within: -0.164
+  preCOVID_beta: 0.12
+  preCOVID_se: 1.57
+  preCOVID_r2: 0.576
+  preCOVID_2way_beta: -3.94
+  preCOVID_2way_se: 6.03
+  Pesaran_CD: 66.81
+  DK_se_de: 5.77
+  DK_se_a: 38.51
+  trim_beta: 25.21
+  trim_N: 420
+  wins_beta: 23.31
+  wins_N: 396
+  beta_log: 5.344
+  se_log: 1.626
+  N_log: 396
+  r2_log: 0.167
+  rho_nickell: 0.4279
+  sesgo_nickell: -0.1098
+  corr_orient: 0.8684
