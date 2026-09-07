@@ -479,3 +479,16 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Causa raíz: Quarto copia a `_site` los recursos que ve **enlazados en el HTML**; las rutas de `FileAttachment` viven dentro de una celda de OJS y no las descubre. La portada declaraba `resources: lib/*.js` y no `data/*.json`, así que los datos nunca se publicaban.
 - Regla: todo recurso que solo se nombre dentro de una celda de OJS se declara en `resources`. Y la comprobación de que una página funciona se hace sobre el sitio construido sin tocarlo a mano: un `cp` de conveniencia durante la revisión esconde exactamente este fallo.
 - Evidencia: `atlas/index.qmd`, bloque `resources`.
+
+## B-047 · 2026-09-07 · Una exposición inicial medida en una variable que no existe en el año base
+- Contexto: el shift-share se contrasta con exposiciones de placebo (ingreso y urbanización iniciales) medidas en 2018.
+- Qué pasó: la batería completa moría con `exog does not have full column rank`, un error que nombra al estimador y no a la causa.
+- Causa raíz: la exposición de ingreso se tomó de `log_pib_rezago`, que en 2018 es toda vacía porque el rezago necesita 2017. La columna llegaba al estimador llena de nulos, se convertía en un vector de ceros al cruzarla con la adopción nacional, y el error saltaba tres funciones más abajo.
+- Regla: una exposición inicial comprueba su cobertura en el año base antes de usarse, y falla nombrando la variable y el año. El error debe saltar donde está la causa, no donde se manifiesta.
+- Evidencia: `src/iif/econ/designs.py::exposicion_inicial`.
+
+## S-017 · 2026-09-07 · La econometría se probó donde la verdad se conoce
+- Contexto: un resultado nulo sobre datos reales no distingue entre "no hay efecto" y "el código no lo vería aunque lo hubiera".
+- Qué funcionó: doce pruebas sobre paneles sintéticos con estructura sabida —efecto real, tendencia común disfrazada de efecto, factor con cargas heterogéneas, patrón espacial, caminata aleatoria— antes de mirar un solo coeficiente real. Destaparon dos cosas que la tabla final no habría enseñado: el desmediado de dos vías en un panel desbalanceado necesita proyecciones alternadas (sin ellas el bootstrap comparaba un coeficiente distinto del estimador), y la prueba CD de Pesaran tiene poca potencia con cargas de media cero, que es una propiedad de la prueba y hay que saberla para leerla.
+- Dónde se reutiliza: `tests/test_econ.py`; el tamaño del bootstrap se mide sobre veinte paneles, no sobre uno, porque uno solo rechaza al 5 % una de cada veinte veces por definición.
+

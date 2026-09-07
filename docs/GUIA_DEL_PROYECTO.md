@@ -19,12 +19,12 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 | 0 | Reestructura del repo, limpieza y subida de los tres artefactos legados, paquete `iif`, documentos de gobierno, dbt, Quarto, CI | Hecha: S1 a S8 completos | verde |
 | 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (77 MB), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
 | 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
-| 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | A medias: atlas terminado (tres vistas, 1,83 MB de 3); falta la econometría | ámbar |
+| 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Hecha: atlas de tres vistas y batería completa en `src/iif/econ` con 12 pruebas sintéticas (ADR-016) | verde |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
 
 Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto, CI con publicación en Vercel y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
 
-Lo que no hay todavía: la econometría. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
+Lo que no hay todavía: el anexo de desagregación temporal y el manuscrito. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
 
 ## 3. Mapa del repo
 
