@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Bitácora del agente – Inclusión financiera y crecimiento regional en Colombia</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-7c041f0f1c024a3500aba4102d922bba.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Sin resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Inclusión financiera y crecimiento regional en Colombia</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Buscar"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Navegación de palanca" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Inicio</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-datos" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Datos</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-datos">    
+        <li>
+    <a class="dropdown-item" href="./datos/fuentes.html">
+ <span class="dropdown-text">Fuentes y manifiesto</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./datos/diccionario-legacy.html">
+ <span class="dropdown-text">Diccionario del panel legado</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./datos/modelo-de-datos.html">
+ <span class="dropdown-text">Modelo de datos</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./datos/crosswalk.html">
+ <span class="dropdown-text">Claves geográficas de la SFC y empalme 2021Q1</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-metodología" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Metodología</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-metodología">    
+        <li>
+    <a class="dropdown-item" href="./metodologia/indice.html">
+ <span class="dropdown-text">El índice de inclusión financiera</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./metodologia/panel.html">
+ <span class="dropdown-text">Panel anual: inclusión financiera y crecimiento</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./atlas/index.html"> 
+<span class="menu-text">Atlas</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./bitacora.html" aria-current="page"> 
+<span class="menu-text">Bitácora</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./decisiones.html"> 
+<span class="menu-text">Decisiones</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#bitácora-del-agente" id="toc-bitácora-del-agente" class="nav-link active" data-scroll-target="#bitácora-del-agente">Bitácora del agente</a>
+  <ul class="collapse">
+  <li><a href="#defectos-heredados-del-proceso-de-la-tesis" id="toc-defectos-heredados-del-proceso-de-la-tesis" class="nav-link" data-scroll-target="#defectos-heredados-del-proceso-de-la-tesis">Defectos heredados del proceso de la tesis</a></li>
+  <li><a href="#b-001-2026-09-06-dependiente-anual-repetida-en-los-trimestres" id="toc-b-001-2026-09-06-dependiente-anual-repetida-en-los-trimestres" class="nav-link" data-scroll-target="#b-001-2026-09-06-dependiente-anual-repetida-en-los-trimestres">B-001 · 2026-09-06 · Dependiente anual repetida en los trimestres</a></li>
+  <li><a href="#b-002-2026-09-06-deflactor-de-un-solo-departamento-aplicado-a-los-33" id="toc-b-002-2026-09-06-deflactor-de-un-solo-departamento-aplicado-a-los-33" class="nav-link" data-scroll-target="#b-002-2026-09-06-deflactor-de-un-solo-departamento-aplicado-a-los-33">B-002 · 2026-09-06 · Deflactor de un solo departamento aplicado a los 33</a></li>
+  <li><a href="#b-003-2026-09-06-flujo-trimestral-dividido-por-pib-anual" id="toc-b-003-2026-09-06-flujo-trimestral-dividido-por-pib-anual" class="nav-link" data-scroll-target="#b-003-2026-09-06-flujo-trimestral-dividido-por-pib-anual">B-003 · 2026-09-06 · Flujo trimestral dividido por PIB anual</a></li>
+  <li><a href="#b-004-2026-09-06-internet-igual-a-cero-en-50-observaciones" id="toc-b-004-2026-09-06-internet-igual-a-cero-en-50-observaciones" class="nav-link" data-scroll-target="#b-004-2026-09-06-internet-igual-a-cero-en-50-observaciones">B-004 · 2026-09-06 · Internet igual a cero en 50 observaciones</a></li>
+  <li><a href="#b-005-2026-09-06-pesos-implícitos-nunca-publicados-microcrédito-con-signo-negativo" id="toc-b-005-2026-09-06-pesos-implícitos-nunca-publicados-microcrédito-con-signo-negativo" class="nav-link" data-scroll-target="#b-005-2026-09-06-pesos-implícitos-nunca-publicados-microcrédito-con-signo-negativo">B-005 · 2026-09-06 · Pesos implícitos nunca publicados; microcrédito con signo negativo</a></li>
+  <li><a href="#b-006-2026-09-06-min-max-tras-pca-más-eps" id="toc-b-006-2026-09-06-min-max-tras-pca-más-eps" class="nav-link" data-scroll-target="#b-006-2026-09-06-min-max-tras-pca-más-eps">B-006 · 2026-09-06 · Min-max tras PCA más EPS</a></li>
+  <li><a href="#b-007-2026-09-06-orientación-de-signo-forzada-y-verificada-de-forma-circular" id="toc-b-007-2026-09-06-orientación-de-signo-forzada-y-verificada-de-forma-circular" class="nav-link" data-scroll-target="#b-007-2026-09-06-orientación-de-signo-forzada-y-verificada-de-forma-circular">B-007 · 2026-09-06 · Orientación de signo forzada y verificada de forma circular</a></li>
+  <li><a href="#b-008-2026-09-06-hausman-con-covarianza-clusterizada" id="toc-b-008-2026-09-06-hausman-con-covarianza-clusterizada" class="nav-link" data-scroll-target="#b-008-2026-09-06-hausman-con-covarianza-clusterizada">B-008 · 2026-09-06 · Hausman con covarianza clusterizada</a></li>
+  <li><a href="#b-009-2026-09-06-modelos-regionales-con-4-clústeres" id="toc-b-009-2026-09-06-modelos-regionales-con-4-clústeres" class="nav-link" data-scroll-target="#b-009-2026-09-06-modelos-regionales-con-4-clústeres">B-009 · 2026-09-06 · Modelos regionales con 4 clústeres</a></li>
+  <li><a href="#b-010-2026-09-06-recorte-y-winsorización-después-de-los-rezagos-sobre-la-dependiente-pooled" id="toc-b-010-2026-09-06-recorte-y-winsorización-después-de-los-rezagos-sobre-la-dependiente-pooled" class="nav-link" data-scroll-target="#b-010-2026-09-06-recorte-y-winsorización-después-de-los-rezagos-sobre-la-dependiente-pooled">B-010 · 2026-09-06 · Recorte y winsorización después de los rezagos, sobre la dependiente pooled</a></li>
+  <li><a href="#b-011-2026-09-06-nickell-con-el-t-del-panel-y-fórmula-de-ar1-puro-β-nunca-corregido" id="toc-b-011-2026-09-06-nickell-con-el-t-del-panel-y-fórmula-de-ar1-puro-β-nunca-corregido" class="nav-link" data-scroll-target="#b-011-2026-09-06-nickell-con-el-t-del-panel-y-fórmula-de-ar1-puro-β-nunca-corregido">B-011 · 2026-09-06 · Nickell con el T del panel y fórmula de AR(1) puro; β nunca corregido</a></li>
+  <li><a href="#b-012-2026-09-06-umbral-urbanorural-sobre-462-filas-replicadas-variable-muerta" id="toc-b-012-2026-09-06-umbral-urbanorural-sobre-462-filas-replicadas-variable-muerta" class="nav-link" data-scroll-target="#b-012-2026-09-06-umbral-urbanorural-sobre-462-filas-replicadas-variable-muerta">B-012 · 2026-09-06 · Umbral urbano/rural sobre 462 filas replicadas; variable muerta</a></li>
+  <li><a href="#b-013-2026-09-06-rename-map-con-claves-rotas-81-de-102-columnas-sin-usar" id="toc-b-013-2026-09-06-rename-map-con-claves-rotas-81-de-102-columnas-sin-usar" class="nav-link" data-scroll-target="#b-013-2026-09-06-rename-map-con-claves-rotas-81-de-102-columnas-sin-usar">B-013 · 2026-09-06 · Rename map con claves rotas; 81 de 102 columnas sin usar</a></li>
+  <li><a href="#b-014-2026-09-06-el-documento-no-reproduce-desde-el-notebook" id="toc-b-014-2026-09-06-el-documento-no-reproduce-desde-el-notebook" class="nav-link" data-scroll-target="#b-014-2026-09-06-el-documento-no-reproduce-desde-el-notebook">B-014 · 2026-09-06 · El documento no reproduce desde el notebook</a></li>
+  <li><a href="#b-015-2026-09-06-rutas-y-metadatos-personales-en-los-artefactos" id="toc-b-015-2026-09-06-rutas-y-metadatos-personales-en-los-artefactos" class="nav-link" data-scroll-target="#b-015-2026-09-06-rutas-y-metadatos-personales-en-los-artefactos">B-015 · 2026-09-06 · Rutas y metadatos personales en los artefactos</a></li>
+  <li><a href="#b-031-2026-09-06-doble-conteo-el-panel-de-la-tesis-suma-municipios-y-total-departamental" id="toc-b-031-2026-09-06-doble-conteo-el-panel-de-la-tesis-suma-municipios-y-total-departamental" class="nav-link" data-scroll-target="#b-031-2026-09-06-doble-conteo-el-panel-de-la-tesis-suma-municipios-y-total-departamental">B-031 · 2026-09-06 · Doble conteo: el panel de la tesis suma municipios y total departamental</a></li>
+  <li><a href="#errores-del-asistente" id="toc-errores-del-asistente" class="nav-link" data-scroll-target="#errores-del-asistente">Errores del asistente</a></li>
+  <li><a href="#b-016-2026-09-06-notificaciones-de-subagentes-perdidas" id="toc-b-016-2026-09-06-notificaciones-de-subagentes-perdidas" class="nav-link" data-scroll-target="#b-016-2026-09-06-notificaciones-de-subagentes-perdidas">B-016 · 2026-09-06 · Notificaciones de subagentes perdidas</a></li>
+  <li><a href="#b-017-2026-09-06-pkill--f-mató-la-propia-shell-dos-veces" id="toc-b-017-2026-09-06-pkill--f-mató-la-propia-shell-dos-veces" class="nav-link" data-scroll-target="#b-017-2026-09-06-pkill--f-mató-la-propia-shell-dos-veces">B-017 · 2026-09-06 · <code>pkill -f</code> mató la propia shell dos veces</a></li>
+  <li><a href="#b-018-2026-09-06-captura-de-pantalla-de-más-de-8.000-px-rechazada" id="toc-b-018-2026-09-06-captura-de-pantalla-de-más-de-8.000-px-rechazada" class="nav-link" data-scroll-target="#b-018-2026-09-06-captura-de-pantalla-de-más-de-8.000-px-rechazada">B-018 · 2026-09-06 · Captura de pantalla de más de 8.000 px rechazada</a></li>
+  <li><a href="#b-019-2026-09-06-cifras-copiadas-de-comentarios-obsoletos" id="toc-b-019-2026-09-06-cifras-copiadas-de-comentarios-obsoletos" class="nav-link" data-scroll-target="#b-019-2026-09-06-cifras-copiadas-de-comentarios-obsoletos">B-019 · 2026-09-06 · Cifras copiadas de comentarios obsoletos</a></li>
+  <li><a href="#b-020-2026-09-06-ci-en-rojo-durante-dos-semanas-sin-que-nadie-lo-viera" id="toc-b-020-2026-09-06-ci-en-rojo-durante-dos-semanas-sin-que-nadie-lo-viera" class="nav-link" data-scroll-target="#b-020-2026-09-06-ci-en-rojo-durante-dos-semanas-sin-que-nadie-lo-viera">B-020 · 2026-09-06 · CI en rojo durante dos semanas sin que nadie lo viera</a></li>
+  <li><a href="#b-021-2026-09-06-git-add-exports.json-no-recursivo" id="toc-b-021-2026-09-06-git-add-exports.json-no-recursivo" class="nav-link" data-scroll-target="#b-021-2026-09-06-git-add-exports.json-no-recursivo">B-021 · 2026-09-06 · <code>git add exports/*.json</code> no recursivo</a></li>
+  <li><a href="#b-022-2026-09-06-instalación-editable-antes-de-que-existiera-el-paquete" id="toc-b-022-2026-09-06-instalación-editable-antes-de-que-existiera-el-paquete" class="nav-link" data-scroll-target="#b-022-2026-09-06-instalación-editable-antes-de-que-existiera-el-paquete">B-022 · 2026-09-06 · Instalación editable antes de que existiera el paquete</a></li>
+  <li><a href="#b-023-2026-09-06-terridata-y-la-api-de-github-no-accesibles-gh-ausente" id="toc-b-023-2026-09-06-terridata-y-la-api-de-github-no-accesibles-gh-ausente" class="nav-link" data-scroll-target="#b-023-2026-09-06-terridata-y-la-api-de-github-no-accesibles-gh-ausente">B-023 · 2026-09-06 · TerriData y la API de GitHub no accesibles; <code>gh</code> ausente</a></li>
+  <li><a href="#b-024-2026-09-06-el-mapserver-del-mgn-devuelve-geometría-nula-en-todos-los-rasgos" id="toc-b-024-2026-09-06-el-mapserver-del-mgn-devuelve-geometría-nula-en-todos-los-rasgos" class="nav-link" data-scroll-target="#b-024-2026-09-06-el-mapserver-del-mgn-devuelve-geometría-nula-en-todos-los-rasgos">B-024 · 2026-09-06 · El MapServer del MGN devuelve geometría nula en todos los rasgos</a></li>
+  <li><a href="#b-025-2026-09-06-ptgf-en-una-sola-partición-aniosin_fecha-y-82-columnas-numéricas-como-texto" id="toc-b-025-2026-09-06-ptgf-en-una-sola-partición-aniosin_fecha-y-82-columnas-numéricas-como-texto" class="nav-link" data-scroll-target="#b-025-2026-09-06-ptgf-en-una-sola-partición-aniosin_fecha-y-82-columnas-numéricas-como-texto">B-025 · 2026-09-06 · <code>ptgf</code> en una sola partición <code>anio=sin_fecha</code> y 82 columnas numéricas como texto</a></li>
+  <li><a href="#b-026-2026-09-06-pivot_tabledropnafalse-agotó-la-memoria-dos-veces" id="toc-b-026-2026-09-06-pivot_tabledropnafalse-agotó-la-memoria-dos-veces" class="nav-link" data-scroll-target="#b-026-2026-09-06-pivot_tabledropnafalse-agotó-la-memoria-dos-veces">B-026 · 2026-09-06 · <code>pivot_table(dropna=False)</code> agotó la memoria dos veces</a></li>
+  <li><a href="#b-027-2026-09-06-mpio_ccdgo-del-mgn-tiene-3-dígitos" id="toc-b-027-2026-09-06-mpio_ccdgo-del-mgn-tiene-3-dígitos" class="nav-link" data-scroll-target="#b-027-2026-09-06-mpio_ccdgo-del-mgn-tiene-3-dígitos">B-027 · 2026-09-06 · <code>mpio_ccdgo</code> del MGN tiene 3 dígitos</a></li>
+  <li><a href="#b-028-2026-09-06-el-subagente-de-dbt-murió-por-el-límite-de-sesión" id="toc-b-028-2026-09-06-el-subagente-de-dbt-murió-por-el-límite-de-sesión" class="nav-link" data-scroll-target="#b-028-2026-09-06-el-subagente-de-dbt-murió-por-el-límite-de-sesión">B-028 · 2026-09-06 · El subagente de dbt murió por el límite de sesión</a></li>
+  <li><a href="#b-029-2026-09-06-rutas-de-quarto-relativas-al-documento" id="toc-b-029-2026-09-06-rutas-de-quarto-relativas-al-documento" class="nav-link" data-scroll-target="#b-029-2026-09-06-rutas-de-quarto-relativas-al-documento">B-029 · 2026-09-06 · Rutas de Quarto relativas al documento</a></li>
+  <li><a href="#b-030-2026-09-06-workflow-de-ci-con-yaml-inválido-a-punto-de-subirse" id="toc-b-030-2026-09-06-workflow-de-ci-con-yaml-inválido-a-punto-de-subirse" class="nav-link" data-scroll-target="#b-030-2026-09-06-workflow-de-ci-con-yaml-inválido-a-punto-de-subirse">B-030 · 2026-09-06 · Workflow de CI con YAML inválido a punto de subirse</a></li>
+  <li><a href="#b-032-2026-09-06-en-kx2f-el-total-departamental-no-siempre-es-la-suma-de-los-municipios" id="toc-b-032-2026-09-06-en-kx2f-el-total-departamental-no-siempre-es-la-suma-de-los-municipios" class="nav-link" data-scroll-target="#b-032-2026-09-06-en-kx2f-el-total-departamental-no-siempre-es-la-suma-de-los-municipios">B-032 · 2026-09-06 · En <code>kx2f</code> el total departamental no siempre es la suma de los municipios</a></li>
+  <li><a href="#b-033-2026-09-06-primeros-números-del-empalme-ptgfkx2f-en-2021q1" id="toc-b-033-2026-09-06-primeros-números-del-empalme-ptgfkx2f-en-2021q1" class="nav-link" data-scroll-target="#b-033-2026-09-06-primeros-números-del-empalme-ptgfkx2f-en-2021q1">B-033 · 2026-09-06 · Primeros números del empalme ptgf/kx2f en 2021Q1</a></li>
+  <li><a href="#b-034-2026-09-06-el-repositorio-publicaba-resultados-de-la-tesis-como-si-fueran-del-proyecto" id="toc-b-034-2026-09-06-el-repositorio-publicaba-resultados-de-la-tesis-como-si-fueran-del-proyecto" class="nav-link" data-scroll-target="#b-034-2026-09-06-el-repositorio-publicaba-resultados-de-la-tesis-como-si-fueran-del-proyecto">B-034 · 2026-09-06 · El repositorio publicaba resultados de la tesis como si fueran del proyecto</a></li>
+  <li><a href="#b-035-2026-09-06-dos-plataformas-de-despliegue-para-un-solo-autor" id="toc-b-035-2026-09-06-dos-plataformas-de-despliegue-para-un-solo-autor" class="nav-link" data-scroll-target="#b-035-2026-09-06-dos-plataformas-de-despliegue-para-un-solo-autor">B-035 · 2026-09-06 · Dos plataformas de despliegue para un solo autor</a></li>
+  <li><a href="#b-036-2026-09-06-se-dio-por-descartado-bigquery-sobre-una-instrucción-ambigua" id="toc-b-036-2026-09-06-se-dio-por-descartado-bigquery-sobre-una-instrucción-ambigua" class="nav-link" data-scroll-target="#b-036-2026-09-06-se-dio-por-descartado-bigquery-sobre-una-instrucción-ambigua">B-036 · 2026-09-06 · Se dio por descartado BigQuery sobre una instrucción ambigua</a></li>
+  <li><a href="#b-037-2026-09-06-una-semilla-con-esquema-nuevo-no-se-recarga-sola" id="toc-b-037-2026-09-06-una-semilla-con-esquema-nuevo-no-se-recarga-sola" class="nav-link" data-scroll-target="#b-037-2026-09-06-una-semilla-con-esquema-nuevo-no-se-recarga-sola">B-037 · 2026-09-06 · Una semilla con esquema nuevo no se recarga sola</a></li>
+  <li><a href="#b-038-2026-09-06-el-pca-por-dimensión-iba-a-repetir-el-defecto-del-índice-auditado" id="toc-b-038-2026-09-06-el-pca-por-dimensión-iba-a-repetir-el-defecto-del-índice-auditado" class="nav-link" data-scroll-target="#b-038-2026-09-06-el-pca-por-dimensión-iba-a-repetir-el-defecto-del-índice-auditado">B-038 · 2026-09-06 · El PCA por dimensión iba a repetir el defecto del índice auditado</a></li>
+  <li><a href="#b-039-2026-09-06-el-mapa-salía-como-un-rectángulo-de-color-el-sentido-de-giro-de-los-anillos" id="toc-b-039-2026-09-06-el-mapa-salía-como-un-rectángulo-de-color-el-sentido-de-giro-de-los-anillos" class="nav-link" data-scroll-target="#b-039-2026-09-06-el-mapa-salía-como-un-rectángulo-de-color-el-sentido-de-giro-de-los-anillos">B-039 · 2026-09-06 · El mapa salía como un rectángulo de color: el sentido de giro de los anillos</a></li>
+  <li><a href="#aciertos" id="toc-aciertos" class="nav-link" data-scroll-target="#aciertos">Aciertos</a></li>
+  <li><a href="#s-001-2026-09-06-paginación-soda-por-orderid" id="toc-s-001-2026-09-06-paginación-soda-por-orderid" class="nav-link" data-scroll-target="#s-001-2026-09-06-paginación-soda-por-orderid">S-001 · 2026-09-06 · Paginación SODA por <code>$order=:id</code></a></li>
+  <li><a href="#s-002-2026-09-06-2021q1-existe-en-las-dos-tablas-de-la-sfc" id="toc-s-002-2026-09-06-2021q1-existe-en-las-dos-tablas-de-la-sfc" class="nav-link" data-scroll-target="#s-002-2026-09-06-2021q1-existe-en-las-dos-tablas-de-la-sfc">S-002 · 2026-09-06 · 2021Q1 existe en las dos tablas de la SFC</a></li>
+  <li><a href="#s-003-2026-09-06-last-modified-del-dane-sirve-para-nombrar-vintages" id="toc-s-003-2026-09-06-last-modified-del-dane-sirve-para-nombrar-vintages" class="nav-link" data-scroll-target="#s-003-2026-09-06-last-modified-del-dane-sirve-para-nombrar-vintages">S-003 · 2026-09-06 · <code>Last-Modified</code> del DANE sirve para nombrar vintages</a></li>
+  <li><a href="#s-004-2026-09-06-mgn-2024-por-arcgis-rest-devuelve-geojson-con-divipola" id="toc-s-004-2026-09-06-mgn-2024-por-arcgis-rest-devuelve-geojson-con-divipola" class="nav-link" data-scroll-target="#s-004-2026-09-06-mgn-2024-por-arcgis-rest-devuelve-geojson-con-divipola">S-004 · 2026-09-06 · MGN 2024 por ArcGIS REST devuelve GeoJSON con DIVIPOLA</a></li>
+  <li><a href="#s-005-2026-09-06-la-reproducción-coincide-con-el-notebook-a-14e-6" id="toc-s-005-2026-09-06-la-reproducción-coincide-con-el-notebook-a-14e-6" class="nav-link" data-scroll-target="#s-005-2026-09-06-la-reproducción-coincide-con-el-notebook-a-14e-6">S-005 · 2026-09-06 · La reproducción coincide con el notebook a 1,4e-6</a></li>
+  <li><a href="#s-006-2026-09-06-quarto-y-tectonic-por-tarball-a-través-del-proxy" id="toc-s-006-2026-09-06-quarto-y-tectonic-por-tarball-a-través-del-proxy" class="nav-link" data-scroll-target="#s-006-2026-09-06-quarto-y-tectonic-por-tarball-a-través-del-proxy">S-006 · 2026-09-06 · Quarto y tectonic por tarball a través del proxy</a></li>
+  <li><a href="#s-007-2026-09-06-featureserver-con-maxallowableoffset-deja-el-mgn-en-pocos-mb" id="toc-s-007-2026-09-06-featureserver-con-maxallowableoffset-deja-el-mgn-en-pocos-mb" class="nav-link" data-scroll-target="#s-007-2026-09-06-featureserver-con-maxallowableoffset-deja-el-mgn-en-pocos-mb">S-007 · 2026-09-06 · <code>FeatureServer</code> con <code>maxAllowableOffset</code> deja el MGN en pocos MB</a></li>
+  <li><a href="#s-008-2026-09-06-los-metadatos-de-socrata-tipan-las-columnas" id="toc-s-008-2026-09-06-los-metadatos-de-socrata-tipan-las-columnas" class="nav-link" data-scroll-target="#s-008-2026-09-06-los-metadatos-de-socrata-tipan-las-columnas">S-008 · 2026-09-06 · Los metadatos de Socrata tipan las columnas</a></li>
+  <li><a href="#s-009-2026-09-06-en-ptgf-renglon-es-el-código-municipal-divipola" id="toc-s-009-2026-09-06-en-ptgf-renglon-es-el-código-municipal-divipola" class="nav-link" data-scroll-target="#s-009-2026-09-06-en-ptgf-renglon-es-el-código-municipal-divipola">S-009 · 2026-09-06 · En <code>ptgf</code>, <code>renglon</code> es el código municipal DIVIPOLA</a></li>
+  <li><a href="#s-010-2026-09-06-kx2f-sigue-la-misma-convención-renglon-es-el-divipola-municipal" id="toc-s-010-2026-09-06-kx2f-sigue-la-misma-convención-renglon-es-el-divipola-municipal" class="nav-link" data-scroll-target="#s-010-2026-09-06-kx2f-sigue-la-misma-convención-renglon-es-el-divipola-municipal">S-010 · 2026-09-06 · <code>kx2f</code> sigue la misma convención: <code>renglon</code> es el DIVIPOLA municipal</a></li>
+  <li><a href="#s-011-2026-09-06-ninguna-serie-de-la-sfc-es-acumulada-en-el-año" id="toc-s-011-2026-09-06-ninguna-serie-de-la-sfc-es-acumulada-en-el-año" class="nav-link" data-scroll-target="#s-011-2026-09-06-ninguna-serie-de-la-sfc-es-acumulada-en-el-año">S-011 · 2026-09-06 · Ninguna serie de la SFC es acumulada en el año</a></li>
+  <li><a href="#s-012-2026-09-06-el-panel-nuevo-sí-varía-dentro-del-panel" id="toc-s-012-2026-09-06-el-panel-nuevo-sí-varía-dentro-del-panel" class="nav-link" data-scroll-target="#s-012-2026-09-06-el-panel-nuevo-sí-varía-dentro-del-panel">S-012 · 2026-09-06 · El panel nuevo sí varía dentro del panel</a></li>
+  <li><a href="#s-013-2026-09-06-las-variables-crudas-de-la-sfc-miden-población" id="toc-s-013-2026-09-06-las-variables-crudas-de-la-sfc-miden-población" class="nav-link" data-scroll-target="#s-013-2026-09-06-las-variables-crudas-de-la-sfc-miden-población">S-013 · 2026-09-06 · Las variables crudas de la SFC miden población</a></li>
+  <li><a href="#s-014-2026-09-06-medir-el-mapa-contra-el-área-real-de-colombia" id="toc-s-014-2026-09-06-medir-el-mapa-contra-el-área-real-de-colombia" class="nav-link" data-scroll-target="#s-014-2026-09-06-medir-el-mapa-contra-el-área-real-de-colombia">S-014 · 2026-09-06 · Medir el mapa contra el área real de Colombia</a></li>
+  <li><a href="#s-015-2026-09-06-el-atlas-no-depende-de-ningún-cdn" id="toc-s-015-2026-09-06-el-atlas-no-depende-de-ningún-cdn" class="nav-link" data-scroll-target="#s-015-2026-09-06-el-atlas-no-depende-de-ningún-cdn">S-015 · 2026-09-06 · El atlas no depende de ningún CDN</a></li>
+  <li><a href="#b-040-2026-09-06-ninguna-capital-se-rotulaba-un-booleano-que-viajó-como-texto" id="toc-b-040-2026-09-06-ninguna-capital-se-rotulaba-un-booleano-que-viajó-como-texto" class="nav-link" data-scroll-target="#b-040-2026-09-06-ninguna-capital-se-rotulaba-un-booleano-que-viajó-como-texto">B-040 · 2026-09-06 · Ninguna capital se rotulaba: un booleano que viajó como texto</a></li>
+  <li><a href="#b-041-2026-09-06-girar-sobre-un-encuadre-ya-ajustado-saca-el-mapa-del-marco" id="toc-b-041-2026-09-06-girar-sobre-un-encuadre-ya-ajustado-saca-el-mapa-del-marco" class="nav-link" data-scroll-target="#b-041-2026-09-06-girar-sobre-un-encuadre-ya-ajustado-saca-el-mapa-del-marco">B-041 · 2026-09-06 · Girar sobre un encuadre ya ajustado saca el mapa del marco</a></li>
+  <li><a href="#b-042-2026-09-06-la-limpieza-de-oyentes-colgaba-de-un-evento-que-el-navegador-ya-no-dispara" id="toc-b-042-2026-09-06-la-limpieza-de-oyentes-colgaba-de-un-evento-que-el-navegador-ya-no-dispara" class="nav-link" data-scroll-target="#b-042-2026-09-06-la-limpieza-de-oyentes-colgaba-de-un-evento-que-el-navegador-ya-no-dispara">B-042 · 2026-09-06 · La limpieza de oyentes colgaba de un evento que el navegador ya no dispara</a></li>
+  <li><a href="#b-043-2026-09-06-el-atenuado-en-la-cara-dejaba-los-cantos-a-plena-tinta" id="toc-b-043-2026-09-06-el-atenuado-en-la-cara-dejaba-los-cantos-a-plena-tinta" class="nav-link" data-scroll-target="#b-043-2026-09-06-el-atenuado-en-la-cara-dejaba-los-cantos-a-plena-tinta">B-043 · 2026-09-06 · El atenuado en la cara dejaba los cantos a plena tinta</a></li>
+  <li><a href="#b-044-2026-09-06-table-layout-fixed-lee-la-primera-fila-y-los-anchos-estaban-en-el-cuerpo" id="toc-b-044-2026-09-06-table-layout-fixed-lee-la-primera-fila-y-los-anchos-estaban-en-el-cuerpo" class="nav-link" data-scroll-target="#b-044-2026-09-06-table-layout-fixed-lee-la-primera-fila-y-los-anchos-estaban-en-el-cuerpo">B-044 · 2026-09-06 · <code>table-layout: fixed</code> lee la primera fila, y los anchos estaban en el cuerpo</a></li>
+  <li><a href="#s-016-2026-09-06-medir-la-página-en-el-navegador-no-mirarla" id="toc-s-016-2026-09-06-medir-la-página-en-el-navegador-no-mirarla" class="nav-link" data-scroll-target="#s-016-2026-09-06-medir-la-página-en-el-navegador-no-mirarla">S-016 · 2026-09-06 · Medir la página en el navegador, no mirarla</a></li>
+  <li><a href="#b-045-2026-09-06-el-sitio-dependía-de-un-ajuste-que-solo-existe-en-una-consola" id="toc-b-045-2026-09-06-el-sitio-dependía-de-un-ajuste-que-solo-existe-en-una-consola" class="nav-link" data-scroll-target="#b-045-2026-09-06-el-sitio-dependía-de-un-ajuste-que-solo-existe-en-una-consola">B-045 · 2026-09-06 · El sitio dependía de un ajuste que solo existe en una consola</a></li>
+  <li><a href="#b-046-2026-09-06-el-atlas-publicado-no-encontraba-sus-datos" id="toc-b-046-2026-09-06-el-atlas-publicado-no-encontraba-sus-datos" class="nav-link" data-scroll-target="#b-046-2026-09-06-el-atlas-publicado-no-encontraba-sus-datos">B-046 · 2026-09-06 · El atlas publicado no encontraba sus datos</a></li>
+  <li><a href="#b-047-2026-09-07-una-exposición-inicial-medida-en-una-variable-que-no-existe-en-el-año-base" id="toc-b-047-2026-09-07-una-exposición-inicial-medida-en-una-variable-que-no-existe-en-el-año-base" class="nav-link" data-scroll-target="#b-047-2026-09-07-una-exposición-inicial-medida-en-una-variable-que-no-existe-en-el-año-base">B-047 · 2026-09-07 · Una exposición inicial medida en una variable que no existe en el año base</a></li>
+  <li><a href="#s-017-2026-09-07-la-econometría-se-probó-donde-la-verdad-se-conoce" id="toc-s-017-2026-09-07-la-econometría-se-probó-donde-la-verdad-se-conoce" class="nav-link" data-scroll-target="#s-017-2026-09-07-la-econometría-se-probó-donde-la-verdad-se-conoce">S-017 · 2026-09-07 · La econometría se probó donde la verdad se conoce</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/DavinsonR/financial-inclusion-colombia/blob/main/bitacora.qmd" class="toc-action"><i class="bi bi-github"></i>Ver el código</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Bitácora del agente</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="bitácora-del-agente" class="level1">
+<h1>Bitácora del agente</h1>
+<p>Propósito: registrar cada error y cada acierto con su causa raíz y la regla que evita repetirlo. La entrada se escribe antes del arreglo (R-10). Los defectos heredados de la tesis se atribuyen al proceso, nunca a la persona: un proceso sin pruebas produce estos errores en cualquier mano. La bitácora es la memoria del asistente entre sesiones; CLAUDE.md solo guarda las reglas que caben en 40 líneas.</p>
+<p>Esquema de una entrada de error:</p>
+<pre><code>## B-NNN · AAAA-MM-DD · título corto
+- Contexto:
+- Qué pasó:
+- Causa raíz:
+- Regla: R-xx (o una regla nueva en una frase) → dónde vive (CLAUDE.md, ADR, prueba)
+- Evidencia: archivo::prueba o ruta
+- Estado: cerrada | abierta</code></pre>
+<p>Los aciertos van como <code>S-NNN</code> con contexto, qué funcionó, por qué y dónde se reutiliza.</p>
+<p>Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del notebook consolidado (plan de septiembre de 2026). B-016 en adelante son errores del asistente en esta y en sesiones previas. Los comentarios de <code>src/iif/legacy/diagnostics.py</code> citan la numeración de este archivo (Hausman = B-008; Wooldridge = nota dentro de B-011).</p>
+<hr>
+<section id="defectos-heredados-del-proceso-de-la-tesis" class="level2">
+<h2 class="anchored" data-anchor-id="defectos-heredados-del-proceso-de-la-tesis">Defectos heredados del proceso de la tesis</h2>
+</section>
+<section id="b-001-2026-09-06-dependiente-anual-repetida-en-los-trimestres" class="level2">
+<h2 class="anchored" data-anchor-id="b-001-2026-09-06-dependiente-anual-repetida-en-los-trimestres">B-001 · 2026-09-06 · Dependiente anual repetida en los trimestres</h2>
+<ul>
+<li>Contexto: panel legado de 33 departamentos por 14 trimestres (462 filas, 102 columnas). Columnas 7 a 82 (SFC) trimestrales; columnas 85 a 101 (población, internet, educación, IPC, empleo, PIB) anuales.</li>
+<li>Qué pasó: el PIB per cápita y su crecimiento se copiaron en los cuatro trimestres de cada año. La log-diferencia intra-anual es 0 en el 64,3 % de las filas. La dependiente tiene 5 valores por departamento, no 14. N efectivo = 33 × 5 = 165 departamento-años. El modelo “dinámico” regresa la dependiente sobre una copia de sí misma en el 64 % de las filas.</li>
+<li>Causa raíz: el proceso de la tesis unió series trimestrales y anuales por año sin declarar el grano de cada columna. Ninguna prueba comprobaba que la dependiente variara dentro del año.</li>
+<li>Regla: R-05 → CLAUDE.md; ADR-001. El diagnóstico D1 corre en cada reproducción y queda en el libro.</li>
+<li>Evidencia: docs/legacy/reproduccion.md (D1: 1 valor distinto por (departamento, año); fracción de ceros 0,643); src/iif/legacy/variables.py::d1_diagnostics.</li>
+<li>Estado: abierta hasta que exista <code>mart_panel_departamento_anual</code> (fase 2). La reproducción conserva el defecto a propósito (ADR-006).</li>
+</ul>
+</section>
+<section id="b-002-2026-09-06-deflactor-de-un-solo-departamento-aplicado-a-los-33" class="level2">
+<h2 class="anchored" data-anchor-id="b-002-2026-09-06-deflactor-de-un-solo-departamento-aplicado-a-los-33">B-002 · 2026-09-06 · Deflactor de un solo departamento aplicado a los 33</h2>
+<ul>
+<li>Contexto: celda 8 del notebook, construcción del índice de precios.</li>
+<li>Qué pasó: <code>drop_duplicates('anio')</code> sobre el panel ordenado dejó la primera fila de cada año, que es Amazonas. Ese IPC deflactó a los 33 departamentos.</li>
+<li>Causa raíz: deduplicar por una sola clave cuando la serie es por (departamento, año). Sin prueba de que el deflactor variara entre departamentos.</li>
+<li>Regla: deflactar por unidad, nunca por primera fila; toda deduplicación declara su clave completa → src/iif/legacy/variables.py::VariableOptions(deflator=“by_department”); ADR-006.</li>
+<li>Evidencia: src/iif/legacy/variables.py::_ipc_index_first_row (defecto reproducido) y ::_ipc_index_by_department (corrección).</li>
+<li>Estado: cerrada en modo <code>corrected</code>; prueba unitaria pendiente en tests/.</li>
+</ul>
+</section>
+<section id="b-003-2026-09-06-flujo-trimestral-dividido-por-pib-anual" class="level2">
+<h2 class="anchored" data-anchor-id="b-003-2026-09-06-flujo-trimestral-dividido-por-pib-anual">B-003 · 2026-09-06 · Flujo trimestral dividido por PIB anual</h2>
+<ul>
+<li>Contexto: ratios de profundidad (microcrédito, consumo y vivienda sobre PIB), celda 8.</li>
+<li>Qué pasó: el numerador es el monto desembolsado en el trimestre; el denominador es PIB per cápita anual por población. La ratio queda dividida por cuatro y mezcla dos granos.</li>
+<li>Causa raíz: sin regla de anualización por variable (stock frente a flujo).</li>
+<li>Regla: cada variable declara si es stock o flujo y su regla de anualización (flujo: suma de 4 trimestres exigiendo 4; stock: valor de Q4) → dbt/seeds/dim_variable.csv (fase 1); ADR-001; ADR-008.</li>
+<li>Evidencia: src/iif/legacy/variables.py (<code>flow_scale = 4.0</code> en modo <code>corrected</code> es solo una aproximación).</li>
+<li>Estado: abierta hasta <code>fct_inclusion_departamento_anual</code>.</li>
+</ul>
+</section>
+<section id="b-004-2026-09-06-internet-igual-a-cero-en-50-observaciones" class="level2">
+<h2 class="anchored" data-anchor-id="b-004-2026-09-06-internet-igual-a-cero-en-50-observaciones">B-004 · 2026-09-06 · Internet igual a cero en 50 observaciones</h2>
+<ul>
+<li>Contexto: columna 89 <code>Conexión a internet %</code>; Bogotá 2017 y 2018 con 0 %.</li>
+<li>Qué pasó: 50 filas con cero exacto entraron al PCA como cobertura nula. Bogotá es la unidad con más internet del país.</li>
+<li>Causa raíz: faltantes codificados como cero en la fuente y sin prueba de rango plausible.</li>
+<li>Regla: R-13 (los ceros de SFC y MEN son faltantes; en MinTIC la ausencia es NULL) → CLAUDE.md; src/iif/legacy/variables.py::VariableOptions(internet_zero_is_missing=True).</li>
+<li>Evidencia: docs/legacy/reproduccion.md (descriptivas: <code>d_acc_internet</code> min = 0); data/legacy/diccionario_panel_legacy.csv, fila 89.</li>
+<li>Estado: cerrada en modo <code>corrected</code>; prueba pandera de rango pendiente.</li>
+</ul>
+</section>
+<section id="b-005-2026-09-06-pesos-implícitos-nunca-publicados-microcrédito-con-signo-negativo" class="level2">
+<h2 class="anchored" data-anchor-id="b-005-2026-09-06-pesos-implícitos-nunca-publicados-microcrédito-con-signo-negativo">B-005 · 2026-09-06 · Pesos implícitos nunca publicados; microcrédito con signo negativo</h2>
+<ul>
+<li>Contexto: índice por PCA, celda 9; 4 componentes por la regla del 80 % de varianza acumulada.</li>
+<li>Qué pasó: el índice es una combinación lineal de las 9 variables. Los pesos implícitos (peso del componente por carga) dan microcrédito/PIB = −0,231 y transferencias = −0,006. Más microcrédito baja el índice. El notebook nunca los imprimió. Kaiser retendría 3 componentes, no 4: PC4 tiene eigenvalor menor que 1 y carga −0,66 en internet.</li>
+<li>Causa raíz: la regla de retención se eligió sin mirar la interpretación; no había prueba de signo por variable.</li>
+<li>Regla: los pesos implícitos por variable se publican siempre y se prueba que cada variable de inclusión entre con signo no negativo → ADR-004; src/iif/legacy/index.py::IndexResult.implied_weights.</li>
+<li>Evidencia: docs/legacy/reproduccion.md, tabla “Pesos implícitos por variable”.</li>
+<li>Estado: cerrada (publicados); el índice en dos etapas es fase 2.</li>
+</ul>
+</section>
+<section id="b-006-2026-09-06-min-max-tras-pca-más-eps" class="level2">
+<h2 class="anchored" data-anchor-id="b-006-2026-09-06-min-max-tras-pca-más-eps">B-006 · 2026-09-06 · Min-max tras PCA más EPS</h2>
+<ul>
+<li>Contexto: celda 9, escalado del índice a [0, 1] con <code>EPS = 1e-4</code>.</li>
+<li>Qué pasó: el mínimo del índice vale 0,0001 y <code>log(IIF)</code> = −9,21 en esa fila, frente a una media de −1,3. Un outlier de 9,8 desviaciones creado por el escalado, no por los datos.</li>
+<li>Causa raíz: llevar un score centrado a [0, 1] y luego tomar logaritmo.</li>
+<li>Regla: estandarizar, no min-max; sin logaritmo de un índice acotado en cero → ADR-004; src/iif/legacy/index.py (<code>scale="standardize"</code>).</li>
+<li>Evidencia: docs/legacy/reproduccion.md (descriptivas: <code>IIF</code> min 0,0001; <code>log_IIF</code> min −9,2103).</li>
+<li>Estado: cerrada como opción; será el valor por defecto del índice nuevo.</li>
+</ul>
+</section>
+<section id="b-007-2026-09-06-orientación-de-signo-forzada-y-verificada-de-forma-circular" class="level2">
+<h2 class="anchored" data-anchor-id="b-007-2026-09-06-orientación-de-signo-forzada-y-verificada-de-forma-circular">B-007 · 2026-09-06 · Orientación de signo forzada y verificada de forma circular</h2>
+<ul>
+<li>Contexto: celda 9; cada componente se voltea si correlaciona negativo con cuentas de ahorro.</li>
+<li>Qué pasó: tras voltear, el notebook “verifica” que corr(IIF, cuentas) = 0,87 &gt; 0. La prueba no puede fallar.</li>
+<li>Causa raíz: la comprobación usa la misma variable que fija el signo.</li>
+<li>Regla: la orientación se fija a priori (cada variable codificada como “más = más inclusión”) y la prueba es de signo de los pesos implícitos, no de correlación con la referencia → ADR-004.</li>
+<li>Evidencia: src/iif/legacy/index.py (bucle sobre <code>sign_ref</code>); docs/legacy/reproduccion.md (“Corr orientación IIF~cuentas”).</li>
+<li>Estado: abierta (fase 2).</li>
+</ul>
+</section>
+<section id="b-008-2026-09-06-hausman-con-covarianza-clusterizada" class="level2">
+<h2 class="anchored" data-anchor-id="b-008-2026-09-06-hausman-con-covarianza-clusterizada">B-008 · 2026-09-06 · Hausman con covarianza clusterizada</h2>
+<ul>
+<li>Contexto: celda 17.</li>
+<li>Qué pasó: FE y RE se estimaron con covarianza clusterizada; la diferencia de matrices no es definida positiva y <code>pinv</code> devuelve un número arbitrario. Reproducción: χ² = 292,8; documento: 33,9.</li>
+<li>Causa raíz: aplicar la fórmula clásica de Hausman a covarianzas robustas.</li>
+<li>Regla: nunca Hausman con covarianza robusta; usar Mundlak → src/iif/legacy/diagnostics.py::hausman_clustered (avisa “no válido”) y ::mundlak.</li>
+<li>Evidencia: docs/legacy/reproduccion.md (“Hausman (NO válido con cov clusterizada)”).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-009-2026-09-06-modelos-regionales-con-4-clústeres" class="level2">
+<h2 class="anchored" data-anchor-id="b-009-2026-09-06-modelos-regionales-con-4-clústeres">B-009 · 2026-09-06 · Modelos regionales con 4 clústeres</h2>
+<ul>
+<li>Contexto: celda 20, heterogeneidad por región.</li>
+<li>Qué pasó: Pacífica y Orinoquía se estimaron con 4 departamentos; Amazonía con 6. La inferencia clusterizada con menos de 10 grupos no es fiable y los p-valores publicados no dicen lo que parecen.</li>
+<li>Causa raíz: submuestrar en vez de interactuar.</li>
+<li>Regla: heterogeneidad por interacciones sobre el panel completo y wild cluster bootstrap; aviso automático con menos de 10 clústeres → src/iif/legacy/panel.py::fit_fe; ADR de econometría pendiente (fase 3).</li>
+<li>Evidencia: docs/legacy/reproduccion.md (“Heterogeneidad regional”: N_dep 4, 4 y 6).</li>
+<li>Estado: cerrada el aviso; abierta la estimación (fase 3).</li>
+</ul>
+</section>
+<section id="b-010-2026-09-06-recorte-y-winsorización-después-de-los-rezagos-sobre-la-dependiente-pooled" class="level2">
+<h2 class="anchored" data-anchor-id="b-010-2026-09-06-recorte-y-winsorización-después-de-los-rezagos-sobre-la-dependiente-pooled">B-010 · 2026-09-06 · Recorte y winsorización después de los rezagos, sobre la dependiente pooled</h2>
+<ul>
+<li>Contexto: celda 19, robustez.</li>
+<li>Qué pasó: los cuantiles 1 % y 5 % se calcularon sobre <code>crec_pib</code> de todo el panel ya rezagado. Recortar filas después de rezagar rompe la secuencia temporal de cada departamento; los cuantiles pooled mezclan 2020 con años normales.</li>
+<li>Causa raíz: robustez añadida al final, sin rehacer el panel.</li>
+<li>Regla: cualquier recorte se aplica antes de construir rezagos y se documenta por unidad → modo <code>corrected</code> (pendiente de implementar).</li>
+<li>Evidencia: src/iif/legacy/pipeline.py (filas <code>Trimming 1%</code> y <code>Winsorización 5%</code> sobre <code>pm</code>).</li>
+<li>Estado: abierta.</li>
+</ul>
+</section>
+<section id="b-011-2026-09-06-nickell-con-el-t-del-panel-y-fórmula-de-ar1-puro-β-nunca-corregido" class="level2">
+<h2 class="anchored" data-anchor-id="b-011-2026-09-06-nickell-con-el-t-del-panel-y-fórmula-de-ar1-puro-β-nunca-corregido">B-011 · 2026-09-06 · Nickell con el T del panel y fórmula de AR(1) puro; β nunca corregido</h2>
+<ul>
+<li>Contexto: celda 18.</li>
+<li>Qué pasó: sesgo ≈ −(1+ρ)/(T−1) con T = 14 trimestres, cuando la dependiente tiene 5 valores anuales. La fórmula supone AR(1) sin regresores. El ρ corregido se calculó y no se usó en ninguna estimación. El documento afirma “sesgo cuantificado” con ρ̂ = 0,4279 del modelo agregado. Nota relacionada: el notebook llama “Wooldridge” a una correlación de residuos con su rezago; no es la prueba de Wooldridge (src/iif/legacy/diagnostics.py::residual_ar1).</li>
+<li>Causa raíz: aplicar una fórmula de libro sin comprobar sus supuestos ni el T efectivo.</li>
+<li>Regla: Nickell se calcula con el T efectivo de la dependiente y se presenta solo como orientación; si se corrige, se corrige la estimación → src/iif/legacy/diagnostics.py::nickell_bias (docstring); reestimación anual en ADR-001.</li>
+<li>Evidencia: docs/legacy/reproduccion.md (“Nickell”); src/iif/legacy/pipeline.py (<code>T = pm.index.get_level_values(1).nunique()</code>).</li>
+<li>Estado: abierta (fase 3).</li>
+</ul>
+</section>
+<section id="b-012-2026-09-06-umbral-urbanorural-sobre-462-filas-replicadas-variable-muerta" class="level2">
+<h2 class="anchored" data-anchor-id="b-012-2026-09-06-umbral-urbanorural-sobre-462-filas-replicadas-variable-muerta">B-012 · 2026-09-06 · Umbral urbano/rural sobre 462 filas replicadas; variable muerta</h2>
+<ul>
+<li>Contexto: celda 8.</li>
+<li>Qué pasó: el cuantil 75 de la densidad se tomó sobre 462 filas (cada departamento 14 veces) en vez de sobre 33 departamentos. Antioquia quedó “rural”. La variable <code>urbano</code> no entra en ningún modelo.</li>
+<li>Causa raíz: estadísticos de unidad calculados sobre filas replicadas.</li>
+<li>Regla: umbrales y cuantiles de unidad se calculan sobre unidades → src/iif/legacy/variables.py::VariableOptions(urban_threshold_over=“departments”).</li>
+<li>Evidencia: src/iif/legacy/variables.py::build_variables (<code>umbral</code>).</li>
+<li>Estado: cerrada en modo <code>corrected</code>; la variable sigue sin uso.</li>
+</ul>
+</section>
+<section id="b-013-2026-09-06-rename-map-con-claves-rotas-81-de-102-columnas-sin-usar" class="level2">
+<h2 class="anchored" data-anchor-id="b-013-2026-09-06-rename-map-con-claves-rotas-81-de-102-columnas-sin-usar">B-013 · 2026-09-06 · Rename map con claves rotas; 81 de 102 columnas sin usar</h2>
+<ul>
+<li>Contexto: celda 4 y el xlsx.</li>
+<li>Qué pasó: tres claves del mapa (<code>NRO CORRESPONSALES TOTALES</code>, <code>Key</code> y <code>MONTO CREDITO CONSUMO  HOMBRES</code> con doble espacio) no coinciden con ninguna cabecera; pandas renombra en silencio. El notebook usa 21 columnas de 102. Quedan fuera las cuentas de ahorro electrónicas, el proxy fintech más directo, y todas las series por género.</li>
+<li>Causa raíz: mapa manual sin prueba de cobertura; sin diccionario de datos.</li>
+<li>Regla: R-15 (una fuente de verdad por constante) y prueba de que cada clave de un mapa existe en los datos → dbt/seeds/dim_variable.csv (fase 1); data/legacy/diccionario_panel_legacy.csv, columna <code>usada_por_notebook</code>.</li>
+<li>Evidencia: src/iif/legacy/constants.py::RENAME_MAP (comentario de cabecera) y ::USED_RAW_COLUMNS (21 columnas).</li>
+<li>Estado: cerrada (documentado); las columnas nuevas entran con el índice de fase 2.</li>
+</ul>
+</section>
+<section id="b-014-2026-09-06-el-documento-no-reproduce-desde-el-notebook" class="level2">
+<h2 class="anchored" data-anchor-id="b-014-2026-09-06-el-documento-no-reproduce-desde-el-notebook">B-014 · 2026-09-06 · El documento no reproduce desde el notebook</h2>
+<ul>
+<li>Contexto: celdas 4 y 22 (constantes DOC y DOC_OTROS); Tabla 6 del documento.</li>
+<li>Qué pasó: 40 filas en el libro de verificación, 25 discrepancias. Todas las N de la Tabla 6 difieren en exactamente 33 (una sección transversal). 6 de 8 β difieren. El SE de B2 es una errata (texto 5,96; tabla 9,5553). 13 de las 26 cifras guardadas en el notebook nunca se comparan; una comparación manual muestra que al menos 7 de ellas también difieren, así que el total real ronda 32. El código que produjo el documento no está en la subida.</li>
+<li>Causa raíz: el documento se escribió con una versión del panel o del código distinta de la consolidada y sin libro de verificación automático.</li>
+<li>Regla: R-09 (toda cifra publicada traza a prueba, libro o test dbt) → CLAUDE.md; config/tesis_documento.yaml es la única copia de las cifras del documento.</li>
+<li>Evidencia: docs/legacy/reproduccion.md (“Verificación contra el documento”, TOTAL 25); src/iif/legacy/ledger.py.</li>
+<li>Estado: cerrada (publicado). Abierta: extender el libro a las 13 cifras sin comparar.</li>
+</ul>
+</section>
+<section id="b-015-2026-09-06-rutas-y-metadatos-personales-en-los-artefactos" class="level2">
+<h2 class="anchored" data-anchor-id="b-015-2026-09-06-rutas-y-metadatos-personales-en-los-artefactos">B-015 · 2026-09-06 · Rutas y metadatos personales en los artefactos</h2>
+<ul>
+<li>Contexto: celdas 3 y 23 del notebook; <code>docProps/core.xml</code> y <code>xl/workbook.xml</code> del xlsx.</li>
+<li>Qué pasó: rutas absolutas de dos máquinas del autor (Linux y Windows), nombre legal completo del autor en las propiedades del libro, kernelspec malformado y nombres de notebooks predecesores en la celda 0.</li>
+<li>Causa raíz: archivos guardados desde la máquina personal sin paso de limpieza.</li>
+<li>Regla: R-04 y R-08 → CLAUDE.md; src/iif/data/scrub.py::find_private_strings corre en <code>iif scrub</code> y falla si queda algo.</li>
+<li>Evidencia: data/legacy/SHA256SUMS; src/iif/data/scrub.py::PRIVATE_PATH_PATTERNS.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-031-2026-09-06-doble-conteo-el-panel-de-la-tesis-suma-municipios-y-total-departamental" class="level2">
+<h2 class="anchored" data-anchor-id="b-031-2026-09-06-doble-conteo-el-panel-de-la-tesis-suma-municipios-y-total-departamental">B-031 · 2026-09-06 · Doble conteo: el panel de la tesis suma municipios y total departamental</h2>
+<ul>
+<li>Contexto: S13, reconstrucción de las nueve variables SFC del panel legado desde <code>ptgf-ywrb</code> (603.232 filas, 2017Q4 a 2021Q1).</li>
+<li>Qué pasó: para las 462 filas y las nueve variables, el valor del panel es exactamente la suma de todas las filas de <code>ptgf</code> por (departamento, trimestre, <code>tipo</code>), incluida la fila de total departamental (<code>renglon = 999</code>). Como esa fila es la suma de las municipales, cada nivel SFC del panel (corresponsales, depósitos, pagos, transferencias, cuentas, montos de crédito) vale el doble del real. La razón panel/real es 2,000000 en todas las filas no nulas. Antioquia 2018Q1: 7.961.768 depósitos en el panel, 3.980.884 en la fuente.</li>
+<li>Causa raíz: agregación con <code>groupby(departamento, trimestre).sum()</code> sin filtrar <code>renglon = 999</code>. Ninguna prueba comparaba el panel con la fuente.</li>
+<li>Consecuencias: las log-diferencias, la estandarización y el PCA no cambian (factor constante); las razones flujo/PIB de profundidad y los niveles per cápita están al doble; T-03 se agrava. Se añade como T-16 a la auditoría.</li>
+<li>Regla: todo agregado desde la SFC filtra <code>renglon = 999</code> (total departamental) o suma solo filas municipales, nunca ambas; la prueba de reconstrucción corre con <code>make test-data</code> → tests/test_legacy_vs_ptgf.py; ADR-008.</li>
+<li>Evidencia: tests/test_legacy_vs_ptgf.py::test_legacy_equals_twice_the_true_total (9 variables); ::test_department_totals_equal_municipal_sums.</li>
+<li>Estado: cerrada en el almacén (el modo <code>corrected</code> de la reproducción y los marts usan el total real); abierta en el documento de la tesis, que no se reescribe.</li>
+</ul>
+<hr>
+</section>
+<section id="errores-del-asistente" class="level2">
+<h2 class="anchored" data-anchor-id="errores-del-asistente">Errores del asistente</h2>
+</section>
+<section id="b-016-2026-09-06-notificaciones-de-subagentes-perdidas" class="level2">
+<h2 class="anchored" data-anchor-id="b-016-2026-09-06-notificaciones-de-subagentes-perdidas">B-016 · 2026-09-06 · Notificaciones de subagentes perdidas</h2>
+<ul>
+<li>Contexto: esta sesión; auditoría del notebook con varios subagentes en paralelo.</li>
+<li>Qué pasó: dos subagentes terminaron y la notificación de fin no llegó. El asistente siguió esperando y después asumió que no habían terminado.</li>
+<li>Causa raíz: fiarse de la notificación como única señal de fin.</li>
+<li>Regla: comprobar las transcripciones de los subagentes por <code>mtime</code> antes de esperar o relanzar; nunca asumir → esta bitácora (regla operativa del asistente).</li>
+<li>Evidencia: esta sesión (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-017-2026-09-06-pkill--f-mató-la-propia-shell-dos-veces" class="level2">
+<h2 class="anchored" data-anchor-id="b-017-2026-09-06-pkill--f-mató-la-propia-shell-dos-veces">B-017 · 2026-09-06 · <code>pkill -f</code> mató la propia shell dos veces</h2>
+<ul>
+<li>Contexto: reinicio de un servidor de desarrollo desde Bash.</li>
+<li>Qué pasó: <code>pkill -f "&lt;patrón&gt;"</code> coincidió con la línea de comando de la propia shell, que contiene el patrón, y la mató. Ocurrió dos veces.</li>
+<li>Causa raíz: <code>-f</code> compara contra la línea de comando completa, incluida la del comando que lo invoca.</li>
+<li>Regla: <code>pgrep -f "[n]ext-server"</code> (el corchete impide que el patrón se encuentre a sí mismo) y <code>kill</code> por PID → esta bitácora.</li>
+<li>Evidencia: esta sesión (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-018-2026-09-06-captura-de-pantalla-de-más-de-8.000-px-rechazada" class="level2">
+<h2 class="anchored" data-anchor-id="b-018-2026-09-06-captura-de-pantalla-de-más-de-8.000-px-rechazada">B-018 · 2026-09-06 · Captura de pantalla de más de 8.000 px rechazada</h2>
+<ul>
+<li>Contexto: revisión visual de una página larga.</li>
+<li>Qué pasó: enviar una captura de página completa, de más de 8.000 px de alto, falló con HTTP 400 dos veces.</li>
+<li>Causa raíz: límite de tamaño de imagen del canal.</li>
+<li>Regla: recortar capturas a 4.000 px o menos por archivo; varias capturas antes que una gigante → esta bitácora.</li>
+<li>Evidencia: esta sesión (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-019-2026-09-06-cifras-copiadas-de-comentarios-obsoletos" class="level2">
+<h2 class="anchored" data-anchor-id="b-019-2026-09-06-cifras-copiadas-de-comentarios-obsoletos">B-019 · 2026-09-06 · Cifras copiadas de comentarios obsoletos</h2>
+<ul>
+<li>Contexto: otro repositorio del autor (modelo semántico TMDL y su README), sesión previa.</li>
+<li>Qué pasó: se citaron 1.347 variantes y 45 activos tomados de comentarios; los datos tenían 1.392 y 48.</li>
+<li>Causa raíz: los comentarios no se actualizan con los datos.</li>
+<li>Regla: contar desde los datos (<code>.length</code>, <code>count(*)</code>), nunca desde comentarios ni READMEs. Es el mismo principio que R-09 → CLAUDE.md R-09 y esta bitácora.</li>
+<li>Evidencia: sesión previa (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-020-2026-09-06-ci-en-rojo-durante-dos-semanas-sin-que-nadie-lo-viera" class="level2">
+<h2 class="anchored" data-anchor-id="b-020-2026-09-06-ci-en-rojo-durante-dos-semanas-sin-que-nadie-lo-viera">B-020 · 2026-09-06 · CI en rojo durante dos semanas sin que nadie lo viera</h2>
+<ul>
+<li>Contexto: otro repositorio del autor (pipeline de datos), sesión previa.</li>
+<li>Qué pasó: los commits con <code>[skip ci]</code> ocultaron que la rama principal llevaba dos semanas en rojo. Las pruebas dependían de una variable de entorno local.</li>
+<li>Causa raíz: pruebas con estado implícito y CI saltado por conveniencia.</li>
+<li>Regla: las pruebas fijan su propio entorno; nada visible en CI depende de un secreto del desarrollador; <code>[skip ci]</code> no se usa → ADR-014 (el job Snowflake se condiciona a los secrets; el job DuckDB nunca); .github/workflows/ci.yml (S7).</li>
+<li>Evidencia: sesión previa (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-021-2026-09-06-git-add-exports.json-no-recursivo" class="level2">
+<h2 class="anchored" data-anchor-id="b-021-2026-09-06-git-add-exports.json-no-recursivo">B-021 · 2026-09-06 · <code>git add exports/*.json</code> no recursivo</h2>
+<ul>
+<li>Contexto: otro repositorio del autor, sesión previa.</li>
+<li>Qué pasó: el glob no entró en subcarpetas; 48 archivos quedaron fuera del repo durante 18 días sin error alguno.</li>
+<li>Causa raíz: glob de shell no recursivo y ausencia de prueba de que lo exportado esté versionado.</li>
+<li>Regla: <code>git add -A &lt;dir&gt;/</code> y una prueba que compare lo esperado contra <code>git ls-files</code> → esta bitácora; <code>iif manifest verify</code> cumple ese papel para data/raw (S9).</li>
+<li>Evidencia: sesión previa (transcripción).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-022-2026-09-06-instalación-editable-antes-de-que-existiera-el-paquete" class="level2">
+<h2 class="anchored" data-anchor-id="b-022-2026-09-06-instalación-editable-antes-de-que-existiera-el-paquete">B-022 · 2026-09-06 · Instalación editable antes de que existiera el paquete</h2>
+<ul>
+<li>Contexto: esta sesión, paso S1.</li>
+<li>Qué pasó: <code>uv sync</code> corrió con <code>src/iif/</code> vacío; el paquete quedó instalado sin módulos e <code>import iif</code> fallaba.</li>
+<li>Causa raíz: hatchling empaqueta lo que existe en el momento de la instalación.</li>
+<li>Regla: crear <code>src/&lt;pkg&gt;/__init__.py</code> antes de <code>uv sync</code>, o <code>uv sync --reinstall-package iif</code> después → esta bitácora; Makefile <code>setup</code>.</li>
+<li>Evidencia: src/iif/<strong>init</strong>.py; pyproject.toml (<code>packages = ["src/iif"]</code>).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-023-2026-09-06-terridata-y-la-api-de-github-no-accesibles-gh-ausente" class="level2">
+<h2 class="anchored" data-anchor-id="b-023-2026-09-06-terridata-y-la-api-de-github-no-accesibles-gh-ausente">B-023 · 2026-09-06 · TerriData y la API de GitHub no accesibles; <code>gh</code> ausente</h2>
+<ul>
+<li>Contexto: esta sesión; verificación de fuentes e instalación de herramientas.</li>
+<li>Qué pasó: <code>ddtspr.dnp.gov.co</code> (DNP TerriData) no responde a través del proxy. La API REST de GitHub devuelve error y <code>gh</code> no está instalado, así que no se pueden subir Release assets desde la sesión. Los tarballs de Releases sí descargan.</li>
+<li>Causa raíz: restricciones del proxy de la sesión.</li>
+<li>Regla: TerriData queda descartada como fuente (además no tiene API); los Release assets los sube el autor desde el navegador; Quarto y tectonic se instalan por tarball → scripts/install_quarto.sh; ADR-003; ADR-011.</li>
+<li>Evidencia: scripts/install_quarto.sh (comentario de cabecera).</li>
+<li>Estado: cerrada.</li>
+</ul>
+<hr>
+</section>
+<section id="b-024-2026-09-06-el-mapserver-del-mgn-devuelve-geometría-nula-en-todos-los-rasgos" class="level2">
+<h2 class="anchored" data-anchor-id="b-024-2026-09-06-el-mapserver-del-mgn-devuelve-geometría-nula-en-todos-los-rasgos">B-024 · 2026-09-06 · El MapServer del MGN devuelve geometría nula en todos los rasgos</h2>
+<ul>
+<li>Contexto: descarga de las capas Departamento (319) y Municipio (317) del MGN 2024 por ArcGIS REST, <code>f=geojson</code>, <code>returnGeometry=true</code>.</li>
+<li>Qué pasó: la primera descarga terminó “bien” (33 y 1.121 rasgos, 0,01 y 0,35 MB) y los dos GeoJSON tenían <code>geometry: null</code> en cada rasgo. Ninguna variante de parámetros del <code>MapServer</code> (outSR, precisión, bbox, objectIds, quantization) devolvió polígonos. El <code>FeatureServer</code> del mismo servicio, con la misma numeración de capas, sí los devuelve.</li>
+<li>Causa raíz: el código daba por buena cualquier respuesta con rasgos y no comprobaba la geometría. El tamaño (10 KB para 33 departamentos) era la señal y no se miró.</li>
+<li>Regla: un descargador falla si la primera página trae rasgos sin geometría; el tamaño esperado se anota en <code>config/sources.yaml</code> y una descarga muy por debajo es sospechosa → <code>src/iif/acquire/mgn.py</code>.</li>
+<li>Evidencia: tests/test_acquire.py::test_mgn_null_geometry_is_an_error; <code>data/raw/mgn/*.geojson</code> (1,6 y 4,9 MB tras el arreglo).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-025-2026-09-06-ptgf-en-una-sola-partición-aniosin_fecha-y-82-columnas-numéricas-como-texto" class="level2">
+<h2 class="anchored" data-anchor-id="b-025-2026-09-06-ptgf-en-una-sola-partición-aniosin_fecha-y-82-columnas-numéricas-como-texto">B-025 · 2026-09-06 · <code>ptgf</code> en una sola partición <code>anio=sin_fecha</code> y 82 columnas numéricas como texto</h2>
+<ul>
+<li>Contexto: primera descarga de <code>sfc-ptgf-ywrb</code> (603.232 filas).</li>
+<li>Qué pasó: <code>config/sources.yaml</code> copió de <code>kx2f</code> la columna de partición <code>fecha_corte</code> y una expresión regular para tipar; en <code>ptgf</code> la columna se llama <code>fechacorte</code> y las cantidades no empiezan por <code>nro|saldo|...</code>. El descargador escribió todo en <code>anio=sin_fecha</code> con las 82 cantidades como texto y no avisó.</li>
+<li>Causa raíz: nombres de columna supuestos en vez de leídos de los metadatos de Socrata; una columna de partición ausente se trataba como “sin fecha” en lugar de como error.</li>
+<li>Regla: el tipado sale de <code>api/views/&lt;id&gt;.json</code> (<code>number</code>, <code>calendar_date</code>) y los códigos se declaran en <code>code_cols</code>; una columna de partición inexistente es un error → <code>src/iif/acquire/soda.py::typing_from_metadata</code>.</li>
+<li>Evidencia: tests/test_acquire.py::test_typing_from_metadata_keeps_codes_as_text, ::test_soda_unknown_partition_column_raises; manifiesto con 5 particiones de <code>ptgf</code> (2017 a 2021).</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-026-2026-09-06-pivot_tabledropnafalse-agotó-la-memoria-dos-veces" class="level2">
+<h2 class="anchored" data-anchor-id="b-026-2026-09-06-pivot_tabledropnafalse-agotó-la-memoria-dos-veces">B-026 · 2026-09-06 · <code>pivot_table(dropna=False)</code> agotó la memoria dos veces</h2>
+<ul>
+<li>Contexto: parser del valor agregado departamental por actividad (10.395 filas de salida).</li>
+<li>Qué pasó: el proceso murió por el OOM killer con 12,7 GB de RSS; la segunda vez con <code>ulimit -v</code> falló con un <code>malloc</code> de 3 GB. <code>pivot_table(..., dropna=False)</code> sobre siete niveles de índice construye el producto cartesiano de todos los valores de cada nivel, no las combinaciones observadas.</li>
+<li>Causa raíz: opción copiada sin conocer su semántica; el primer fallo se atribuyó a otra causa (descarga concurrente) sin leer <code>dmesg</code>.</li>
+<li>Regla: ensanchar con <code>set_index(...).unstack()</code> sobre combinaciones observadas; correr parsers nuevos bajo <code>ulimit -v</code>; ante un exit 137, leer <code>dmesg</code> antes de suponer → <code>src/iif/parse/dane.py::_widen</code>.</li>
+<li>Evidencia: tests/test_parse.py::test_widen_uses_observed_combinations_only; <code>dmesg</code>: “Memory cgroup out of memory: Killed process (iif) anon-rss:12773176kB”.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-027-2026-09-06-mpio_ccdgo-del-mgn-tiene-3-dígitos" class="level2">
+<h2 class="anchored" data-anchor-id="b-027-2026-09-06-mpio_ccdgo-del-mgn-tiene-3-dígitos">B-027 · 2026-09-06 · <code>mpio_ccdgo</code> del MGN tiene 3 dígitos</h2>
+<ul>
+<li>Contexto: atributos de la capa Municipio del MGN 2024.</li>
+<li>Qué pasó: la validación de unicidad de <code>mpio_ccdgo</code> falló con 823 duplicados: en el MGN ese campo es el código municipal dentro del departamento (3 dígitos) y el DIVIPOLA de 5 es <code>mpio_cdpmp</code>.</li>
+<li>Causa raíz: se supuso el nombre del campo por analogía con las tablas del DANE.</li>
+<li>Regla: todo código geográfico se valida por ancho (<code>^\d{2}$</code>, <code>^\d{5}$</code>) y por prefijo (<code>left(mpio, 2) = dpto</code>) en pandera y en dbt → <code>src/iif/parse/mgn.py</code>.</li>
+<li>Evidencia: tests/test_parse.py::test_mgn_interim_matches_dane_codes.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-028-2026-09-06-el-subagente-de-dbt-murió-por-el-límite-de-sesión" class="level2">
+<h2 class="anchored" data-anchor-id="b-028-2026-09-06-el-subagente-de-dbt-murió-por-el-límite-de-sesión">B-028 · 2026-09-06 · El subagente de dbt murió por el límite de sesión</h2>
+<ul>
+<li>Contexto: dos subagentes en paralelo (documentos y dbt) mientras el hilo principal descargaba y escribía código.</li>
+<li>Qué pasó: el agente de dbt terminó con HTTP 429 (“session limit”) mientras iteraba una macro. Sus archivos estaban en disco y <code>dbt build</code> pasó (127 de 127) al reejecutarlo desde el hilo principal.</li>
+<li>Causa raíz: el consumo de tres procesos en paralelo contra un límite compartido.</li>
+<li>Regla: cerca del límite, un solo hilo de trabajo; antes de dar por perdido el trabajo de un agente, comprobar el disco y reejecutar la verificación (complementa B-016).</li>
+<li>Evidencia: transcripción del agente; <code>dbt build --profiles-dir dbt --project-dir dbt</code> en cero.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-029-2026-09-06-rutas-de-quarto-relativas-al-documento" class="level2">
+<h2 class="anchored" data-anchor-id="b-029-2026-09-06-rutas-de-quarto-relativas-al-documento">B-029 · 2026-09-06 · Rutas de Quarto relativas al documento</h2>
+<ul>
+<li>Contexto: primer <code>quarto render</code> del sitio completo.</li>
+<li>Qué pasó: <code>{{&lt; include docs/LICENCIAS_DATOS.md &gt;}}</code> en <code>datos/fuentes.qmd</code> buscó <code>datos/docs/...</code>; además tres páginas fijaban <code>IIF_ROOT</code> con <code>os.getcwd()</code>, que en Quarto es el directorio del documento, no la raíz.</li>
+<li>Causa raíz: las directivas <code>include</code> se resuelven desde el <code>.qmd</code> que las contiene; el cwd de ejecución depende de <code>execute-dir</code>.</li>
+<li>Regla: <code>execute-dir: project</code> en <code>_quarto.yml</code>; nunca fijar <code>IIF_ROOT</code> desde un <code>.qmd</code> (el paquete encuentra la raíz por <code>pyproject.toml</code>); includes con ruta relativa al documento → <code>_quarto.yml</code>, <code>datos/fuentes.qmd</code>.</li>
+<li>Evidencia: <code>quarto render</code> en cero; <code>_site/datos/fuentes.html</code> contiene la tabla del manifiesto.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-030-2026-09-06-workflow-de-ci-con-yaml-inválido-a-punto-de-subirse" class="level2">
+<h2 class="anchored" data-anchor-id="b-030-2026-09-06-workflow-de-ci-con-yaml-inválido-a-punto-de-subirse">B-030 · 2026-09-06 · Workflow de CI con YAML inválido a punto de subirse</h2>
+<ul>
+<li>Contexto: <code>.github/workflows/ci.yml</code> escrito a mano; <code>make check</code> no lo validaba.</li>
+<li>Qué pasó: un <code>run: echo "Sin SNOWFLAKE_ACCOUNT: se omite ..."</code> con dos puntos y espacio dentro de un escalar sin comillas rompía el YAML. GitHub habría rechazado el workflow en el primer push.</li>
+<li>Causa raíz: el archivo se validó “a ojo”; ninguna prueba lo cargaba.</li>
+<li>Regla: <code>make lint</code> y <code>tests/test_repo.py</code> cargan todos los workflows con <code>yaml.safe_load</code> → Makefile, tests/test_repo.py.</li>
+<li>Evidencia: tests/test_repo.py::test_workflows_are_valid_yaml_with_jobs.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-032-2026-09-06-en-kx2f-el-total-departamental-no-siempre-es-la-suma-de-los-municipios" class="level2">
+<h2 class="anchored" data-anchor-id="b-032-2026-09-06-en-kx2f-el-total-departamental-no-siempre-es-la-suma-de-los-municipios">B-032 · 2026-09-06 · En <code>kx2f</code> el total departamental no siempre es la suma de los municipios</h2>
+<ul>
+<li>Contexto: prueba <code>assert_sfc_geo_totals_equal_municipal_sums</code> extendida a <code>kx2f</code> (S12).</li>
+<li>Qué pasó: 274 combinaciones (corte, departamento, bloque, columna) difieren: hasta 2,2 % en el bloque de corresponsales físicos desde 2022Q3 (<code>_2_</code>, <code>_3_</code>, <code>_4_</code>, <code>_80_</code>) y menos de 0,13 % en transacciones. En <code>ptgf</code> la igualdad es exacta.</li>
+<li>Causa raíz: no está en el código; es la fuente. La fila 999 la reporta la entidad y no siempre cuadra con sus filas municipales (corresponsales contados en más de un municipio o reasignados).</li>
+<li>Regla: la tolerancia es por fuente y vive en <code>dbt_project.yml</code> (<code>sfc_total_tol_ptgf</code> 1e-6, <code>sfc_total_tol_kx2f</code> 3 %); los marts departamentales usan la fila 999 y los municipales la suma, y la diferencia se publica, no se oculta.</li>
+<li>Evidencia: dbt/tests/assert_sfc_geo_totals_equal_municipal_sums.sql; dbt/dbt_project.yml.</li>
+<li>Estado: cerrada (documentada); abierta como pregunta a la SFC.</li>
+</ul>
+</section>
+<section id="b-033-2026-09-06-primeros-números-del-empalme-ptgfkx2f-en-2021q1" class="level2">
+<h2 class="anchored" data-anchor-id="b-033-2026-09-06-primeros-números-del-empalme-ptgfkx2f-en-2021q1">B-033 · 2026-09-06 · Primeros números del empalme ptgf/kx2f en 2021Q1</h2>
+<ul>
+<li>Contexto: ADR-009 exigía anotar las diferencias antes de fijar umbrales.</li>
+<li>Qué pasó: con la correspondencia posicional de 70 columnas (<code>xw_sfc_columns_empalme</code>) y los totales departamentales de 2021Q1: 2.052 pares con dato en ambas tablas; mediana global de la diferencia relativa 0,02 %; por bloque, cuentas de ahorro 0,02 %, transacciones 0,02 %, crédito de consumo 0,2 %, vivienda 0,65 %, corresponsales físicos 3,4 % (p90 10 %, máximo 31,5 %), microcrédito mediana 0 pero p90 de 12 % a 13 % y máximo 40 % (Huila, Nariño, Santander en el rango hasta 1 SMMLV). 103 pares de 2.052 (5 %) difieren más del 10 %. Peores departamentos por mediana: Antioquia 1,8 %, Bogotá 1,65 %, Atlántico 1,6 %. Las cuentas de ahorro electrónicas (8 columnas) no existen en <code>kx2f</code>.</li>
+<li>Causa raíz: <code>kx2f</code> es una serie revisada por las entidades; las diferencias grandes se concentran en microcrédito por rango y en corresponsales propios, no en saldos ni transacciones.</li>
+<li>Regla: umbral de la prueba = mediana por departamento ≤ 2 % (pasa con margen); las diferencias por bloque se publican en <code>datos/crosswalk.qmd</code>; los marts prefieren <code>kx2f</code> en 2021Q1 y guardan la diferencia (ADR-009).</li>
+<li>Evidencia: dbt/tests/assert_sfc_empalme_2021q1.sql; data/interim/sfc/empalme_2021q1_departamento.csv.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-034-2026-09-06-el-repositorio-publicaba-resultados-de-la-tesis-como-si-fueran-del-proyecto" class="level2">
+<h2 class="anchored" data-anchor-id="b-034-2026-09-06-el-repositorio-publicaba-resultados-de-la-tesis-como-si-fueran-del-proyecto">B-034 · 2026-09-06 · El repositorio publicaba resultados de la tesis como si fueran del proyecto</h2>
+<ul>
+<li>Contexto: el autor pidió desde el inicio que la tesis fuera el borrador del proyecto nuevo. El README y el sitio quedaron llenos de sus cifras (β, p, N, KMO, tabla de discrepancias, diagnósticos).</li>
+<li>Qué pasó: se interpretó “reproducción honesta” como “publicar la tesis auditada”. El resultado leído por un tercero era el de la tesis, no el del proyecto; además fijaba como conclusión algo que el proyecto todavía no ha estimado.</li>
+<li>Causa raíz: se confundió el insumo (el trabajo de grado y su auditoría) con el producto (los resultados nuevos). La instrucción original decía “expansión de dominio”, no “publicación de la tesis”.</li>
+<li>Regla: ninguna cifra del trabajo de grado aparece en README, sitio o portafolio como resultado. Los artefactos legados son insumo congelado y evidencia de esta bitácora; <code>src/iif/legacy/</code> es auditoría interna. Las secciones de resultado dicen “todavía no hay” hasta que la fase 3 los produzca → ADR-006 (adenda), README, <code>_quarto.yml</code>.</li>
+<li>Evidencia: ADR-006 adenda; <code>_quarto.yml</code> sin <code>reproduccion-tesis.qmd</code>; README con <code>#main-result</code> vacío y explícito.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-035-2026-09-06-dos-plataformas-de-despliegue-para-un-solo-autor" class="level2">
+<h2 class="anchored" data-anchor-id="b-035-2026-09-06-dos-plataformas-de-despliegue-para-un-solo-autor">B-035 · 2026-09-06 · Dos plataformas de despliegue para un solo autor</h2>
+<ul>
+<li>Contexto: el sitio del proyecto se configuró en GitHub Pages mientras el portafolio del autor ya vivía en Vercel.</li>
+<li>Qué pasó: el autor tuvo que preguntar qué era Pages. Se le pedía activar y mantener una segunda plataforma sin ninguna ventaja.</li>
+<li>Causa raíz: se eligió Pages por costumbre (repositorio de GitHub → Pages) sin mirar dónde despliega ya el autor.</li>
+<li>Regla: antes de elegir plataforma, mirar qué usa el autor. El sitio va a Vercel; como Vercel no compila Quarto ni Python, CI renderiza y empuja <code>_site</code> a la rama <code>site</code>, y Vercel despliega esa rama → ADR-005 (adenda), <code>.github/workflows/ci.yml</code>.</li>
+<li>Evidencia: <code>.github/workflows/ci.yml</code> (paso “Publicar la rama site”); <code>vercel.json</code> en <code>main</code> con <code>ignoreCommand</code>.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-036-2026-09-06-se-dio-por-descartado-bigquery-sobre-una-instrucción-ambigua" class="level2">
+<h2 class="anchored" data-anchor-id="b-036-2026-09-06-se-dio-por-descartado-bigquery-sobre-una-instrucción-ambigua">B-036 · 2026-09-06 · Se dio por descartado BigQuery sobre una instrucción ambigua</h2>
+<ul>
+<li>Contexto: el autor escribió “dejemos google bigquery y la otra tecnología que mencionaste por ahora y snowflake como un demo a posterior”.</li>
+<li>Qué pasó: se leyó “dejemos X por ahora” como “dejemos X de lado” y se escribió una adenda a ADR-014 descartando BigQuery y Databricks. El autor aclaró en el mismo turno que sí quería BigQuery implementado.</li>
+<li>Causa raíz: la frase admite las dos lecturas opuestas (dejar de lado / conservar) y se resolvió sin preguntar, en una decisión de arquitectura que ya se había discutido antes.</li>
+<li>Regla: una instrucción con dos lecturas opuestas sobre una decisión de valor se pregunta, no se resuelve por contexto; el coste de una pregunta es menor que el de un ADR equivocado (R-11).</li>
+<li>Evidencia: ADR-014, adendas 1 y 2; <code>bigquery/</code>.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-037-2026-09-06-una-semilla-con-esquema-nuevo-no-se-recarga-sola" class="level2">
+<h2 class="anchored" data-anchor-id="b-037-2026-09-06-una-semilla-con-esquema-nuevo-no-se-recarga-sola">B-037 · 2026-09-06 · Una semilla con esquema nuevo no se recarga sola</h2>
+<ul>
+<li>Contexto: <code>dim_variable</code> pasó de 10 a 12 columnas al generarse el diccionario completo.</li>
+<li>Qué pasó: <code>dbt seed</code> falló con “Error when sniffing file”: dbt hace <code>COPY</code> sobre la tabla existente, que conserva el esquema viejo, y el mensaje culpa al CSV en vez de al esquema. Se perdió tiempo revisando comillas y separadores del archivo, que estaba bien.</li>
+<li>Causa raíz: dbt no recrea una semilla cuando cambian sus columnas, salvo con <code>--full-refresh</code>.</li>
+<li>Regla: al cambiar las columnas de una semilla, <code>dbt seed --select &lt;semilla&gt; --full-refresh</code>; si un error de CSV menciona un número de columnas distinto al del archivo, el problema es la tabla destino → <code>docs/GUIA_DEL_PROYECTO.md</code> (sección 8).</li>
+<li>Evidencia: <code>dbt/seeds/dim_variable.csv</code> con 12 columnas; el error citaba 10.</li>
+<li>Estado: cerrada.</li>
+</ul>
+</section>
+<section id="b-038-2026-09-06-el-pca-por-dimensión-iba-a-repetir-el-defecto-del-índice-auditado" class="level2">
+<h2 class="anchored" data-anchor-id="b-038-2026-09-06-el-pca-por-dimensión-iba-a-repetir-el-defecto-del-índice-auditado">B-038 · 2026-09-06 · El PCA por dimensión iba a repetir el defecto del índice auditado</h2>
+<ul>
+<li>Contexto: ADR-015 fijó un componente principal por dimensión como método del índice nuevo, por analogía con la literatura y con el índice del trabajo de grado.</li>
+<li>Qué pasó: al estimarlo, el KMO salió 0,314 en uso y 0,404 en profundidad (por debajo de 0,5 las variables no comparten varianza común suficiente) y el primer componente dio peso implícito <strong>negativo</strong> al microcrédito y al monto de transacciones. Es exactamente el defecto B-005: una variable que debería sumar entrando restando.</li>
+<li>Causa raíz: se eligió el método antes de medir si sus supuestos se cumplían. El ADR se escribió con el método ya decidido en vez de dejarlo abierto a la medición.</li>
+<li>Regla: R-17. Antes de fijar un método se mide su supuesto y la medición se publica; el índice publica siempre sus pesos implícitos y una prueba falla si alguno es negativo → CLAUDE.md, ADR-015 (adenda), <code>tests/test_index.py::test_pesos_implicitos_nunca_negativos</code>.</li>
+<li>Evidencia: <code>data/processed/indice_diagnosticos.csv</code> (KMO por dimensión); <code>metodologia/indice.qmd</code> publica la tabla.</li>
+<li>Estado: cerrada. El método publicado son pesos iguales dentro de cada dimensión; el componente principal queda como sensibilidad, con correlación de rangos 0,96 frente al publicado.</li>
+</ul>
+</section>
+<section id="b-039-2026-09-06-el-mapa-salía-como-un-rectángulo-de-color-el-sentido-de-giro-de-los-anillos" class="level2">
+<h2 class="anchored" data-anchor-id="b-039-2026-09-06-el-mapa-salía-como-un-rectángulo-de-color-el-sentido-de-giro-de-los-anillos">B-039 · 2026-09-06 · El mapa salía como un rectángulo de color: el sentido de giro de los anillos</h2>
+<ul>
+<li>Contexto: primera versión del atlas, coropleta de departamentos con d3 y TopoJSON sobre la geometría del MGN 2024.</li>
+<li>Qué pasó: el mapa se dibujaba como un rectángulo azul que ocupaba todo el lienzo, con Colombia reducida a una mancha de diez píxeles en el centro. Los datos exportados eran correctos: 33 rasgos, códigos completos, límites en lon [−81,7; −66,8] y lat [−4,2; 13,4].</li>
+<li>Causa raíz: <strong>TopoJSON y la geometría esférica de d3 esperan el anillo exterior en sentido horario, que es el contrario del que pide RFC 7946 para GeoJSON.</strong> Con el giro de RFC, d3 interpreta cada anillo como el complemento del polígono. Medido con la propia d3: <code>d3.geoArea</code> de Bogotá daba 12,566, es decir 4π, la esfera entera; la suma de los 33 departamentos daba 590 estereorradianes cuando la esfera mide 12,57. Al ajustar la proyección a ese contorno, todo lo demás se encogía.</li>
+<li>Se agravaba con un segundo defecto: una isla de Bolívar (que tiene 51 polígonos) colapsaba a un anillo de área cero al simplificar, y un anillo degenerado produce el mismo efecto.</li>
+<li>Cómo se encontró: no mirando el código, sino midiendo. Primero el área con signo de cada anillo en Python, después <code>d3.geoArea</code> en el navegador, que fue la que dio el número imposible.</li>
+<li>Regla: la geometría publicada se valida contra una cantidad física conocida antes de darla por buena. La suma de las áreas esféricas de los departamentos tiene que dar el área de Colombia: 0,0281 estereorradianes. Ahora da 0,02817.</li>
+<li>Evidencia: <code>src/iif/export/atlas.py::_limpiar</code> (giro horario y descarte de islas por debajo de la resolución, con el conteo publicado en <code>atlas_meta.json</code>).</li>
+<li>Estado: cerrada.</li>
+</ul>
+<hr>
+</section>
+<section id="aciertos" class="level2">
+<h2 class="anchored" data-anchor-id="aciertos">Aciertos</h2>
+</section>
+<section id="s-001-2026-09-06-paginación-soda-por-orderid" class="level2">
+<h2 class="anchored" data-anchor-id="s-001-2026-09-06-paginación-soda-por-orderid">S-001 · 2026-09-06 · Paginación SODA por <code>$order=:id</code></h2>
+<ul>
+<li>Contexto: descarga de las tablas de SFC, MinTIC y MEN en datos.gov.co.</li>
+<li>Qué funcionó: <code>$order=:id&amp;$limit=50000&amp;$offset=n</code> da páginas estables y completas; el total coincide con <code>count(*)</code>. Sin <code>$order</code>, Socrata puede repetir o saltar filas entre páginas.</li>
+<li>Dónde se reutiliza: src/iif/acquire/soda.py (S9); config/sources.yaml.</li>
+</ul>
+</section>
+<section id="s-002-2026-09-06-2021q1-existe-en-las-dos-tablas-de-la-sfc" class="level2">
+<h2 class="anchored" data-anchor-id="s-002-2026-09-06-2021q1-existe-en-las-dos-tablas-de-la-sfc">S-002 · 2026-09-06 · 2021Q1 existe en las dos tablas de la SFC</h2>
+<ul>
+<li>Contexto: <code>ptgf-ywrb</code> termina en 2021Q1 y <code>kx2f-xjdq</code> empieza en 2021Q1.</li>
+<li>Qué funcionó: ese trimestre es una prueba natural del empalme: mismas entidades, mismos municipios, dos esquemas. Las diferencias por departamento y variable se miden antes de fijar umbrales.</li>
+<li>Dónde se reutiliza: ADR-009; prueba singular de dbt para el empalme (S12).</li>
+</ul>
+</section>
+<section id="s-003-2026-09-06-last-modified-del-dane-sirve-para-nombrar-vintages" class="level2">
+<h2 class="anchored" data-anchor-id="s-003-2026-09-06-last-modified-del-dane-sirve-para-nombrar-vintages">S-003 · 2026-09-06 · <code>Last-Modified</code> del DANE sirve para nombrar vintages</h2>
+<ul>
+<li>Contexto: los XLSX del DANE se revisan cada julio y la URL no cambia.</li>
+<li>Qué funcionó: el servidor responde a HEAD con <code>Last-Modified</code> (PIB departamental: 2026-07-03). El sufijo <code>__lmYYYYMMDD</code> e <code>If-Modified-Since</code> evitan descargas repetidas y fechan cada revisión.</li>
+<li>Dónde se reutiliza: src/iif/acquire/dane.py (S9); ADR-002 (<code>dim_vintage.source_updated_at</code>).</li>
+</ul>
+</section>
+<section id="s-004-2026-09-06-mgn-2024-por-arcgis-rest-devuelve-geojson-con-divipola" class="level2">
+<h2 class="anchored" data-anchor-id="s-004-2026-09-06-mgn-2024-por-arcgis-rest-devuelve-geojson-con-divipola">S-004 · 2026-09-06 · MGN 2024 por ArcGIS REST devuelve GeoJSON con DIVIPOLA</h2>
+<ul>
+<li>Contexto: la página oficial de descarga del MGN da 404.</li>
+<li>Qué funcionó: el servicio REST del DANE responde con <code>f=geojson</code>, 2.000 registros por página con <code>resultOffset</code>, y trae <code>dpto_ccdgo</code> y <code>mpio_ccdgo</code>. Admite <code>geometryPrecision</code> y <code>maxAllowableOffset</code> para simplificar.</li>
+<li>Dónde se reutiliza: src/iif/acquire/mgn.py (S9); ADR-007 (crosswalk); ADR-005 (TopoJSON del atlas).</li>
+</ul>
+</section>
+<section id="s-005-2026-09-06-la-reproducción-coincide-con-el-notebook-a-14e-6" class="level2">
+<h2 class="anchored" data-anchor-id="s-005-2026-09-06-la-reproducción-coincide-con-el-notebook-a-14e-6">S-005 · 2026-09-06 · La reproducción coincide con el notebook a 1,4e-6</h2>
+<ul>
+<li>Contexto: port del notebook consolidado a src/iif/legacy con pandas 3 (el notebook corrió con pandas 1.5.3).</li>
+<li>Qué funcionó: 39 cifras del dump del notebook (docs/legacy/RESULTADOS_CONSOLIDADO_2.md) se reproducen con diferencia máxima 1,4e-6 y el mismo conteo de discrepancias frente al documento (25). El port es fiel; las discrepancias son del documento, no del port.</li>
+<li>Dónde se reutiliza: docs/legacy/reproduccion.md; pruebas doradas en tests/ (pendientes de escribir con estos valores).</li>
+</ul>
+</section>
+<section id="s-006-2026-09-06-quarto-y-tectonic-por-tarball-a-través-del-proxy" class="level2">
+<h2 class="anchored" data-anchor-id="s-006-2026-09-06-quarto-y-tectonic-por-tarball-a-través-del-proxy">S-006 · 2026-09-06 · Quarto y tectonic por tarball a través del proxy</h2>
+<ul>
+<li>Contexto: la API de GitHub está bloqueada y <code>gh</code> no existe (B-023).</li>
+<li>Qué funcionó: <code>github.com/&lt;org&gt;/&lt;repo&gt;/releases/download/&lt;tag&gt;/&lt;archivo&gt;.tar.gz</code> descarga sin problema. Quarto 1.7.32 y tectonic se instalan en <code>~/.local/opt</code> sin <code>gh</code>, sin <code>apt</code> y sin R.</li>
+<li>Dónde se reutiliza: scripts/install_quarto.sh; Makefile <code>quarto-install</code>; ADR-011.</li>
+</ul>
+</section>
+<section id="s-007-2026-09-06-featureserver-con-maxallowableoffset-deja-el-mgn-en-pocos-mb" class="level2">
+<h2 class="anchored" data-anchor-id="s-007-2026-09-06-featureserver-con-maxallowableoffset-deja-el-mgn-en-pocos-mb">S-007 · 2026-09-06 · <code>FeatureServer</code> con <code>maxAllowableOffset</code> deja el MGN en pocos MB</h2>
+<ul>
+<li>Contexto: B-024. Cinco departamentos sin simplificar pesaban 0,7 MB por rasgo.</li>
+<li>Qué funcionó: <code>maxAllowableOffset</code> 0,0005° (~55 m) deja los 33 departamentos en 1,6 MB y 0,001° (~110 m) los 1.121 municipios en 4,9 MB, con <code>geometryPrecision: 4</code>. Suficiente para el atlas nacional; se anota que no sirve para cartografía local.</li>
+<li>Dónde se reutiliza: <code>config/sources.yaml</code> (mgn-*), ADR-005 (atlas).</li>
+</ul>
+</section>
+<section id="s-008-2026-09-06-los-metadatos-de-socrata-tipan-las-columnas" class="level2">
+<h2 class="anchored" data-anchor-id="s-008-2026-09-06-los-metadatos-de-socrata-tipan-las-columnas">S-008 · 2026-09-06 · Los metadatos de Socrata tipan las columnas</h2>
+<ul>
+<li>Contexto: B-025.</li>
+<li>Qué funcionó: <code>api/views/&lt;id&gt;.json</code> declara <code>number</code>, <code>text</code> y <code>calendar_date</code> por columna; con <code>code_cols</code> para conservar los códigos como texto, un mismo descargador sirve para las cinco tablas SODA sin expresiones regulares por fuente. MinTIC declara todo como <code>text</code> y es la única que necesita <code>numeric_cols</code>.</li>
+<li>Dónde se reutiliza: <code>src/iif/acquire/soda.py::typing_from_metadata</code>; <code>config/sources.yaml</code>.</li>
+</ul>
+</section>
+<section id="s-009-2026-09-06-en-ptgf-renglon-es-el-código-municipal-divipola" class="level2">
+<h2 class="anchored" data-anchor-id="s-009-2026-09-06-en-ptgf-renglon-es-el-código-municipal-divipola">S-009 · 2026-09-06 · En <code>ptgf</code>, <code>renglon</code> es el código municipal DIVIPOLA</h2>
+<ul>
+<li>Contexto: ADR-007 preveía un crosswalk por nombre normalizado con overrides.</li>
+<li>Qué funcionó: <code>dpto_ccdgo || lpad(renglon, 3)</code> reproduce el DIVIPOLA de 5 dígitos para los 1.115 municipios con fila en <code>ptgf</code> (cobertura 100 % en los 14 trimestres contra MGN 2024 y población DANE); <code>renglon = 999</code> es el total departamental. El nombre solo se usa como comprobación (92 % coincide tras normalizar; el resto son alias como “SANTAFE DE BOGOTA D.” o “CARMEN DE VIBORAL”).</li>
+<li>Dónde se reutiliza: <code>dbt/models/staging/sfc/stg_sfc__ptgf.sql</code>; adenda de ADR-007. Pendiente comprobar lo mismo en <code>kx2f</code>.</li>
+</ul>
+</section>
+<section id="s-010-2026-09-06-kx2f-sigue-la-misma-convención-renglon-es-el-divipola-municipal" class="level2">
+<h2 class="anchored" data-anchor-id="s-010-2026-09-06-kx2f-sigue-la-misma-convención-renglon-es-el-divipola-municipal">S-010 · 2026-09-06 · <code>kx2f</code> sigue la misma convención: <code>renglon</code> es el DIVIPOLA municipal</h2>
+<ul>
+<li>Contexto: S-009 se comprobó en <code>ptgf</code>; el plan suponía que <code>kx2f</code> venía sin DIVIPOLA.</li>
+<li>Qué funcionó: en <code>kx2f</code>, <code>dpto_ccdgo || lpad(renglon, 3)</code> cubre el 100 % de las filas geográficas en los 20 cortes (2021Q1 a 2025Q4); 64 nombres difieren del DANE solo por grafía. El crosswalk por nombre de ADR-007 queda como prueba de consistencia en ambas tablas.</li>
+<li>Dónde se reutiliza: <code>stg_sfc__kx2f</code>, <code>int_sfc_geo_long</code>, <code>iif crosswalk geo-report --fuente kx2f</code>.</li>
+</ul>
+</section>
+<section id="s-011-2026-09-06-ninguna-serie-de-la-sfc-es-acumulada-en-el-año" class="level2">
+<h2 class="anchored" data-anchor-id="s-011-2026-09-06-ninguna-serie-de-la-sfc-es-acumulada-en-el-año">S-011 · 2026-09-06 · Ninguna serie de la SFC es acumulada en el año</h2>
+<ul>
+<li>Contexto: antes de fijar la regla de anualización de las 98 variables (sumar flujos, tomar el cuarto trimestre en stocks) había que descartar que las transacciones vinieran acumuladas desde enero, error que multiplicaría por cuatro cualquier agregado anual.</li>
+<li>Qué funcionó: la firma de una serie acumulada es que el primer trimestre cae a un cuarto del cuarto trimestre anterior y que dentro del año crece de forma monótona. Se midió en las 164 series de las dos tablas: la mediana de Q1 sobre el Q4 anterior está entre 0,73 y 1,54, nunca cerca de 0,25, y ninguna serie cumple las dos condiciones.</li>
+<li>Dónde se reutiliza: <code>dbt/seeds/dim_variable.csv</code> (<code>regla_anualizacion</code>); la prueba se repetirá cuando la SFC publique columnas nuevas.</li>
+</ul>
+</section>
+<section id="s-012-2026-09-06-el-panel-nuevo-sí-varía-dentro-del-panel" class="level2">
+<h2 class="anchored" data-anchor-id="s-012-2026-09-06-el-panel-nuevo-sí-varía-dentro-del-panel">S-012 · 2026-09-06 · El panel nuevo sí varía dentro del panel</h2>
+<ul>
+<li>Contexto: el defecto que originó el proyecto fue un panel trimestral cuya dependiente solo cambiaba una vez al año (64,3 % de log-diferencias exactamente cero).</li>
+<li>Qué funcionó: construir la dependiente a frecuencia anual verdadera sobre el PIB real per cápita del DANE. El panel departamental 2018-2025 tiene 231 observaciones de crecimiento, <strong>ninguna</strong> exactamente cero, siete valores distintos por departamento y el perfil esperado de la pandemia (mediana de −9,3 % en 2020 y +8,4 % en 2021). Una prueba dbt (<code>assert_panel_departamento_varia_dentro_del_anio</code>) falla si los ceros exactos superan el 5 %.</li>
+<li>Dónde se reutiliza: <code>mart_panel_departamento_anual</code>, <code>mart_panel_municipio_anual</code>; R-05.</li>
+</ul>
+</section>
+<section id="s-013-2026-09-06-las-variables-crudas-de-la-sfc-miden-población" class="level2">
+<h2 class="anchored" data-anchor-id="s-013-2026-09-06-las-variables-crudas-de-la-sfc-miden-población">S-013 · 2026-09-06 · Las variables crudas de la SFC miden población</h2>
+<ul>
+<li>Contexto: antes de construir el índice había que decidir la normalización.</li>
+<li>Qué funcionó: medir la correlación de cada candidata con la población departamental. Va de 0,58 a 0,94 (pagos 0,94; cuentas de ahorro 0,92). Un índice sobre variables sin normalizar tendría como primer factor el tamaño del departamento. Con conteos por 10.000 habitantes y montos como porcentaje del producto, la correlación cae a un rango de −0,28 a 0,69, que ya es relación económica y no aritmética.</li>
+<li>Dónde se reutiliza: <code>config/index.yaml</code> (normalización), ADR-015, <code>tests/test_index.py::test_normalizacion_elimina_la_escala_de_la_unidad</code>, que reproduce el problema en un panel sintético antes de comprobar que la normalización lo quita.</li>
+</ul>
+</section>
+<section id="s-014-2026-09-06-medir-el-mapa-contra-el-área-real-de-colombia" class="level2">
+<h2 class="anchored" data-anchor-id="s-014-2026-09-06-medir-el-mapa-contra-el-área-real-de-colombia">S-014 · 2026-09-06 · Medir el mapa contra el área real de Colombia</h2>
+<ul>
+<li>Contexto: B-039. Un mapa mal proyectado puede verse “casi bien” y pasar la revisión a ojo.</li>
+<li>Qué funcionó: comprobar que la suma de las áreas esféricas de los 33 departamentos coincide con el área conocida de Colombia (1.142.000 km² sobre una esfera de 510 millones: 0,0281 estereorradianes). El exportador daba 590 antes del arreglo y 0,02817 después. Es una prueba de una línea que detecta el fallo de giro, los anillos degenerados y una proyección equivocada, sin mirar el mapa.</li>
+<li>Dónde se reutiliza: la comprobación entra como prueba del exportador del atlas.</li>
+</ul>
+</section>
+<section id="s-015-2026-09-06-el-atlas-no-depende-de-ningún-cdn" class="level2">
+<h2 class="anchored" data-anchor-id="s-015-2026-09-06-el-atlas-no-depende-de-ningún-cdn">S-015 · 2026-09-06 · El atlas no depende de ningún CDN</h2>
+<ul>
+<li>Contexto: al abrir la página en un navegador sin salida a internet, los cuatro filtros y el mapa se caían: Quarto carga Observable Inputs desde jsDelivr y las celdas quedaban esperando ese módulo.</li>
+<li>Qué funcionó: vendorizar d3 y topojson-client en <code>atlas/lib/</code> y construir los filtros con HTML plano. La página entera se dibuja sin una sola petición externa, que es lo que corresponde a un artefacto de investigación pensado para durar; además la guía de visualización pide justamente que los filtros sean interfaz corriente y no componentes del gráfico.</li>
+<li>Dónde se reutiliza: <code>atlas/index.qmd</code> (helper <code>control</code>), <code>atlas/lib/</code>.</li>
+</ul>
+</section>
+<section id="b-040-2026-09-06-ninguna-capital-se-rotulaba-un-booleano-que-viajó-como-texto" class="level2">
+<h2 class="anchored" data-anchor-id="b-040-2026-09-06-ninguna-capital-se-rotulaba-un-booleano-que-viajó-como-texto">B-040 · 2026-09-06 · Ninguna capital se rotulaba: un booleano que viajó como texto</h2>
+<ul>
+<li>Contexto: el mapa municipal rotula solo las capitales departamentales; el exportador manda <code>es_capital</code> en <code>series_municipio.json</code>.</li>
+<li>Qué pasó: la capa de nombres no dibujaba nada y el mapa no daba ningún aviso.</li>
+<li>Causa raíz: <code>build_series</code> pasaba <strong>todos</strong> los acompañantes por <code>str()</code>, regla pensada para los códigos DIVIPOLA, que llevan ceros a la izquierda y un número los perdería. Con un booleano, <code>str(True)</code> produce <code>"True"</code>, y en el navegador <code>"True"</code> no es ni <code>true</code> ni <code>"true"</code>: la comparación era falsa en las 1.123 filas.</li>
+<li>Regla: un fallo de tipo que solo se manifiesta como “no se dibuja” hay que convertirlo en un fallo de prueba. Los datos publicados declaran su tipo y una prueba lo comprueba.</li>
+<li>Evidencia: <code>src/iif/export/atlas.py::_escalar</code>; <code>tests/test_atlas.py::test_los_acompanantes_conservan_su_tipo</code>.</li>
+</ul>
+</section>
+<section id="b-041-2026-09-06-girar-sobre-un-encuadre-ya-ajustado-saca-el-mapa-del-marco" class="level2">
+<h2 class="anchored" data-anchor-id="b-041-2026-09-06-girar-sobre-un-encuadre-ya-ajustado-saca-el-mapa-del-marco">B-041 · 2026-09-06 · Girar sobre un encuadre ya ajustado saca el mapa del marco</h2>
+<ul>
+<li>Contexto: las vistas en volumen inclinan el país con una matriz sobre el grupo de SVG, en vez de reproyectar 1.121 geometrías en cada cambio.</li>
+<li>Qué pasó: la vista municipal salía cortada por los dos lados.</li>
+<li>Causa raíz: la proyección se ajustaba al lienzo (660 × 646) y <strong>después</strong> se giraba 28°. Un rectángulo de 544 × 646 girado mide 783 de ancho: 123 puntos fuera del marco por lado.</li>
+<li>Cómo se encontró: midiendo en el navegador la caja del grupo del mapa contra la caja del SVG, no mirando la captura.</li>
+<li>Regla: la escala de ajuste se calcula sobre las esquinas <strong>ya transformadas</strong>. Toda vista que gire o aplaste calcula su encuadre después de la transformación, nunca antes.</li>
+<li>Segundo hallazgo del mismo sitio: el archipiélago de San Andrés está a 700 km del continente y se llevaba una quinta parte del ancho del lienzo para dibujar un punto. Sale del encuadre y va como ficha rotulada fuera de escala, viva para el ratón como cualquier departamento; un inserto proporcional no servía porque lo que ocupa el recuadro es el mar entre las dos islas.</li>
+<li>Evidencia: <code>atlas/index.qmd</code>, celda <code>vistaGeo</code> (<code>ES_INSULAR</code>, <code>anchoUtil</code>, <code>subir</code>).</li>
+</ul>
+</section>
+<section id="b-042-2026-09-06-la-limpieza-de-oyentes-colgaba-de-un-evento-que-el-navegador-ya-no-dispara" class="level2">
+<h2 class="anchored" data-anchor-id="b-042-2026-09-06-la-limpieza-de-oyentes-colgaba-de-un-evento-que-el-navegador-ya-no-dispara">B-042 · 2026-09-06 · La limpieza de oyentes colgaba de un evento que el navegador ya no dispara</h2>
+<ul>
+<li>Contexto: los tres paneles del atlas se suscriben al bus de foco y tienen que darse de baja cuando OJS los reemplaza.</li>
+<li>Qué pasó: la baja nunca ocurría. Cada cambio de año, indicador o vista dejaba tres oyentes más apuntando a nodos ya desechados.</li>
+<li>Causa raíz: la baja se registraba con <code>DOMNodeRemovedFromDocument</code>, un evento de mutación <strong>retirado de Chromium</strong>. No falla: simplemente no se dispara nunca.</li>
+<li>Regla: en OJS la baja se hace con <code>invalidation</code>, que es el mecanismo del propio entorno. Una suscripción sin baja comprobada es una fuga; se comprueba contando, no leyendo.</li>
+<li>Evidencia: <code>atlas/index.qmd</code> (<code>invalidation.then(quitar)</code> en los tres paneles); comprobado en el navegador con ocho cambios de año seguidos.</li>
+</ul>
+</section>
+<section id="b-043-2026-09-06-el-atenuado-en-la-cara-dejaba-los-cantos-a-plena-tinta" class="level2">
+<h2 class="anchored" data-anchor-id="b-043-2026-09-06-el-atenuado-en-la-cara-dejaba-los-cantos-a-plena-tinta">B-043 · 2026-09-06 · El atenuado en la cara dejaba los cantos a plena tinta</h2>
+<ul>
+<li>Contexto: al filtrar por región o departamento, las unidades de fuera se atenúan para dar contexto sin competir.</li>
+<li>Qué pasó: al bajar a los municipios de Antioquia, el resto del país aparecía como una masa gris oscura, más llamativa que la selección.</li>
+<li>Causa raíz: la opacidad estaba puesta en la cara del bloque y no en el grupo, así que las 26 copias del canto seguían pintándose enteras. El mismo error de encuadre agravaba el efecto: el mapa no se acercaba al filtro y los 118 municipios elegidos eran una mancha del tamaño de una uña.</li>
+<li>Regla: una propiedad que describe a la unidad (atenuar, ocultar, resaltar) va en el grupo de la unidad, nunca en una de sus piezas.</li>
+<li>Evidencia: <code>atlas/index.qmd</code> (<code>opacidadDe</code> sobre <code>g.unidad</code>; <code>enFoco</code> en <code>vistaGeo</code>).</li>
+</ul>
+</section>
+<section id="b-044-2026-09-06-table-layout-fixed-lee-la-primera-fila-y-los-anchos-estaban-en-el-cuerpo" class="level2">
+<h2 class="anchored" data-anchor-id="b-044-2026-09-06-table-layout-fixed-lee-la-primera-fila-y-los-anchos-estaban-en-el-cuerpo">B-044 · 2026-09-06 · <code>table-layout: fixed</code> lee la primera fila, y los anchos estaban en el cuerpo</h2>
+<ul>
+<li>Contexto: el ranking del atlas con nombres municipales largos.</li>
+<li>Qué pasó: al fijar el reparto de la tabla para que los nombres no empujaran las cifras, el encabezado se solapó (“DEPARTAMENTO” encima de “VALOR”).</li>
+<li>Causa raíz: con <code>table-layout: fixed</code> mandan los anchos de la <strong>primera</strong> fila; los anchos estaban en las celdas del cuerpo, así que el encabezado se repartió a partes iguales.</li>
+<li>Regla: con reparto fijo, los anchos van en un <code>&lt;colgroup&gt;</code>, que es el único sitio que no depende de qué fila se dibuje primero.</li>
+<li>Evidencia: <code>atlas/index.qmd</code>, <code>panelContexto</code>.</li>
+</ul>
+</section>
+<section id="s-016-2026-09-06-medir-la-página-en-el-navegador-no-mirarla" class="level2">
+<h2 class="anchored" data-anchor-id="s-016-2026-09-06-medir-la-página-en-el-navegador-no-mirarla">S-016 · 2026-09-06 · Medir la página en el navegador, no mirarla</h2>
+<ul>
+<li>Contexto: B-041, B-042 y B-043 son defectos que una captura enseña a medias o no enseña: un recorte de 60 puntos parece encuadre, una fuga de oyentes no se ve, y un gris de más parece una decisión de diseño.</li>
+<li>Qué funcionó: un guion de Playwright que, además de las capturas, imprime números por vista: cuántas unidades y cuántos nodos hay, la caja del mapa contra la caja del lienzo (desbordes por los cuatro lados), el tiempo de ocho cambios de año seguidos y cuántos mapas quedan vivos en el documento. Los tres defectos aparecieron como números malos antes que como imágenes feas.</li>
+<li>Dónde se reutiliza: el mismo guion vale para cualquier página del sitio con gráficos; la comprobación de desbordes es la que hay que repetir cuando cambie el encuadre.</li>
+</ul>
+</section>
+<section id="b-045-2026-09-06-el-sitio-dependía-de-un-ajuste-que-solo-existe-en-una-consola" class="level2">
+<h2 class="anchored" data-anchor-id="b-045-2026-09-06-el-sitio-dependía-de-un-ajuste-que-solo-existe-en-una-consola">B-045 · 2026-09-06 · El sitio dependía de un ajuste que solo existe en una consola</h2>
+<ul>
+<li>Contexto: el sitio se publica en Vercel desde la rama <code>site</code>, que CI reescribe en cada push a <code>main</code>. Para que ese despliegue fuera el de producción hacía falta que en la consola de Vercel la Production Branch fuera <code>site</code>.</li>
+<li>Qué pasó: <code>https://financial-inclusion-colombia.vercel.app/</code> respondió 404 durante horas, con CI en verde todo el tiempo y el autor intentando el ajuste dos veces.</li>
+<li>Causa raíz: dos cosas, y la segunda es la de fondo. La inmediata: cambiar la rama de producción <strong>no promueve los despliegues que ya existen</strong>, solo afecta a los siguientes, y <code>main</code> está ignorada a propósito, así que el dominio de producción nunca tuvo nada asignado. La de fondo: el mecanismo de publicación vivía en un ajuste invisible desde el repositorio, que nadie puede leer en una revisión, que no aparece en ningún diff y que ni el autor ni el agente podían verificar (el conector de Vercel devuelve 403 y 404 sobre este proyecto).</li>
+<li>Cómo se encontró: midiendo tres cosas en vez de mirar la consola. El dominio de producción daba 404 con <code>DEPLOYMENT_NOT_FOUND</code>, que significa “este dominio no apunta a nada” y no “el build falló”. La URL de la rama (<code>...-git-site-...</code>) daba 302 al SSO, y esa URL <strong>solo existe si la rama tiene despliegues</strong>: luego Vercel sí construía <code>site</code> y los archivaba como vista previa. Y hubo un despliegue nuevo de <code>site</code> a las 23:08 con producción todavía en 404, lo que descartaba que fuera cuestión de esperar.</li>
+<li>Regla: un despliegue se declara en el repositorio y se verifica contra el dominio público. CI despliega producción con la CLI de Vercel, que no está atada a ninguna rama, y después comprueba que el dominio devuelve 200; si no, el build falla. Un build verde con el sitio inalcanzable es peor que un build rojo, porque nadie lo mira.</li>
+<li>Evidencia: <code>.github/workflows/ci.yml</code>, pasos «Desplegar produccion en Vercel» y «Comprobar el dominio de produccion»; adenda 4 de ADR-005.</li>
+</ul>
+</section>
+<section id="b-046-2026-09-06-el-atlas-publicado-no-encontraba-sus-datos" class="level2">
+<h2 class="anchored" data-anchor-id="b-046-2026-09-06-el-atlas-publicado-no-encontraba-sus-datos">B-046 · 2026-09-06 · El atlas publicado no encontraba sus datos</h2>
+<ul>
+<li>Contexto: <code>atlas/index.qmd</code> carga la geometría y las series con <code>FileAttachment("data/*.json")</code>.</li>
+<li>Qué pasó: en el sitio desplegado, las seis celdas del atlas mostraban <code>OJS Runtime Error: Unable to load file</code>. En local no se veía porque después de cada exportación yo copiaba los JSON a <code>_site</code> a mano, sin darme cuenta de que ese <code>cp</code> era lo único que los ponía allí.</li>
+<li>Causa raíz: Quarto copia a <code>_site</code> los recursos que ve <strong>enlazados en el HTML</strong>; las rutas de <code>FileAttachment</code> viven dentro de una celda de OJS y no las descubre. La portada declaraba <code>resources: lib/*.js</code> y no <code>data/*.json</code>, así que los datos nunca se publicaban.</li>
+<li>Regla: todo recurso que solo se nombre dentro de una celda de OJS se declara en <code>resources</code>. Y la comprobación de que una página funciona se hace sobre el sitio construido sin tocarlo a mano: un <code>cp</code> de conveniencia durante la revisión esconde exactamente este fallo.</li>
+<li>Evidencia: <code>atlas/index.qmd</code>, bloque <code>resources</code>.</li>
+</ul>
+</section>
+<section id="b-047-2026-09-07-una-exposición-inicial-medida-en-una-variable-que-no-existe-en-el-año-base" class="level2">
+<h2 class="anchored" data-anchor-id="b-047-2026-09-07-una-exposición-inicial-medida-en-una-variable-que-no-existe-en-el-año-base">B-047 · 2026-09-07 · Una exposición inicial medida en una variable que no existe en el año base</h2>
+<ul>
+<li>Contexto: el shift-share se contrasta con exposiciones de placebo (ingreso y urbanización iniciales) medidas en 2018.</li>
+<li>Qué pasó: la batería completa moría con <code>exog does not have full column rank</code>, un error que nombra al estimador y no a la causa.</li>
+<li>Causa raíz: la exposición de ingreso se tomó de <code>log_pib_rezago</code>, que en 2018 es toda vacía porque el rezago necesita 2017. La columna llegaba al estimador llena de nulos, se convertía en un vector de ceros al cruzarla con la adopción nacional, y el error saltaba tres funciones más abajo.</li>
+<li>Regla: una exposición inicial comprueba su cobertura en el año base antes de usarse, y falla nombrando la variable y el año. El error debe saltar donde está la causa, no donde se manifiesta.</li>
+<li>Evidencia: <code>src/iif/econ/designs.py::exposicion_inicial</code>.</li>
+</ul>
+</section>
+<section id="s-017-2026-09-07-la-econometría-se-probó-donde-la-verdad-se-conoce" class="level2">
+<h2 class="anchored" data-anchor-id="s-017-2026-09-07-la-econometría-se-probó-donde-la-verdad-se-conoce">S-017 · 2026-09-07 · La econometría se probó donde la verdad se conoce</h2>
+<ul>
+<li>Contexto: un resultado nulo sobre datos reales no distingue entre “no hay efecto” y “el código no lo vería aunque lo hubiera”.</li>
+<li>Qué funcionó: doce pruebas sobre paneles sintéticos con estructura sabida —efecto real, tendencia común disfrazada de efecto, factor con cargas heterogéneas, patrón espacial, caminata aleatoria— antes de mirar un solo coeficiente real. Destaparon dos cosas que la tabla final no habría enseñado: el desmediado de dos vías en un panel desbalanceado necesita proyecciones alternadas (sin ellas el bootstrap comparaba un coeficiente distinto del estimador), y la prueba CD de Pesaran tiene poca potencia con cargas de media cero, que es una propiedad de la prueba y hay que saberla para leerla.</li>
+<li>Dónde se reutiliza: <code>tests/test_econ.py</code>; el tamaño del bootstrap se mide sobre veinte paneles, no sobre uno, porque uno solo rechaza al 5 % una de cada veinte veces por definición.</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiado");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiado");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/financial-inclusion-colombia\.vercel\.app\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Datos de la Superintendencia Financiera (CC BY-SA 4.0), DANE, MinTIC y MEN. Código MIT.</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    <div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/DavinsonR/financial-inclusion-colombia/blob/main/bitacora.qmd" class="toc-action"><i class="bi bi-github"></i>Ver el código</a></li></ul></div></div>
+    <div class="nav-footer-right">
+<p>Construido en público: cada cifra traza a una prueba.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
