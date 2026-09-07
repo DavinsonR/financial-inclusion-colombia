@@ -173,6 +173,18 @@ def index(
 
 
 @app.command()
+def econ(
+    replicas: int = typer.Option(999, help="Réplicas del bootstrap salvaje por clúster."),
+    placebos: int = typer.Option(499, help="Permutaciones del placebo."),
+) -> None:
+    """Corre la batería econométrica del panel departamental y escribe data/processed/econ/resultados.json."""
+    from iif.econ.run import write
+
+    destino = write(replicas=replicas, placebos=placebos)
+    typer.echo(f"✓ {destino.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
 def atlas() -> None:
     """Exporta la geometría y las series que consume el atlas (ADR-005)."""
     from iif.export.atlas import export_atlas
