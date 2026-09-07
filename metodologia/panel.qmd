@@ -1,6 +1,177 @@
 ---
-title: "Panel anual y batería contra la correlación espuria"
-draft: true
+title: "Panel anual: inclusión financiera y crecimiento"
+subtitle: "Treinta y tres departamentos, 2019 a 2025, con la batería contra la correlación espuria"
 ---
 
-En construcción (Fase 3). Decisión: ADR-001.
+```{python}
+#| echo: false
+import json
+import pandas as pd
+from IPython.display import Markdown
+from iif import config
+
+R = json.loads((config.REPO_ROOT / "data" / "processed" / "econ" / "resultados.json").read_text(encoding="utf-8"))
+E = R["especificacion"]
+
+def fmt(v, d=4):
+    return "—" if v is None else f"{v:+.{d}f}"
+
+def tabla(filas, con_errores=True):
+    df = pd.DataFrame([
+        {"Especificación": e["nombre"], "β": fmt(e["coef"]), "EE": f'{e["se"]:.4f}', "p": f'{e["p"]:.3f}',
+         "IC 95 %": f'[{e["ic_bajo"]:+.3f}, {e["ic_alto"]:+.3f}]', "N": e["n"], "Dptos.": e["unidades"],
+         **({"Errores": e["errores"]} if con_errores else {})}
+        for e in filas])
+    return Markdown(df.to_markdown(index=False))
+```
+
+La pregunta es si el índice de inclusión financiera predice el crecimiento del PIB real per cápita de los
+departamentos. Todo lo de esta página sale de un solo archivo que escribe `uv run iif econ`
+(`data/processed/econ/resultados.json`); ninguna cifra viene de un cuaderno. El diseño está decidido en
+ADR-016 y probado en `tests/test_econ.py` sobre paneles sintéticos, donde se sabe la verdad.
+
+```{python}
+#| echo: false
+Markdown(f"""
+**Muestra.** {E['unidades']} departamentos, {E['periodos'][0]} a {E['periodos'][-1]}, N = {E['n']}.
+Dependiente: tasa de crecimiento del PIB real per cápita. Regresor: índice compuesto estandarizado.
+Controles: {', '.join(E['controles'])}. Efectos fijos de {E['efectos']}. Exposición inicial medida en
+{E['anio_base_exposicion']}, anterior a toda observación de la dependiente.
+""")
+```
+
+## 1. Resultado principal
+
+```{python}
+#| echo: false
+tabla(R["principales"])
+```
+
+La primera fila es la especificación base. La segunda repite el modelo con errores de Driscoll-Kraay, que
+admiten dependencia entre departamentos dentro de un mismo año. La tercera **no es una alternativa**: es el
+mismo modelo sin efectos de tiempo, y se publica porque la distancia entre su coeficiente y el de la
+primera fila es exactamente la parte de la relación que era tendencia nacional. La cuarta reemplaza el
+nivel del índice por su cambio anual.
+
+## 2. Por dimensión y con índices alternativos
+
+```{python}
+#| echo: false
+tabla(R["dimensiones"] + R["sensibilidad_indice"], con_errores=False)
+```
+
+Acceso, uso y profundidad entran cada una en su propia regresión: juntas medirían el efecto parcial de una
+dimensión manteniendo fijas las otras, que no es la pregunta cuando las tres se mueven a la vez por
+construcción. Los índices por PCA y por distancia de Sarma son las alternativas de ADR-015.
+
+## 3. Diagnósticos
+
+```{python}
+#| echo: false
+D = R["diagnosticos"]; cd = D["pesaran_cd"]; ci = D["cips"]
+moran = pd.DataFrame(D["moran_por_anio"])[["anio", "I", "p"]].rename(columns={"anio": "Año", "I": "I de Moran"})
+moran["I de Moran"] = moran["I de Moran"].map(lambda v: f"{v:+.3f}"); moran["p"] = moran["p"].map(lambda v: f"{v:.3f}")
+Markdown(f"""
+| Prueba | Estadístico | Lectura |
+|---|---|---|
+| CD de Pesaran (residuos del modelo base) | {cd['estadistico']:.2f} (p = {cd['p']:.3f}; ρ̄ = {cd['rho_medio']:.3f}) | dependencia transversal débil pero presente: por eso Driscoll-Kraay acompaña al clúster |
+| CIPS sobre el índice | {ci['cips']:.2f} con T = {ci['periodos']} | {ci.get('nota', '')} |
+
+I de Moran del crecimiento por año, con inferencia por permutación sobre la contigüidad de los departamentos:
+
+{moran.to_markdown(index=False)}
+""")
+```
+
+La contigüidad no viene de una biblioteca espacial: dos departamentos son vecinos si comparten un arco en el
+TopoJSON del atlas, que guarda cada frontera una sola vez. Es exacto por construcción. El archipiélago no
+toca a nadie y queda con fila de ceros, no con un vecino inventado.
+
+## 4. Diseños que no dependen de la exogeneidad del índice
+
+```{python}
+#| echo: false
+tabla(R["disenos"], con_errores=False)
+```
+
+- **CCE** añade las medias transversales de la dependiente y del regresor con una carga distinta por
+  departamento, sin efectos de tiempo: un choque nacional que golpea el doble a un departamento que a otro
+  deja de confundirse con el índice.
+- **Shift-share** sustituye el índice observado por la exposición de 2018 multiplicada por la adopción
+  nacional. Con efectos de tiempo identifica la pendiente diferencial de los departamentos que empezaron
+  más incluidos.
+- **SLX** añade la media del índice de los vecinos: si el coeficiente propio se sostiene, la relación no
+  era el reflejo de un vecindario.
+
+### El shift-share, contrastado contra sí mismo
+
+```{python}
+#| echo: false
+S = R["shift_share_contraste"]; c = S["carrera"]
+tabla(S["placebos"], con_errores=False)
+```
+
+```{python}
+#| echo: false
+Markdown(f"""
+Cualquier condición inicial correlacionada con el índice produciría la misma pendiente diferencial si lo
+que hay es recuperación desigual y no inclusión. Con el ingreso inicial como exposición el coeficiente es
+{fmt(S['placebos'][0]['coef'])} (p = {S['placebos'][0]['p']:.3f}); con la urbanización inicial,
+{fmt(S['placebos'][1]['coef'])} (p = {S['placebos'][1]['p']:.3f}). En la carrera de caballos —índice e
+ingreso iniciales en la misma ecuación— el índice queda en {fmt(c['coef'])} (p = {c['p']:.3f}) y el ingreso
+en {fmt(c['coef_ingreso'])} (p = {c['p_ingreso']:.3f}).
+""")
+```
+
+## 5. Estudio de eventos alrededor de 2020
+
+```{python}
+#| echo: false
+ev = pd.DataFrame(R["estudio_eventos"])
+ev_t = ev.assign(**{"β": ev["coef"].map(lambda v: f"{v:+.4f}"), "EE": ev["se"].map(lambda v: f"{v:.4f}")})[["anio", "k", "β", "EE"]]
+ev_t.columns = ["Año", "k", "β (exposición 2018 × año)", "EE"]
+Markdown(ev_t.to_markdown(index=False))
+```
+
+La exposición es el índice de 2018 estandarizado; el año de referencia es 2019. **Este diseño no puede
+contrastar tendencias previas**: la dependiente empieza en 2019 y el choque es 2020, así que solo hay un
+año anterior y es el de referencia. Lo que mide es en qué años posteriores se separan los departamentos
+más expuestos, y se publica con esa limitación escrita.
+
+## 6. Inferencia con pocos clústeres
+
+```{python}
+#| echo: false
+W = R["robustez"]["wild_cluster_bootstrap"]; P = R["robustez"]["placebo_permutacion"]
+Markdown(f"""
+| Procedimiento | Resultado |
+|---|---|
+| Bootstrap salvaje por clúster, nula impuesta, {W['replicas']} réplicas de Rademacher sobre {W['clusteres']} departamentos | β = {fmt(W['coef'])}, t = {W['t_observado']:+.2f}, **p = {W['p_bootstrap']:.3f}** |
+| Placebo: el índice barajado entre departamentos dentro de cada año, {P['replicas']} permutaciones | β verdadero = {fmt(P['coef_verdadero'])}; placebos con media {fmt(P['media_placebos'])} y DE {P['de_placebos']:.4f}; **p = {P['p_placebo']:.3f}** |
+""")
+```
+
+Con 33 clústeres el error estándar agrupado descansa en una asintótica que no se cumple; el bootstrap
+salvaje con la nula impuesta es la corrección estándar para ese caso. El placebo baraja el índice dentro de
+cada año: conserva la trayectoria nacional y destruye solo la asignación territorial, que es la variación
+que identificaría un efecto.
+
+## 7. Lectura
+
+```{python}
+#| echo: false
+b = R["principales"][0]; s = R["principales"][2]; ss = R["disenos"][1]
+Markdown(f"""
+El coeficiente del índice sobre el crecimiento es **{fmt(b['coef'])}** con efectos fijos de entidad y
+tiempo (p = {b['p']:.2f}; bootstrap salvaje p = {W['p_bootstrap']:.2f}; placebo p = {P['p_placebo']:.2f}).
+Sin efectos de tiempo sería {fmt(s['coef'])} (p < 0,001): esa diferencia es lo que valía la tendencia
+nacional. Las tres dimensiones, la especificación en cambios, el CCE, el SLX y los dos índices
+alternativos dan lo mismo. El único diseño con un coeficiente distinto de cero es el shift-share
+({fmt(ss['coef'])}, p = {ss['p']:.3f}). Sobrevive al ingreso inicial como exposición de placebo, pero la
+urbanización inicial produce una pendiente igual de significativa ({fmt(S['placebos'][1]['coef'])},
+p = {S['placebos'][1]['p']:.3f}): lo que ese diseño recoge es que los departamentos más urbanos, que son
+también los más incluidos, crecieron más rápido en el periodo. Es una pendiente diferencial, no un efecto
+causal del índice, y no se presenta como tal porque solo sobrevive a uno de los cuatro diseños y no
+distingue inclusión de urbanización.
+""")
+```
