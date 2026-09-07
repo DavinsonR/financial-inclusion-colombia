@@ -1,10 +1,10 @@
 # Inclusión financiera y crecimiento regional en Colombia
 
-**Proyecto de investigación reproducible: warehouse abierto de 19 fuentes públicas (2005–2026), índice de inclusión financiera por dimensiones, paneles anuales departamental y municipal, y atlas interactivo.**
+**Investigación reproducible: warehouse abierto de 19 fuentes públicas, índice de inclusión financiera por dimensiones, paneles anuales departamental y municipal, atlas interactivo de los 1.123 municipios y batería econométrica completa contra la correlación espuria.**
 
-Nace del trabajo de grado *Desarrollo Fintech e inclusión financiera como predictores del crecimiento económico regional en Colombia* (Maestría en Economía, Pontificia Universidad Javeriana, 2026; director: Gabriel Penagos Londoño). Ese trabajo es el borrador y la inspiración: aquí no se reutiliza ninguno de sus resultados. Todo se rehace desde las fuentes, con más años, nivel municipal y un diseño que enfrenta de frente la correlación espuria entre inclusión y crecimiento.
+Tesis de Maestría en Economía, Pontificia Universidad Javeriana (2026; director: Gabriel Penagos Londoño). Pregunta: ¿la inclusión financiera predice el crecimiento de los departamentos una vez descontadas las tendencias nacionales que los mueven a todos a la vez? La respuesta se publica con su especificación, su N, sus clústeres y sus pruebas, sea cual sea el signo.
 
-Sitio del proyecto: <https://financial-inclusion-colombia.vercel.app>. Autor: Davirson Novoa Ramírez.
+Página del proyecto: <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion>. Autor: Davirson Novoa Ramírez.
 
 *English summary: see [Abstract](#abstract).*
 
@@ -13,11 +13,12 @@ Sitio del proyecto: <https://financial-inclusion-colombia.vercel.app>. Autor: Da
 
 | Fecha | Hito |
 |---|---|
-| ago-2026 | Trabajo de grado radicado ante la Dirección de Posgrados |
-| sep-2026 | Fase 0: reestructura del repositorio, paquete `iif`, documentos de gobierno, dbt, sitio y CI |
+| ago-2026 | Tesis radicada ante la Dirección de Posgrados |
+| sep-2026 | Fase 0: paquete `iif`, documentos de gobierno, dbt, sitio y CI |
 | sep-2026 | Fase 1: las 19 fuentes descargadas con manifiesto, claves DIVIPOLA, staging de las 13 tablas, SFC en largo, empalme 2021Q1 medido |
-| en curso | Fase 2: hechos y paneles anuales, índice en dos etapas |
-| pendiente | Fase 3: atlas y econometría; Fase 4: anexos y manuscrito |
+| sep-2026 | Fase 2: hechos y paneles anuales, índice por dimensiones con pesos publicados |
+| sep-2026 | Fase 3: atlas de tres vistas y batería econométrica con sus resultados (ADR-016) |
+| pendiente | Fase 4: anexo de desagregación temporal y manuscrito |
 | nov-2026 (previsto) | Grado |
 
 El plan completo, con semáforo por fase y las decisiones de valor, está en [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md).
@@ -27,8 +28,8 @@ El plan completo, con semáforo por fase y las decisiones de valor, está en [`d
 1. **Warehouse.** Esquema estrella con vintages en dbt sobre todas las fuentes públicas: Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local, en CI y para el sitio. BigQuery como warehouse en la nube, en su sandbox gratuito y sin tarjeta (`bigquery/`). Snowflake queda como demo posterior (ADR-014).
 2. **Índice.** Índice de inclusión financiera por dimensión (acceso, uso, profundidad) sobre ocho variables normalizadas, con pesos congelados en la ventana de calibración y publicados variable a variable, a nivel departamental y municipal (ADR-004, ADR-015).
 3. **Paneles.** Frecuencia anual: departamental 2018 a 2025 y municipal 2018 a 2024; panel trimestral real solo donde el DANE publica actividad trimestral (ITAED) (ADR-001).
-4. **Atlas.** Mapa interactivo del índice por región, dimensión y variable en Quarto y Observable JS, sin servidor (ADR-005).
-5. **Econometría.** Efectos fijos de entidad y tiempo como base y una batería explícita contra la correlación espuria (ver [Método](#method)).
+4. **Atlas.** Mapa interactivo del índice por región, dimensión y variable, en tres vistas —plano, relieve y municipios— dentro de la página del proyecto; los datos salen de `uv run iif atlas` (ADR-005).
+5. **Econometría.** Efectos fijos de entidad y tiempo como base, diagnósticos medidos, cuatro diseños que no dependen de la exogeneidad del índice y bootstrap salvaje por clúster; todo en `src/iif/econ` y publicado en `metodologia/panel.qmd` (ADR-016).
 
 <a id="abstract"></a>
 ## Abstract
@@ -66,7 +67,7 @@ Lo que ya sabemos de los datos, con su prueba:
 - La fila de total departamental es la suma exacta de las municipales en la tabla legada; en la vigente difiere hasta 2,2 % en corresponsales desde 2022Q3 (B-032). Nunca se suman ambas.
 - El trimestre 2021Q1 existe en las dos tablas: mediana de la diferencia relativa entre ellas 0,02 %, peor departamento 1,8 % (B-033, ADR-009).
 - Los ceros de la SFC fuera del bloque de producto, y los ceros de tasas del MEN, son faltantes, no ceros (ADR-008, R-13).
-- El panel trimestral del trabajo de grado está congelado en `data/legacy/` como insumo histórico; no se usa para ningún resultado.
+- El panel trimestral anterior está congelado en `data/legacy/`; no alimenta ningún resultado.
 
 Licencias y atribución por fuente: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md). Modelo de datos: [`datos/modelo-de-datos.qmd`](datos/modelo-de-datos.qmd).
 
@@ -81,12 +82,23 @@ Licencias y atribución por fuente: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_D
 <a id="main-result"></a>
 ## Resultado principal
 
-Todavía no hay. Se publica cuando la Fase 3 lo produzca, con la especificación, el N, los clústeres y la prueba que lo respalda. Lo que se publicará, sea cual sea el signo: la tabla de referencia con efectos fijos de entidad y tiempo, los mismos coeficientes bajo cada elemento de la batería, y las versiones departamental y municipal lado a lado.
+**Con efectos fijos de entidad y tiempo, el índice de inclusión financiera no predice el crecimiento del PIB real per cápita departamental.** Treinta y tres departamentos, 2019 a 2025, N = 228: β = +0,0007 (EE 0,0060, p = 0,90); bootstrap salvaje por clúster p = 0,89; placebo por permutación p = 0,68. Sin efectos de tiempo el mismo coeficiente vale +0,024 con p < 0,001: esa distancia es lo que valía la tendencia nacional.
+
+Las tres dimensiones por separado, la especificación en cambios, el CCE con cargas heterogéneas, el SLX espacial y los índices alternativos por PCA y Sarma dan lo mismo. El único diseño con señal es el shift-share con exposición de 2018 (+0,018, p = 0,007), y la urbanización inicial produce una pendiente igual de significativa: se publica como pendiente diferencial de los departamentos más urbanos, no como efecto del índice.
+
+Todas las cifras salen de `data/processed/econ/resultados.json` (`uv run iif econ`) y se leen en `metodologia/panel.qmd`; el diseño está en ADR-016 y las pruebas sobre paneles sintéticos en `tests/test_econ.py`.
 
 <a id="diagnostics"></a>
 ## Diagnósticos
 
-Los que acompañarán a cada estimación: dependencia transversal (Pesaran CD), raíz unitaria con dependencia transversal (CIPS), errores estándar de Driscoll-Kraay frente a clusterizados, Mundlak en lugar de Hausman, Moran sobre residuos, estabilidad de los pesos del índice y adecuación muestral por dimensión (KMO, Bartlett). Cada uno con su prueba en `tests/` o en `dbt/tests/`.
+| Prueba | Resultado |
+|---|---|
+| CD de Pesaran sobre los residuos del modelo base | 2,46 (p = 0,014): dependencia transversal débil pero presente; por eso Driscoll-Kraay acompaña al clúster |
+| CIPS sobre el índice | −2,28 con T = 8: indicio de estacionariedad, no veredicto |
+| I de Moran del crecimiento por año, contigüidad de los arcos del TopoJSON | significativa en 2022 (0,22, p = 0,039) y 2025 (0,23, p = 0,047); el SLX la absorbe |
+| Adecuación muestral del índice por dimensión | KMO 0,314 en acceso y 0,404 en uso: por debajo de 0,5, por eso no hay PCA (ADR-015) |
+
+Cada uno con su prueba en `tests/test_econ.py`, `tests/test_index.py` o en `dbt/tests/`.
 
 ## Cómo correrlo
 
@@ -109,15 +121,15 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 ├── data/
 │   ├── raw/           descargas por fuente y año, manifest.jsonl; _large/ ignorado
 │   ├── interim/       Parquet tidy del DANE, MGN e informes de claves de la SFC
-│   └── legacy/        panel del trabajo de grado, congelado como insumo histórico
+│   └── legacy/        panel trimestral anterior, congelado; no alimenta ningún resultado
 ├── db/                iif.duckdb local (ignorado)
 ├── dbt/               estrella dimensional: seeds, staging, intermediate, marts, tests
 ├── bigquery/          datasets, carga de Parquet, particionado, control de coste, vistas autorizadas
 ├── snowflake/         scripts para el demo posterior (ADR-014)
-├── src/iif/           config, cli, acquire, parse, crosswalk, data, legacy (port congelado)
+├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, export, data, legacy
 ├── tests/             pytest; marca `data` para pruebas que leen descargas
 ├── docs/              guía, bitácora, decisiones/ (ADR), licencias, legacy/
-├── _quarto.yml, *.qmd sitio (Vercel, rama `site` construida por CI)
+├── _quarto.yml, *.qmd documentación del proyecto en Quarto (metodología, datos, decisiones)
 └── .github/workflows/ ci.yml (lint, pruebas, dbt, render, publicación del sitio)
 ```
 
@@ -125,7 +137,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): qué se construye, semáforo por fase, mapa del repo, glosario, decisiones de valor, hoja de ruta, preguntas abiertas.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): errores (B-001 en adelante) y aciertos (S-001 en adelante) con causa raíz y regla.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-014.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licencia y atribución por fuente.
 
 <a id="que-hay-y-que-falta"></a>
@@ -141,12 +153,12 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | Hechos de inclusión (trimestral y anual, municipal y departamental), puntos de atención, actividad, internet y educación | Hecho |
 | Paneles anuales: departamental 2018-2025 y municipal 2018-2024 | Hecho |
 | Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
-| Atlas interactivo | Fase 3, pendiente |
-| Econometría y batería contra la correlación espuria | Fase 3, pendiente |
+| Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
+| Econometría: `src/iif/econ`, 12 pruebas sintéticas, `metodologia/panel.qmd` con los resultados | Hecho |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
-| PDF del trabajo de grado | Tras el depósito en el repositorio institucional de la Javeriana |
+| PDF de la tesis | Tras el depósito en el repositorio institucional de la Javeriana |
 | Página en el sitio del autor | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |
 
 ## Cómo citar
