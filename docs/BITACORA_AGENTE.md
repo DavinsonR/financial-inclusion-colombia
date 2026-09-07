@@ -472,3 +472,10 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Cómo se encontró: midiendo tres cosas en vez de mirar la consola. El dominio de producción daba 404 con `DEPLOYMENT_NOT_FOUND`, que significa "este dominio no apunta a nada" y no "el build falló". La URL de la rama (`...-git-site-...`) daba 302 al SSO, y esa URL **solo existe si la rama tiene despliegues**: luego Vercel sí construía `site` y los archivaba como vista previa. Y hubo un despliegue nuevo de `site` a las 23:08 con producción todavía en 404, lo que descartaba que fuera cuestión de esperar.
 - Regla: un despliegue se declara en el repositorio y se verifica contra el dominio público. CI despliega producción con la CLI de Vercel, que no está atada a ninguna rama, y después comprueba que el dominio devuelve 200; si no, el build falla. Un build verde con el sitio inalcanzable es peor que un build rojo, porque nadie lo mira.
 - Evidencia: `.github/workflows/ci.yml`, pasos «Desplegar produccion en Vercel» y «Comprobar el dominio de produccion»; adenda 4 de ADR-005.
+
+## B-046 · 2026-09-06 · El atlas publicado no encontraba sus datos
+- Contexto: `atlas/index.qmd` carga la geometría y las series con `FileAttachment("data/*.json")`.
+- Qué pasó: en el sitio desplegado, las seis celdas del atlas mostraban `OJS Runtime Error: Unable to load file`. En local no se veía porque después de cada exportación yo copiaba los JSON a `_site` a mano, sin darme cuenta de que ese `cp` era lo único que los ponía allí.
+- Causa raíz: Quarto copia a `_site` los recursos que ve **enlazados en el HTML**; las rutas de `FileAttachment` viven dentro de una celda de OJS y no las descubre. La portada declaraba `resources: lib/*.js` y no `data/*.json`, así que los datos nunca se publicaban.
+- Regla: todo recurso que solo se nombre dentro de una celda de OJS se declara en `resources`. Y la comprobación de que una página funciona se hace sobre el sitio construido sin tocarlo a mano: un `cp` de conveniencia durante la revisión esconde exactamente este fallo.
+- Evidencia: `atlas/index.qmd`, bloque `resources`.
