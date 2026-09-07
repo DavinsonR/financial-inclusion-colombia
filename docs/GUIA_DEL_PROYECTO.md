@@ -22,7 +22,7 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 | 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Hecha: atlas de tres vistas y batería completa en `src/iif/econ` con 12 pruebas sintéticas (ADR-016) | verde |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
 
-Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto, CI con publicación en Vercel y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
+Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto (que compila en `make check` y no se publica aparte), CI y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
 
 Lo que no hay todavía: el anexo de desagregación temporal y el manuscrito. Los dos paneles anuales ya existen: departamental 2018-2025 (264 filas, 231 observaciones de crecimiento, ninguna repetida) y municipal 2018-2024 (7.861 filas, 1.123 municipios). `make check` corre en cero (ruff, pytest, `dbt build` en DuckDB, `quarto render`).
 
@@ -64,7 +64,7 @@ docs/LICENCIAS_DATOS.md       licencias por fuente y qué implican
 docs/decisiones-metodologicas.md  decisiones de la versión corregida de la tesis (ago-2026); histórico
 docs/legacy/                  dump original y reproducción; se regenera con `make reproduce`
 scripts/install_quarto.sh     Quarto por tarball
-.github/workflows/            ci.yml: lint, pruebas, dbt, render y publicación de la rama `site` que despliega Vercel
+.github/workflows/            ci.yml: lint, pruebas, dbt y render; `_site` queda como artefacto
 paper/                        PDF tras el depósito institucional; congelado (R-06)
 ```
 
@@ -110,7 +110,7 @@ paper/                        PDF tras el depósito institucional; congelado (R-
 | Datos en el repo o en Releases | todo en git; todo fuera; Parquet < 45 MB en git y desborde en Releases | Parquet en git, desborde en Releases | el autor sube los assets a mano | ADR-003; `config/sources.yaml` (`max_file_mb`) |
 | DVC | ahora; diferido; nunca | diferido hasta que el desborde supere 5 archivos | sin versionado fino de datos grandes | ADR-003 |
 | Motor del warehouse | Snowflake en producción; BigQuery; Databricks; solo DuckDB | DuckDB para local, CI y sitio; BigQuery como warehouse en la nube (sandbox gratuito, sin tarjeta); Snowflake como demo posterior | cero coste mientras el proyecto quepa en 10 GB y 1 TB de consulta al mes; en el sandbox las tablas expiran a los 60 días y se recargan con un comando | ADR-014 (adendas); `dbt/profiles.yml`, `bigquery/` |
-| Publicación del sitio | GitHub Pages; Vercel | Vercel desde la rama `site` que construye CI | una sola plataforma con el portafolio; Vercel no compila Quarto, por eso CI renderiza | ADR-005 (adenda); `.github/workflows/ci.yml` |
+| Publicación del sitio | GitHub Pages; Vercel; ninguna | Ninguna: la superficie pública es la página del portafolio | dos superficies para el mismo contenido dejan una sin dueño; `quarto render` se queda en `make check` como prueba de que compila | ADR-005 (adenda 5); `.github/workflows/ci.yml` |
 
 ## 6. Hoja de ruta por fases
 
@@ -124,7 +124,7 @@ Entrada: la PR anterior del repo fusionada. Salida: `make check` en cero; cero c
 - [x] S4 `CLAUDE.md`, bitácora, esta guía, ADR-001 a ADR-014, `LICENCIAS_DATOS.md`, README
 - [x] S5 dbt: proyecto, `profiles.yml` (duckdb y snowflake), semillas, `stg_legacy__panel_trimestral`, `dim_departamento`, `dim_periodo`; `snowflake/*.sql`
 - [x] S6 Quarto: `_quarto.yml`, páginas y stubs `draft: true`; `quarto render` en cero
-- [x] S7 CI: `ci.yml` (lint, pruebas, dbt, render y publicación de la rama `site`); `requirements.txt` exportado
+- [x] S7 CI: `ci.yml` (lint, pruebas, dbt y render); `requirements.txt` exportado
 - [x] S8 Commit de fase 0 y push
 
 ### Fase 1: adquisición, crosswalk y staging
@@ -159,18 +159,17 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 - Auditoría interna (no publicada): `make reproduce` regenera `docs/legacy/reproduccion.md`, que sirve de evidencia para las entradas B-001 a B-015 de la bitácora. Mientras el panel congelado no cambie, el informe no cambia (sha256 en `data/legacy/SHA256SUMS`).
 - Limpieza: `tests/test_repo.py::test_no_private_strings_in_published_trees` recorre `data/legacy`, `notebooks` y `docs` con la lista de cadenas privadas de `iif.data.scrub`; debe dar cero.
 - Sitio: `_site/index.html`, `_site/datos/fuentes.html` (manifiesto) y `_site/datos/crosswalk.html` (cobertura y empalme) se renderizan con datos reales; el atlas y la metodología del índice ya están publicados y solo el panel econométrico y el anexo siguen como borrador.
-- Sitio publicado: CI despliega producción en Vercel con la CLI y luego comprueba que
-  `https://financial-inclusion-colombia.vercel.app/` devuelve 200; si no, el build falla. Necesita un solo
-  secreto de repositorio, `VERCEL_TOKEN`, creado en <https://vercel.com/account/tokens> con ámbito
-  `Davinson_Project` (ADR-005, adenda 4). Para republicar el sitio sin tocar el código: pestaña Actions del
-  repositorio, workflow «CI», «Run workflow» sobre `main`.
+- Sitio publicado: ninguno. La única dirección pública del proyecto es su página en el portafolio,
+  <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> (ADR-005, adenda 5). El sitio
+  Quarto se sigue construyendo en cada corrida y queda como artefacto «sitio» en la pestaña Actions, que es
+  donde se mira cuando hace falta; para regenerarlo sin tocar el código, «Run workflow» sobre `main`.
 - Atlas: `uv run iif atlas` deja `atlas/data/` por debajo de 3 MB y `pytest tests/test_atlas.py` comprueba el giro de los anillos, el área esférica de Colombia, el presupuesto y el tipo de cada acompañante. Lo que una prueba no ve (encuadre, colisiones de rótulos, fugas de oyentes) se mide en el navegador; el procedimiento está en S-016.
-- CI: `ci.yml` corre lo mismo que `make check`, publica `_site` como artefacto y, en `main`, lo empuja a la rama `site` que despliega Vercel.
+- CI: `ci.yml` corre lo mismo que `make check` y publica `_site` como artefacto.
 
 ## 9. Preguntas abiertas
 
 Del lado del autor:
-- En Vercel, proyecto `financial-inclusion-colombia`: Settings, Git, Production Branch = `site`. Es el único ajuste manual; CI se encarga del resto.
+- Borrar el proyecto `financial-inclusion-colombia` en Vercel, revocar el token en <https://vercel.com/account/tokens> y borrar el secreto `VERCEL_TOKEN` del repositorio: ya no hay nada que desplegar (ADR-005, adenda 5).
 - Subir a Release cualquier partición que supere 45 MB (arrastrar en el navegador; desde la sesión no se puede, B-023).
 - BigQuery: crear el proyecto en modo sandbox (sin tarjeta), correr `bash bigquery/01_load_parquet.sh <proyecto>` y, si quiere que CI lo verifique, añadir los secrets `BIGQUERY_PROJECT`, `BIGQUERY_LOCATION` y `BIGQUERY_KEYFILE_JSON`.
 - Cuando quiera el demo de Snowflake: cuenta de prueba, usuario con par de claves y los cinco secrets; entonces se recrea su job de CI (ADR-014).

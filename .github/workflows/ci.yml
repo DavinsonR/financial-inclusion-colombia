@@ -4,8 +4,7 @@ on:
   push:
     branches: ["**"]
   pull_request:
-  # Republicar el sitio sin un commit de codigo. La rama `site` solo se reescribe cuando corre sobre `main`,
-  # y el disparo manual se hace sobre `main`, asi que la condicion de los pasos de publicacion ya vale.
+  # Relanzar la cadena a mano, sin un commit de codigo.
   workflow_dispatch:
 
 env:
@@ -58,64 +57,12 @@ jobs:
           QUARTO_PYTHON: ${{ github.workspace }}/.venv/bin/python
         run: quarto render
 
+      # El sitio ya no se publica: queda como artefacto, que es donde se mira cuando hace falta.
       - uses: actions/upload-artifact@v4
         with:
           name: sitio
           path: _site
 
-      # El sitio se publica en Vercel. Vercel no puede correr Quarto ni Python en su build, asi que CI
-      # renderiza y sube el resultado ya hecho; `_site/vercel.json` lo marca como estatico.
-      - name: Preparar _site para Vercel
-        if: github.ref == 'refs/heads/main'
-        run: cp .github/site/vercel.json _site/vercel.json
-
-      - name: Hay token de Vercel
-        id: vercel
-        if: github.ref == 'refs/heads/main'
-        run: echo "ok=${{ secrets.VERCEL_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-
-      # Despliegue por CLI, no por la integracion de git. Un despliegue por CLI no esta atado a ninguna
-      # rama, asi que el ajuste "Production Branch" de la consola deja de decidir si el dominio de
-      # produccion tiene contenido: el destino queda declarado aqui (B-045). El orgId y el projectId no
-      # son credenciales sino identificadores, y ya son publicos; el unico secreto es el token.
-      - name: Desplegar produccion en Vercel
-        if: github.ref == 'refs/heads/main' && steps.vercel.outputs.ok == 'true'
-        env:
-          VERCEL_ORG_ID: team_vsIksKP4BA1FeV3paGf1JR6s
-          VERCEL_PROJECT_ID: prj_yemQsAyGdxBHejcgCEojeVzYSbVT
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx --yes vercel@latest deploy _site --prod --yes --token="$VERCEL_TOKEN"
-
-      # Un build verde con el sitio inalcanzable es justo el fallo que este paso existe para impedir: el
-      # dominio de produccion estuvo en 404 mientras CI pasaba, porque nadie comprobaba el dominio.
-      - name: Comprobar el dominio de produccion
-        if: github.ref == 'refs/heads/main' && steps.vercel.outputs.ok == 'true'
-        run: |
-          url=https://financial-inclusion-colombia.vercel.app/
-          codigo=000
-          for intento in 1 2 3 4 5 6; do
-            codigo=$(curl -s -o /dev/null -w '%{http_code}' "$url" || echo 000)
-            echo "intento $intento: $codigo"
-            if [ "$codigo" = "200" ]; then exit 0; fi
-            sleep 10
-          done
-          echo "::error::$url devuelve $codigo y no 200. Causas probables: el token se creo con ambito personal en vez de Davinson_Project, o Deployment Protection cubre produccion (Settings, Deployment Protection, Vercel Authentication)."
-          exit 1
-
-      # La rama `site` se conserva como registro publico y legible de que se publico, y como plan B si
-      # algun dia se retira el token.
-      - name: Publicar la rama site
-        if: github.ref == 'refs/heads/main'
-        run: |
-          cd _site
-          git init -q -b site
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -q -m "Sitio renderizado desde ${GITHUB_SHA}"
-          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   bigquery:
     name: dbt en BigQuery (solo con credenciales)
