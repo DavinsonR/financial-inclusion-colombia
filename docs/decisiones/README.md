@@ -20,3 +20,4 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [014](ADR-014-snowflake.md) | DuckDB como motor, BigQuery en la nube, Snowflake como demo posterior | aceptada, con adendas |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
+- [ADR-016](ADR-016-diseno-econometrico.md) · Diseño econométrico del panel departamental: two-way FE, diagnósticos medidos, cuatro diseños contra la exogeneidad y bootstrap salvaje.
