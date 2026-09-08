@@ -1,174 +1,178 @@
-# Inclusión financiera y crecimiento regional en Colombia
+# Financial inclusion and regional growth in Colombia
 
-**Investigación reproducible: warehouse abierto de 19 fuentes públicas, índice de inclusión financiera por dimensiones, paneles anuales departamental y municipal, atlas interactivo de los 1.123 municipios y batería econométrica completa contra la correlación espuria.**
+*[Leer en español](README.es.md)*
 
-Tesis de Maestría en Economía, Pontificia Universidad Javeriana (2026; director: Gabriel Penagos Londoño). Pregunta: ¿la inclusión financiera predice el crecimiento de los departamentos una vez descontadas las tendencias nacionales que los mueven a todos a la vez? La respuesta se publica con su especificación, su N, sus clústeres y sus pruebas, sea cual sea el signo.
+**Reproducible research: an open warehouse of 19 public sources, a financial-inclusion index by dimension, annual department and municipality panels, an interactive atlas of all 1,123 municipalities, and a full econometric battery against spurious correlation.**
 
-Página del proyecto: <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion>. Autor: Davirson Novoa Ramírez.
+MSc Economics thesis, Pontificia Universidad Javeriana (2026; supervisor: Gabriel Penagos Londoño). The question: does financial inclusion predict departmental growth once the national trends that move every department at once are taken out? The answer is published with its specification, its N, its clusters and its tests, whatever the sign.
 
-*English summary: see [Abstract](#abstract).*
+Project page: <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion>. Author: Davirson Novoa Ramírez.
+
+*Documentación del proyecto (guía, bitácora, ADR, metodología) en español: ver [README.es.md](README.es.md).*
 
 <a id="status"></a>
-## Estado
+## Status
 
-| Fecha | Hito |
+| Date | Milestone |
 |---|---|
-| ago-2026 | Tesis radicada ante la Dirección de Posgrados |
-| sep-2026 | Fase 0: paquete `iif`, documentos de gobierno, dbt, sitio y CI |
-| sep-2026 | Fase 1: las 19 fuentes descargadas con manifiesto, claves DIVIPOLA, staging de las 13 tablas, SFC en largo, empalme 2021Q1 medido |
-| sep-2026 | Fase 2: hechos y paneles anuales, índice por dimensiones con pesos publicados |
-| sep-2026 | Fase 3: atlas de tres vistas y batería econométrica con sus resultados (ADR-016) |
-| pendiente | Fase 4: anexo de desagregación temporal y manuscrito |
-| nov-2026 (previsto) | Grado |
+| Aug 2026 | Thesis filed with the graduate school |
+| Sep 2026 | Phase 0: the `iif` package, governance documents, dbt, site and CI |
+| Sep 2026 | Phase 1: 19 sources downloaded with a manifest, DIVIPOLA keys, staging of the 13 tables, the supervisor's data in long form, the 2021Q1 splice measured |
+| Sep 2026 | Phase 2: facts and annual panels, index by dimension with published weights |
+| Sep 2026 | Phase 3: a three-view atlas and the econometric battery with its results (ADR-016) |
+| pending | Phase 4: temporal-disaggregation annex and manuscript |
+| Nov 2026 (expected) | Graduation |
 
-El plan completo, con semáforo por fase y las decisiones de valor, está en [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md).
+The full plan, with a per-phase status light and the decisions of record, is in [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md) (Spanish).
 
-## Qué construye
+## What it builds
 
-1. **Warehouse.** Esquema estrella con vintages en dbt sobre todas las fuentes públicas: Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local, en CI y para el sitio. BigQuery como warehouse en la nube, en su sandbox gratuito y sin tarjeta (`bigquery/`). Snowflake queda como demo posterior (ADR-014).
-2. **Índice.** Índice de inclusión financiera por dimensión (acceso, uso, profundidad) sobre ocho variables normalizadas, con pesos congelados en la ventana de calibración y publicados variable a variable, a nivel departamental y municipal (ADR-004, ADR-015).
-3. **Paneles.** Frecuencia anual: departamental 2018 a 2025 y municipal 2018 a 2024; panel trimestral real solo donde el DANE publica actividad trimestral (ITAED) (ADR-001).
-4. **Atlas.** Mapa interactivo del índice por región, dimensión y variable, en tres vistas —plano, relieve y municipios— dentro de la página del proyecto; los datos salen de `uv run iif atlas` (ADR-005).
-5. **Econometría.** Efectos fijos de entidad y tiempo como base, diagnósticos medidos, cuatro diseños que no dependen de la exogeneidad del índice y bootstrap salvaje por clúster; todo en `src/iif/econ` y publicado en `metodologia/panel.qmd` (ADR-016).
+1. **Warehouse.** A star schema with vintages in dbt over every public source: the financial supervisor (2017Q4 to 2025Q4, plus monthly service points from 2023), the statistics office (departmental GDP 2005 to 2025, municipal value added 2011 to 2024, population 2005 to 2042, the quarterly ITAED indicator), the ICT and education ministries, and the 2024 national geostatistical framework. Engine: DuckDB locally, in CI and for the site. BigQuery as the cloud warehouse, in its free sandbox and without a card (`bigquery/`). Snowflake is kept as a later demonstration (ADR-014).
+2. **Index.** A financial-inclusion index by dimension (access, use, depth) over eight normalised variables, with weights frozen over the calibration window and published variable by variable, at department and municipality level (ADR-004, ADR-015).
+3. **Panels.** Annual frequency: department 2018 to 2025 and municipality 2018 to 2024; a real quarterly panel only where the statistics office publishes quarterly activity (ITAED) (ADR-001).
+4. **Atlas.** An interactive map of the index by region, dimension and variable, in three views — flat, raised and municipalities — inside the project page; the data comes from `uv run iif atlas` (ADR-005).
+5. **Econometrics.** Entity and time fixed effects as the baseline, diagnostics measured rather than assumed, four designs that do not rely on the index being exogenous, and a wild cluster bootstrap; all in `src/iif/econ` and published in `metodologia/panel.qmd` (ADR-016).
 
 <a id="abstract"></a>
 ## Abstract
 
-Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test. No results are published yet: they appear when phase 3 produces them, together with the code that produced them.
+Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test.
 
-## Pregunta de investigación
+## Research question
 
-¿La inclusión financiera predice el crecimiento económico de los departamentos y municipios colombianos una vez descontadas las tendencias nacionales que mueven a todos a la vez?
+Does financial inclusion predict the economic growth of Colombian departments and municipalities once the national trends that move them all at once are taken out?
 
-Un rezago del índice ordena la relación en el tiempo; **no** constituye una estrategia de identificación causal. El lenguaje del proyecto es de predicción, salvo en los diseños (shift-share, estudio de eventos) que sí buscan variación plausiblemente exógena.
+A lag of the index orders the relationship in time; it does **not** constitute a causal identification strategy. The project's language is predictive, except in the designs (shift-share, event study) that do look for plausibly exogenous variation.
 
 <a id="data"></a>
-## Datos
+## Data
 
-Diecinueve fuentes, todas verificadas en línea con URL, filas y licencia, descargadas por `iif acquire` y registradas en `data/raw/manifest.jsonl` con sha256, fecha de la fuente y filas:
+Nineteen sources, all verified online with URL, row count and licence, downloaded by `iif acquire` and recorded in `data/raw/manifest.jsonl` with a sha256, the source date and the row count:
 
-| Fuente | Grano | Frecuencia | Cobertura | Licencia |
+| Source | Grain | Frequency | Coverage | Licence |
 |---|---|---|---|---|
-| SFC `ptgf-ywrb` inclusión financiera (legado) | entidad × municipio × bloque | trimestral | 2017Q4–2021Q1 | CC BY-SA 4.0 |
-| SFC `kx2f-xjdq` inclusión financiera (vigente) | entidad × municipio × bloque | trimestral | 2021Q1–2025Q4 | CC BY-SA 4.0 |
-| SFC `vkbt-desu` puntos de atención | entidad × municipio × canal | mensual | 2023-01 en adelante | CC BY-SA 4.0 |
-| DANE PIB departamental (3 cuadros), por actividad, retropolación | departamento | anual | 2005–2025pr | pública |
-| DANE valor agregado municipal | municipio | anual | 2011–2024p | pública |
-| DANE población `_VP` | municipio, departamento | anual | 2005–2042 | pública |
-| DANE ITAED | 13 departamentos + Bogotá + resto | trimestral | 2015Q1–2026Q1pr | pública |
-| DANE PIB trimestral de Bogotá, ISE, EMMET territorial | Bogotá, nacional, dominios | trimestral, mensual | hasta 2026 | pública |
-| MinTIC `n48w-gutb` internet fijo | municipio × proveedor | trimestral | 2016Q1–2023Q3 | CC BY-SA 4.0 |
-| MEN `nudc-7mev` educación | municipio | anual | 2011–2024 | CC BY-SA 4.0 |
-| DANE MGN 2024 | 33 departamentos, 1.121 municipios | sin periodo | sin periodo | pública, se atribuye |
+| Financial supervisor `ptgf-ywrb`, financial inclusion (legacy) | institution × municipality × block | quarterly | 2017Q4–2021Q1 | CC BY-SA 4.0 |
+| Financial supervisor `kx2f-xjdq`, financial inclusion (current) | institution × municipality × block | quarterly | 2021Q1–2025Q4 | CC BY-SA 4.0 |
+| Financial supervisor `vkbt-desu`, service points | institution × municipality × channel | monthly | 2023-01 onwards | CC BY-SA 4.0 |
+| Statistics office, departmental GDP (3 tables), by activity, backcast | department | annual | 2005–2025p | public |
+| Statistics office, municipal value added | municipality | annual | 2011–2024p | public |
+| Statistics office, population `_VP` | municipality, department | annual | 2005–2042 | public |
+| Statistics office, ITAED | 13 departments + Bogotá + rest | quarterly | 2015Q1–2026Q1p | public |
+| Statistics office, Bogotá quarterly GDP, ISE, territorial EMMET | Bogotá, national, domains | quarterly, monthly | to 2026 | public |
+| ICT ministry `n48w-gutb`, fixed internet | municipality × provider | quarterly | 2016Q1–2023Q3 | CC BY-SA 4.0 |
+| Education ministry `nudc-7mev` | municipality | annual | 2011–2024 | CC BY-SA 4.0 |
+| National geostatistical framework 2024 | 33 departments, 1,121 municipalities | no period | no period | public, attributed |
 
-Lo que ya sabemos de los datos, con su prueba:
+What we already know about the data, each with its test:
 
-- Las dos tablas de la SFC llevan el código DIVIPOLA implícito: `renglon` es el código municipal y `999` el total departamental; cobertura del 100 % en los 34 cortes (S-009, S-010).
-- La fila de total departamental es la suma exacta de las municipales en la tabla legada; en la vigente difiere hasta 2,2 % en corresponsales desde 2022Q3 (B-032). Nunca se suman ambas.
-- El trimestre 2021Q1 existe en las dos tablas: mediana de la diferencia relativa entre ellas 0,02 %, peor departamento 1,8 % (B-033, ADR-009).
-- Los ceros de la SFC fuera del bloque de producto, y los ceros de tasas del MEN, son faltantes, no ceros (ADR-008, R-13).
-- El panel trimestral anterior está congelado en `data/legacy/`; no alimenta ningún resultado.
+- The supervisor's two tables carry the DIVIPOLA code implicitly: `renglon` is the municipal code and `999` the departmental total; 100% coverage across the 34 quarterly cuts (S-009, S-010).
+- The departmental total row is the exact sum of the municipal ones in the legacy table; in the current one it diverges by up to 2.2% on banking correspondents from 2022Q3 (B-032). The two are never added together.
+- Quarter 2021Q1 exists in both tables: the median relative difference between them is 0.02%, and the worst department 1.8% (B-033, ADR-009).
+- The supervisor's zeros outside the product block, and the education ministry's zero rates, are missing values, not zeros (ADR-008, R-13).
+- The previous quarterly panel is frozen in `data/legacy/`; it feeds no result.
 
-Licencias y atribución por fuente: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md). Modelo de datos: [`datos/modelo-de-datos.qmd`](datos/modelo-de-datos.qmd).
+Licences and attribution per source: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md). Data model: [`datos/modelo-de-datos.qmd`](datos/modelo-de-datos.qmd).
 
 <a id="method"></a>
-## Método
+## Method
 
-1. **Frecuencia anual y dos paneles** (ADR-001). El PIB subnacional es anual; ningún valor anual se repite en cuatro trimestres. Panel departamental 2018 a 2025 (33 unidades), panel municipal 2018 a 2024 (unos 1.100), y panel trimestral solo para los 13 departamentos con ITAED. La desagregación temporal (Chow-Lin, Denton) es un anexo con advertencias (ADR-010).
-2. **Índice en dos etapas** (ADR-004). Componentes principales por dimensión (acceso, uso, profundidad), subíndices y compuesto; pesos ajustados en la ventana inicial y congelados; estandarización en lugar de min-max; pesos implícitos por variable siempre publicados; pesos iguales y distancia de Sarma como alternativas.
-3. **Batería contra la correlación espuria.** Efectos fijos de entidad y tiempo como base; raíz unitaria de panel con dependencia transversal (CIPS); estimación en cambios del índice; efectos correlacionados comunes (CCE); placebo por permutación; shift-share con exposición inicial de 2018; estudio de eventos (Ingreso Solidario 2020, corresponsales digitales); dependencia espacial (Moran, SAR/SDM); heterogeneidad por interacciones con wild cluster bootstrap. Nunca submuestras de pocos clústeres.
-4. **Trazabilidad.** Toda cifra publicada traza a una prueba, a una fila del libro de verificación o a un test dbt (R-09).
+1. **Annual frequency and two panels** (ADR-001). Subnational GDP is annual; no annual value is ever repeated across four quarters. A department panel 2018 to 2025 (33 units), a municipal panel 2018 to 2024 (about 1,100), and a quarterly panel only for the 13 departments with ITAED. Temporal disaggregation (Chow-Lin, Denton) is an annex with caveats (ADR-010).
+2. **A two-stage index** (ADR-004). Principal components by dimension (access, use, depth), subindices and a composite; weights fitted over the initial window and frozen; standardisation rather than min-max; implicit weights per variable always published; equal weights and Sarma's distance as alternatives.
+3. **A battery against spurious correlation.** Entity and time fixed effects as the baseline; panel unit root with cross-sectional dependence (CIPS); estimation in index changes; common correlated effects (CCE); a permutation placebo; shift-share with 2018 initial exposure; an event study (Ingreso Solidario 2020, digital correspondents); spatial dependence (Moran, SAR/SDM); heterogeneity through interactions with a wild cluster bootstrap. Never subsamples with few clusters.
+4. **Traceability.** Every published figure traces to a test, a row of the verification ledger, or a dbt test (R-09).
 
 <a id="main-result"></a>
-## Resultado principal
+## Main result
 
-**Con efectos fijos de entidad y tiempo, el índice de inclusión financiera no predice el crecimiento del PIB real per cápita departamental.** Treinta y tres departamentos, 2019 a 2025, N = 228: β = +0,0007 (EE 0,0060, p = 0,90); bootstrap salvaje por clúster p = 0,89; placebo por permutación p = 0,68. Sin efectos de tiempo el mismo coeficiente vale +0,024 con p < 0,001: esa distancia es lo que valía la tendencia nacional.
+**With entity and time fixed effects, the financial-inclusion index does not predict growth in departmental real GDP per capita.** Thirty-three departments, 2019 to 2025, N = 228: β = +0.0007 (SE 0.0060, p = 0.90); wild cluster bootstrap p = 0.89; permutation placebo p = 0.68. Without time effects the same coefficient is +0.024 with p < 0.001: that distance is what the national trend was worth.
 
-Las tres dimensiones por separado, la especificación en cambios, el CCE con cargas heterogéneas, el SLX espacial y los índices alternativos por PCA y Sarma dan lo mismo. El único diseño con señal es el shift-share con exposición de 2018 (+0,018, p = 0,007), y la urbanización inicial produce una pendiente igual de significativa: se publica como pendiente diferencial de los departamentos más urbanos, no como efecto del índice.
+The three dimensions on their own, the specification in changes, CCE with heterogeneous loadings, the spatial SLX and the alternative PCA and Sarma indices all give the same thing. The only design with a signal is the shift-share with 2018 exposure (+0.018, p = 0.007), and initial urbanisation produces an equally significant slope: it is published as a differential slope for the more urban departments, not as an effect of the index.
 
-Todas las cifras salen de `data/processed/econ/resultados.json` (`uv run iif econ`) y se leen en `metodologia/panel.qmd`; el diseño está en ADR-016 y las pruebas sobre paneles sintéticos en `tests/test_econ.py`.
+Every figure comes from `data/processed/econ/resultados.json` (`uv run iif econ`) and is read in `metodologia/panel.qmd`; the design is in ADR-016 and the tests over synthetic panels in `tests/test_econ.py`.
 
 <a id="diagnostics"></a>
-## Diagnósticos
+## Diagnostics
 
-| Prueba | Resultado |
+| Test | Result |
 |---|---|
-| CD de Pesaran sobre los residuos del modelo base | 2,46 (p = 0,014): dependencia transversal débil pero presente; por eso Driscoll-Kraay acompaña al clúster |
-| CIPS sobre el índice | −2,28 con T = 8: indicio de estacionariedad, no veredicto |
-| I de Moran del crecimiento por año, contigüidad de los arcos del TopoJSON | significativa en 2022 (0,22, p = 0,039) y 2025 (0,23, p = 0,047); el SLX la absorbe |
-| Adecuación muestral del índice por dimensión | KMO 0,314 en acceso y 0,404 en uso: por debajo de 0,5, por eso no hay PCA (ADR-015) |
+| Pesaran's CD on the baseline model's residuals | 2.46 (p = 0.014): weak but present cross-sectional dependence; hence Driscoll-Kraay alongside the cluster |
+| CIPS on the index | −2.28 with T = 8: an indication of stationarity, not a verdict |
+| Moran's I of growth by year, contiguity from the TopoJSON arcs | significant in 2022 (0.22, p = 0.039) and 2025 (0.23, p = 0.047); the SLX absorbs it |
+| Sampling adequacy of the index by dimension | KMO 0.314 for access and 0.404 for use: below 0.5, which is why there is no PCA (ADR-015) |
 
-Cada uno con su prueba en `tests/test_econ.py`, `tests/test_index.py` o en `dbt/tests/`.
+Each with its test in `tests/test_econ.py`, `tests/test_index.py` or in `dbt/tests/`.
 
-## Cómo correrlo
+## How to run it
 
 ```bash
-make setup           # uv sync con todos los grupos y kernel de Jupyter
-make quarto-install  # Quarto por tarball (sin gh, sin apt)
-make acquire         # descarga las 19 fuentes al manifiesto
-make parse           # XLSX del DANE y GeoJSON del MGN a Parquet tidy
+make setup           # uv sync with every group, plus the Jupyter kernel
+make quarto-install  # Quarto from a tarball (no gh, no apt)
+make acquire         # downloads the 19 sources into the manifest
+make parse           # statistics-office XLSX and framework GeoJSON into tidy Parquet
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 
-Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en DuckDB y `quarto render`; `make test-data` añade las pruebas que leen las descargas. Reglas para el asistente: [`CLAUDE.md`](CLAUDE.md).
+`uv` only; never `pip install`. `make check` runs ruff, pytest, `dbt build` on DuckDB and `quarto render`; `make test-data` adds the tests that read the downloads. Rules for the assistant: [`CLAUDE.md`](CLAUDE.md).
 
-## Estructura
+## Layout
 
 ```
 .
-├── CLAUDE.md, Makefile, pyproject.toml, uv.lock   reglas, comandos, dependencias
-├── config/            sources.yaml (19 fuentes); index, atlas (fase 2)
+├── CLAUDE.md, Makefile, pyproject.toml, uv.lock   rules, commands, dependencies
+├── config/            sources.yaml (19 sources); index, atlas
 ├── data/
-│   ├── raw/           descargas por fuente y año, manifest.jsonl; _large/ ignorado
-│   ├── interim/       Parquet tidy del DANE, MGN e informes de claves de la SFC
-│   └── legacy/        panel trimestral anterior, congelado; no alimenta ningún resultado
-├── db/                iif.duckdb local (ignorado)
-├── dbt/               estrella dimensional: seeds, staging, intermediate, marts, tests
-├── bigquery/          datasets, carga de Parquet, particionado, control de coste, vistas autorizadas
-├── snowflake/         scripts para el demo posterior (ADR-014)
+│   ├── raw/           downloads by source and year, manifest.jsonl; _large/ ignored
+│   ├── interim/       tidy Parquet from the statistics office, the framework and the supervisor's key reports
+│   └── legacy/        the previous quarterly panel, frozen; it feeds no result
+├── db/                local iif.duckdb (ignored)
+├── dbt/               star schema: seeds, staging, intermediate, marts, tests
+├── bigquery/          datasets, Parquet load, partitioning, cost control, authorised views
+├── snowflake/         scripts for the later demonstration (ADR-014)
 ├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, export, data, legacy
-├── tests/             pytest; marca `data` para pruebas que leen descargas
-├── docs/              guía, bitácora, decisiones/ (ADR), licencias, legacy/
-├── _quarto.yml, *.qmd documentación del proyecto en Quarto (metodología, datos, decisiones)
-└── .github/workflows/ ci.yml (lint, pruebas, dbt, render, publicación del sitio)
+├── tests/             pytest; a `data` mark for tests that read downloads
+├── docs/              guide, logbook, decisiones/ (ADRs), licences, legacy/
+├── _quarto.yml, *.qmd project documentation in Quarto (method, data, decisions)
+└── .github/workflows/ ci.yml (lint, tests, dbt, render)
 ```
 
-## Documentos
+## Documents
 
-- [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): qué se construye, semáforo por fase, mapa del repo, glosario, decisiones de valor, hoja de ruta, preguntas abiertas.
-- [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): errores (B-001 en adelante) y aciertos (S-001 en adelante) con causa raíz y regla.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016.
-- [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licencia y atribución por fuente.
+These are written in Spanish, the language of the thesis.
+
+- [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): what is being built, a per-phase status light, the repo map, a glossary, the decisions of record, the roadmap and the open questions.
+- [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): mistakes (B-001 onwards) and wins (S-001 onwards) with root cause and rule.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016.
+- [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licence and attribution per source.
 
 <a id="que-hay-y-que-falta"></a>
-## Qué hay y qué falta
+## What exists and what is missing
 
-| Pieza | Estado |
+| Piece | Status |
 |---|---|
-| Descargador con manifiesto, 19 fuentes en `data/raw/` (77 MB), parsers DANE y MGN | Hecho |
-| dbt: fuentes, staging de las 13 tablas, `dim_departamento`, `dim_municipio`, `dim_periodo`, SFC en largo por bloque, pruebas de totales y de empalme | Hecho |
-| Sitio Quarto y CI (el sitio compila en `make check`; no se publica aparte, ADR-005) | Hecho |
-| Documentos de gobierno: guía, bitácora, 14 ADR, licencias | Hecho |
-| Diccionario de las 98 variables de la SFC con su regla de anualización | Hecho |
-| Hechos de inclusión (trimestral y anual, municipal y departamental), puntos de atención, actividad, internet y educación | Hecho |
-| Paneles anuales: departamental 2018-2025 y municipal 2018-2024 | Hecho |
-| Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
-| Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
-| Econometría: `src/iif/econ`, 12 pruebas sintéticas, `metodologia/panel.qmd` con los resultados | Hecho |
-| Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
-| BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
-| Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
-| PDF de la tesis | Tras el depósito en el repositorio institucional de la Javeriana |
-| Página pública, la única | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |
+| Downloader with a manifest, 19 sources in `data/raw/` (77 MB), statistics-office and framework parsers | Done |
+| dbt: sources, staging of the 13 tables, `dim_departamento`, `dim_municipio`, `dim_periodo`, the supervisor's data in long form by block, total and splice tests | Done |
+| Quarto site and CI (the site builds inside `make check`; it is not published separately, ADR-005) | Done |
+| Governance documents: guide, logbook, ADRs, licences | Done |
+| Dictionary of the supervisor's 98 variables with each annualisation rule | Done |
+| Inclusion facts (quarterly and annual, municipal and departmental), service points, activity, internet and education | Done |
+| Annual panels: department 2018–2025 and municipality 2018–2024 | Done |
+| Index by dimension with frozen, published weights, and its two sensitivity versions | Done |
+| Interactive three-view atlas, inside the project page | Done |
+| Econometrics: `src/iif/econ`, 12 synthetic tests, `metodologia/panel.qmd` with the results | Done |
+| Temporal-disaggregation annex, MIDAS, manuscript | Phase 4, pending |
+| BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
+| Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |
+| Thesis PDF | After deposit in the Javeriana institutional repository |
+| Public page, the only one | <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion> |
 
-## Cómo citar
+## How to cite
 
-Ver [`CITATION.cff`](CITATION.cff). En texto:
+See [`CITATION.cff`](CITATION.cff). In text:
 
-> Novoa Ramírez, D. (2026). *Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible* [código y datos]. <https://github.com/DavinsonR/financial-inclusion-colombia>
+> Novoa Ramírez, D. (2026). *Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible* [code and data]. <https://github.com/DavinsonR/financial-inclusion-colombia>
 
-## Licencia
+## Licence
 
-- **Código** (`src/`, `dbt/`, `scripts/`, `tests/`, `notebooks/`): MIT, ver [`LICENSE`](LICENSE).
-- **Texto del trabajo de grado** (`paper/`): © 2026 Davirson Novoa Ramírez, todos los derechos reservados hasta el depósito institucional; después, la licencia que fije ese depósito.
-- **Datos derivados** (`data/`, marts, `atlas/data/`): CC BY-SA 4.0, obligado por las licencias de SFC, MinTIC y MEN. Atribución por fuente en [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md) (ADR-012).
+- **Code** (`src/`, `dbt/`, `scripts/`, `tests/`, `notebooks/`): MIT, see [`LICENSE`](LICENSE).
+- **Thesis text** (`paper/`): © 2026 Davirson Novoa Ramírez, all rights reserved until institutional deposit; afterwards, whatever licence that deposit sets.
+- **Derived data** (`data/`, marts, `atlas/data/`): CC BY-SA 4.0, required by the licences of the financial supervisor, the ICT ministry and the education ministry. Attribution per source in [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md) (ADR-012).

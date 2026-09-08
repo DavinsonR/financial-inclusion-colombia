@@ -2,7 +2,7 @@
 Proyecto de investigación reproducible sobre inclusión financiera y crecimiento regional en Colombia; el trabajo de grado de 2026 es el origen. Guía completa: docs/GUIA_DEL_PROYECTO.md. Errores y aciertos: docs/BITACORA_AGENTE.md.
 
 ## Reglas duras
-- R-01 Docs y mensajes de commit en español, sin emojis. Identificadores, columnas y nombres de módulos en inglés.
+- R-01 Docs internas y mensajes de commit en español, sin emojis. `README.md` en inglés y `README.es.md` al lado, con las mismas anclas. Identificadores, columnas y nombres de módulos en inglés.
 - R-02 Solo `uv` (`uv sync`, `uv run`, `uv add`). Nunca `pip install`.
 - R-03 `make check` (ruff, pytest, dbt build en DuckDB, quarto render) antes de cualquier commit.
 - R-04 Nunca rutas absolutas. Todo cuelga de `iif.config` (`REPO_ROOT`, `DATA_RAW`, `SEEDS_DIR`, ...).
