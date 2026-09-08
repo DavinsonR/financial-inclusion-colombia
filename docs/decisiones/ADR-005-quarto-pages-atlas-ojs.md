@@ -83,3 +83,32 @@ redirigen al SSO. En el plan Hobby eso cubre solo las vistas previas y producci�
 vez el paso de comprobación devuelve 302, es que la protección alcanza a producción: Settings, Deployment
 Protection, Vercel Authentication, «Off» u «Only Preview Deployments».
 
+
+## Adenda 5, 2026-09-07: el sitio Quarto independiente se retira
+
+**Decisión.** La superficie pública del proyecto es la página del portafolio,
+<https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion>. El sitio Quarto deja de
+publicarse: CI ya no despliega en Vercel, ya no comprueba el dominio y ya no reescribe la rama `site`.
+Se borran `vercel.json` y `.github/site/vercel.json`, que solo existían para ese despliegue.
+
+**Lo que no se retira.** Las páginas `.qmd` siguen en el repositorio y `quarto render` sigue dentro de
+`make check`: es la prueba de que la documentación compila y de que ninguna cifra publicada se quedó sin
+su fuente. `_site` se sigue subiendo como artefacto de CI, que es donde se mira el sitio cuando hace falta.
+
+**Por qué.** El proyecto no debía tener página independiente (decisión del autor, 2026-09-06): eso ya se
+resolvió llevando la investigación entera —atlas incluido— al portafolio. Con dos superficies, una queda
+sin dueño y se desincroniza. Y de paso desaparece todo el andamiaje que costó cinco intentos: la rama de
+producción, el `VERCEL_TOKEN` y el despliegue por CLI dejan de existir porque deja de haber algo que
+desplegar. El contrato entre los dos proyectos es `atlas/data/`, que el portafolio copia a su
+`public/atlas/`.
+
+**Coste.** Las páginas de metodología, datos y decisiones dejan de tener URL pública propia; se leen en el
+repositorio o en el artefacto de CI. Es el precio de tener una sola dirección pública, y se paga a
+sabiendas.
+
+**Cómo volver atrás.** Restituir los cinco pasos de publicación en `.github/workflows/ci.yml` y los dos
+`vercel.json` desde el historial, y volver a crear el secreto `VERCEL_TOKEN`. Nada más depende de ellos.
+
+**Del autor, después de fusionar.** Borrar el proyecto `financial-inclusion-colombia` en Vercel, revocar el
+token en <https://vercel.com/account/tokens> y borrar el secreto `VERCEL_TOKEN` del repositorio. Un token
+vivo sin uso es superficie de riesgo y nada más.

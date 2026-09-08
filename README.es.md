@@ -132,7 +132,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 ├── tests/             pytest; marca `data` para pruebas que leen descargas
 ├── docs/              guía, bitácora, decisiones/ (ADR), licencias, legacy/
 ├── _quarto.yml, *.qmd documentación del proyecto en Quarto (metodología, datos, decisiones)
-└── .github/workflows/ ci.yml (lint, pruebas, dbt, render, publicación del sitio)
+└── .github/workflows/ ci.yml (lint, pruebas, dbt, render)
 ```
 
 ## Documentos
@@ -149,7 +149,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 |---|---|
 | Descargador con manifiesto, 19 fuentes en `data/raw/` (77 MB), parsers DANE y MGN | Hecho |
 | dbt: fuentes, staging de las 13 tablas, `dim_departamento`, `dim_municipio`, `dim_periodo`, SFC en largo por bloque, pruebas de totales y de empalme | Hecho |
-| Sitio Quarto, CI, publicación en Vercel | Hecho |
+| Sitio Quarto y CI (el sitio compila en `make check`; no se publica aparte, ADR-005) | Hecho |
 | Documentos de gobierno: guía, bitácora, 14 ADR, licencias | Hecho |
 | Diccionario de las 98 variables de la SFC con su regla de anualización | Hecho |
 | Hechos de inclusión (trimestral y anual, municipal y departamental), puntos de atención, actividad, internet y educación | Hecho |
@@ -161,7 +161,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
 | PDF de la tesis | Tras el depósito en el repositorio institucional de la Javeriana |
-| Página en el sitio del autor | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |
+| Página pública, la única | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |
 
 ## Cómo citar
 

@@ -132,7 +132,7 @@ make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ├── tests/             pytest; a `data` mark for tests that read downloads
 ├── docs/              guide, logbook, decisiones/ (ADRs), licences, legacy/
 ├── _quarto.yml, *.qmd project documentation in Quarto (method, data, decisions)
-└── .github/workflows/ ci.yml (lint, tests, dbt, render, site publication)
+└── .github/workflows/ ci.yml (lint, tests, dbt, render)
 ```
 
 ## Documents
@@ -151,7 +151,7 @@ These are written in Spanish, the language of the thesis.
 |---|---|
 | Downloader with a manifest, 19 sources in `data/raw/` (77 MB), statistics-office and framework parsers | Done |
 | dbt: sources, staging of the 13 tables, `dim_departamento`, `dim_municipio`, `dim_periodo`, the supervisor's data in long form by block, total and splice tests | Done |
-| Quarto site, CI, publication on Vercel | Done |
+| Quarto site and CI (the site builds inside `make check`; it is not published separately, ADR-005) | Done |
 | Governance documents: guide, logbook, ADRs, licences | Done |
 | Dictionary of the supervisor's 98 variables with each annualisation rule | Done |
 | Inclusion facts (quarterly and annual, municipal and departmental), service points, activity, internet and education | Done |
@@ -163,7 +163,7 @@ These are written in Spanish, the language of the thesis.
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |
 | Thesis PDF | After deposit in the Javeriana institutional repository |
-| Page on the author's site | <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion> |
+| Public page, the only one | <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion> |
 
 ## How to cite
 
