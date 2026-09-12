@@ -42,8 +42,26 @@ jobs:
           uv run dbt seed --profiles-dir dbt --project-dir dbt
           uv run dbt build --profiles-dir dbt --project-dir dbt
 
-      - name: Pruebas con datos crudos
+      # La cadena entera del CLI sobre el almacen recien construido. Corre antes que las pruebas con datos
+      # porque un fallo aqui es de comando (rutas, codificacion, dependencias) y se lee mejor solo.
+      - name: El indice y la bateria corren de punta a punta
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          uv run iif index
+          uv run iif econ
+          uv run iif curva
+
+      # Incluye tests/test_resultados_publicados.py, que regenera la bateria y la compara cifra a cifra
+      # contra data/processed/econ/resultados.json. Es lo que convierte R-09 de promesa en garantia: si el
+      # codigo y el numero publicado se separan, el flujo se pone en rojo (ADR-018).
+      - name: Pruebas con datos crudos y reproduccion de las cifras publicadas
         run: uv run pytest -q -m data
+
+      # Si la corrida anterior cambio una cifra publicada, el arbol queda sucio y hay que regenerar y
+      # commitear a proposito, no descubrirlo en una lectura.
+      - name: El arbol no cambia al regenerar
+        run: git diff --stat -- data/processed ':!data/processed/econ/resultados.json' && git diff --quiet -- data/processed ':!data/processed/econ/resultados.json'
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:

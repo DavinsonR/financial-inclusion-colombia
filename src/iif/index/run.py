@@ -27,7 +27,7 @@ NIVELES = {
 
 
 def _con(db: Path | None = None) -> duckdb.DuckDBPyConnection:
-    path = db or Path(config.REPO_ROOT / "db" / "iif.duckdb")
+    path = db or config.DUCKDB_PATH
     if not path.exists():
         raise FileNotFoundError(f"no existe {path}; corre `make dbt-build` antes de construir el índice")
     return duckdb.connect(str(path), read_only=True)
@@ -61,6 +61,11 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
     out_dir.mkdir(parents=True, exist_ok=True)
     contract = load_contract()
     congelados = contract.get("pesos_congelados") or None
+    # Recalibrar significa volver a estimar, así que la primera pasada tiene que ir SIN los pesos viejos:
+    # pasándolos, `build_index` los reutiliza y `res_dep.fits` devuelve exactamente lo que ya había, de modo
+    # que la orden se cumplía escribiendo de nuevo los mismos números (B-053).
+    if recalibrar:
+        congelados = None
 
     panel_dep, res_dep = build_level("departamento", db=db, contract=contract, congelados=congelados)
     if recalibrar or not congelados:

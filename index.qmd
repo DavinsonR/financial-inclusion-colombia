@@ -9,7 +9,7 @@ El proyecto hace tres cosas:
 
 1. **Reconstruye los datos** desde las fuentes primarias (Superintendencia Financiera, DANE, MinTIC, MEN, MGN) en un warehouse abierto con esquema estrella y vintages, a nivel departamental y municipal, de 2005 a 2026. Ver [Fuentes](datos/fuentes.qmd) y [Claves geográficas](datos/crosswalk.qmd).
 2. **Construye un índice** de inclusión financiera en dos etapas (acceso, uso, profundidad) con pesos congelados y publicados por variable, y lo lleva a un atlas interactivo.
-3. **Vuelve a estimar** con la frecuencia correcta (anual), dos paneles (departamental y municipal) y una batería explícita contra la correlación espuria. Los resultados se publican cuando existan, con su prueba.
+3. **Vuelve a estimar** con la frecuencia correcta (anual), dos paneles (departamental y municipal) y una batería explícita contra la correlación espuria. Los resultados están publicados, cada cifra con su prueba: ver [Panel](metodologia/panel.qmd) y [Especificaciones](metodologia/especificaciones.qmd).
 
 ## Estado
 
@@ -17,8 +17,8 @@ El proyecto hace tres cosas:
 |---|---|---|
 | 0 | Reestructura, paquete `iif`, documentos de gobierno, dbt, sitio, CI | hecha |
 | 1 | Las 19 fuentes con manifiesto, claves DIVIPOLA, staging, SFC en largo, empalme 2021Q1 | hecha |
-| 2 | Hechos y paneles anuales, índice en dos etapas | en curso |
-| 3 | Atlas y econometría | pendiente |
+| 2 | Hechos y paneles anuales, índice en dos etapas | hecha |
+| 3 | Atlas y econometría | hecha |
 | 4 | Anexos y manuscrito | pendiente |
 
 Las decisiones de valor están en [Decisiones](decisiones.qmd); los errores y aciertos del proceso, en la [Bitácora](bitacora.qmd).

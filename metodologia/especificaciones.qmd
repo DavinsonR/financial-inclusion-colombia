@@ -1,0 +1,142 @@
+---
+title: "La curva de especificación"
+subtitle: "Ciento sesenta decisiones defendibles, estimadas todas, y lo que cambia al poner los efectos de tiempo"
+---
+
+```{python}
+#| echo: false
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+from IPython.display import Markdown
+from iif import config
+
+C = json.loads(
+    (config.DATA_PROCESSED / "econ" / "curva_especificacion.json").read_text(encoding="utf-8")
+)
+D = pd.DataFrame(C["especificaciones"])
+RES = C["resumen"]
+CON, SIN = RES["entidad y tiempo"], RES["solo entidad"]
+```
+
+Una batería contra la correlación espuria responde una pregunta estrecha: *este* coeficiente, ¿sobrevive?
+Queda una pregunta más incómoda y que casi nunca se publica. De todas las especificaciones que este trabajo
+podría haber defendido —otro regresor, otra ventana, otros controles—, ¿cuántas habrían dado un resultado?
+
+Aquí están estimadas todas. Cada punto de esta página es una regresión real sobre el panel departamental, no
+una simulación. Las cifras salen de `uv run iif curva` y viven en
+`data/processed/econ/curva_especificacion.json`; ninguna se calcula en esta página (R-09).
+
+## 1. El contraste
+
+```{python}
+#| echo: false
+Markdown(f"""
+| Régimen de efectos fijos | Especificaciones | Significativas al 5 % | Proporción |
+|---|---|---|---|
+| Solo efectos de entidad | {SIN['especificaciones']} | {SIN['significativas']} | **{SIN['fraccion'] * 100:.0f} %** |
+| Entidad **y tiempo** | {CON['especificaciones']} | {CON['significativas']} | **{CON['fraccion'] * 100:.0f} %** |
+""")
+```
+
+```{python}
+#| echo: false
+#| fig-cap: "Efecto e intervalo de confianza al 95 % de cada especificación, en puntos porcentuales de crecimiento anual por desviación típica identificante de su propio regresor, que es la unidad que los hace comparables. Ordenadas de menor a mayor dentro de cada régimen; en color oscuro las que dan p < 0,05."
+fig, ejes = plt.subplots(1, 2, figsize=(8.2, 3.6), sharey=True)
+for ax, regimen in zip(ejes, ["solo entidad", "entidad y tiempo"], strict=True):
+    sub = D[D["efectos"] == regimen].sort_values("coef_pp").reset_index(drop=True)
+    x = range(len(sub))
+    for i, fila in sub.iterrows():
+        color = "#123f6d" if fila["significativa"] else "#b9c8d6"
+        ax.plot([i, i], [fila["ic_bajo_pp"], fila["ic_alto_pp"]], color=color, lw=1.1, solid_capstyle="butt")
+    ax.scatter(x, sub["coef_pp"], s=7,
+               c=["#123f6d" if s else "#8aa2b8" for s in sub["significativa"]], zorder=3)
+    ax.axhline(0, color="#444", lw=0.8)
+    frac = RES[regimen]["fraccion"] * 100
+    ax.set_title(f"{regimen} · {frac:.0f} % significativas", fontsize=10)
+    ax.set_xlabel("especificaciones, ordenadas")
+    ax.spines[["top", "right"]].set_visible(False)
+ejes[0].set_ylabel("pp de crecimiento por DE del regresor")
+plt.tight_layout()
+```
+
+Sin efectos de tiempo, la mayoría de los caminos «encuentra» algo. Con ellos, la proporción cae a
+aproximadamente lo que produce el azar al probar ochenta hipótesis correlacionadas con un umbral del 5 %.
+Esa distancia es el argumento central del proyecto, y no depende de qué especificación se prefiera: depende
+de si la tendencia nacional está dentro del modelo o fuera.
+
+::: {.callout-important}
+## Lo que esto no es
+No es una prueba de que no exista relación. Es una prueba de que **la relación que aparece sin efectos de
+tiempo no es informativa sobre el territorio**: la producen dos series que suben a la vez en todo el país.
+La cota de lo que este diseño sí puede descartar está en [Panel](panel.qmd), sección 7.
+:::
+
+## 2. Qué se movió
+
+```{python}
+#| echo: false
+ejes_tabla = pd.DataFrame([
+    {"Eje": "Regresor", "Opciones": len(C["ejes"]["regresor"]), "Cuáles": ", ".join(C["ejes"]["regresor"])},
+    {"Eje": "Controles", "Opciones": len(C["ejes"]["controles"]), "Cuáles": ", ".join(C["ejes"]["controles"])},
+    {"Eje": "Muestra", "Opciones": len(C["ejes"]["muestra"]), "Cuáles": ", ".join(C["ejes"]["muestra"])},
+    {"Eje": "Efectos fijos", "Opciones": len(C["ejes"]["efectos"]), "Cuáles": ", ".join(C["ejes"]["efectos"])},
+])
+Markdown(ejes_tabla.to_markdown(index=False))
+```
+
+Ninguna de estas opciones es un truco: las ocho versiones del regresor están en ADR-015 y ADR-017, las dos
+listas de controles y las cinco ventanas son las que cualquier revisor pediría. La rejilla no busca el
+coeficiente más favorable; busca saber cuántos habría disponibles si alguien lo buscara.
+
+## 3. Las que sobreviven a los efectos de tiempo
+
+```{python}
+#| echo: false
+viven = D[(D["efectos"] == "entidad y tiempo") & D["significativa"]].sort_values("p")
+tabla = viven[["regresor", "controles", "muestra", "coef", "coef_pp", "p", "n"]].rename(columns={
+    "regresor": "Regresor", "controles": "Controles", "muestra": "Muestra",
+    "coef": "β", "coef_pp": "pp por DE", "p": "p", "n": "N"})
+tabla["β"] = tabla["β"].map(lambda v: f"{v:+.4f}")
+tabla["pp por DE"] = tabla["pp por DE"].map(lambda v: f"{v:+.2f}")
+tabla["p"] = tabla["p"].map(lambda v: f"{v:.4f}")
+Markdown(tabla.to_markdown(index=False))
+```
+
+```{python}
+#| echo: false
+import math
+k = CON["especificaciones"]
+p_min = float(viven["p"].min()) if len(viven) else float("nan")
+holm = p_min * k
+Markdown(f"""
+Son {CON['significativas']} de {k}. Con el descuento de Holm sobre la familia entera, la más pequeña de esas
+p ({p_min:.4f}) pasa a {holm:.2f}: **ninguna sobrevive** al ajuste por comparaciones múltiples. Es la lectura
+honesta, y es la razón por la que ninguna de ellas se presenta como hallazgo en el README.
+""")
+```
+
+Que no sobrevivan no las hace inútiles. Dicen dónde miraría un trabajo con más datos: las tres que aparecen
+al quitar 2020 sugieren que el año de la pandemia es el que más pesa en el resultado, y eso es una hipótesis
+comprobable, no una conclusión.
+
+## 4. Por qué esta página existe
+
+El proyecto publica un resultado nulo. Un nulo tiene un problema de credibilidad que un resultado positivo no
+tiene: el lector no sabe cuántas puertas se probaron antes de llegar a él. Publicar la rejilla completa
+—incluidas las especificaciones que habrían dado significativo— es la única forma de responder esa duda
+antes de que se formule.
+
+Lo mismo funciona al revés y es el uso más útil de esta página: cualquier trabajo que publique una relación
+entre inclusión financiera y crecimiento con efectos fijos solo de entidad está en la columna izquierda de
+este gráfico, donde el {SIN['fraccion'] * 100:.0f} % de los caminos lleva a un resultado.
+
+```{python}
+#| echo: false
+Markdown(f"""
+---
+
+*{C['total']} especificaciones estimadas, {C['no_estimables']} no estimables. Generado por
+`uv run iif curva` el {C['generado_en'][:10]}.*
+""")
+```

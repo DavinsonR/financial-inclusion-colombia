@@ -36,13 +36,13 @@ El plan completo, con semáforo por fase y las decisiones de valor, está en [`d
 <a id="abstract"></a>
 ## Abstract
 
-Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test. No results are published yet: they appear when phase 3 produces them, together with the code that produced them.
+Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test. The headline is a bound rather than an absence: the design rules out effects above half a percentage point of annual growth per standard deviation of the index and cannot speak to anything smaller.
 
 ## Pregunta de investigación
 
 ¿La inclusión financiera predice el crecimiento económico de los departamentos y municipios colombianos una vez descontadas las tendencias nacionales que mueven a todos a la vez?
 
-Un rezago del índice ordena la relación en el tiempo; **no** constituye una estrategia de identificación causal. El lenguaje del proyecto es de predicción, salvo en los diseños (shift-share, estudio de eventos) que sí buscan variación plausiblemente exógena.
+El regresor de la especificación base es el índice **contemporáneo**; el rezago se construye y se publica al lado (+0,007, p = 0,25), y cuál de los dos corre lo decide `REZAGO_INDICE` en `src/iif/econ/run.py`, que es la única fuente de verdad de esa elección. Ninguno de los dos ordenamientos constituye una estrategia de identificación causal. El lenguaje del proyecto es de predicción, salvo en los diseños (shift-share, estudio de eventos) que sí buscan variación plausiblemente exógena.
 
 <a id="data"></a>
 ## Datos
@@ -84,23 +84,29 @@ Licencias y atribución por fuente: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_D
 <a id="main-result"></a>
 ## Resultado principal
 
-**Con efectos fijos de entidad y tiempo, el índice de inclusión financiera no predice el crecimiento del PIB real per cápita departamental.** Treinta y tres departamentos, 2019 a 2025, N = 228: β = +0,0007 (EE 0,0060, p = 0,90); bootstrap salvaje por clúster p = 0,89; placebo por permutación p = 0,68. Sin efectos de tiempo el mismo coeficiente vale +0,024 con p < 0,001: esa distancia es lo que valía la tendencia nacional.
+**Con efectos fijos de entidad y tiempo, este diseño descarta cualquier efecto del índice sobre el crecimiento departamental mayor que medio punto porcentual por desviación típica, y no puede pronunciarse sobre nada menor.** Treinta y tres departamentos, 2019 a 2025, N = 228: β = +0,0038 (EE 0,0062, p = 0,54); bootstrap salvaje por clúster p = 0,48; placebo por permutación p = 0,51. Sin efectos de tiempo el mismo coeficiente vale +0,027 con p < 0,001: esa distancia es lo que valía la tendencia nacional.
 
-Las tres dimensiones por separado, la especificación en cambios, el CCE con cargas heterogéneas, el SLX espacial y los índices alternativos por PCA y Sarma dan lo mismo. El único diseño con señal es el shift-share con exposición de 2018 (+0,018, p = 0,007), y la urbanización inicial produce una pendiente igual de significativa: se publica como pendiente diferencial de los departamentos más urbanos, no como efecto del índice.
+La afirmación es una cota y no una ausencia, porque un nulo sin su potencia no distingue entre «no hay efecto» y «este diseño no lo vería» (ADR-018). El efecto mínimo detectable al 80 % de potencia es de 0,58 puntos porcentuales de crecimiento anual por desviación típica identificante del índice; la prueba de equivalencia descarta efectos por encima de ±0,50 pp (p = 0,04) y **no** descarta ±0,25 pp (p = 0,28). La razón está medida, no supuesta: los efectos fijos de dos vías se llevan el 92 % de la varianza del índice, de una desviación de 1,24 a 0,34.
 
-Todas las cifras salen de `data/processed/econ/resultados.json` (`uv run iif econ`) y se leen en `metodologia/panel.qmd`; el diseño está en ADR-016 y las pruebas sobre paneles sintéticos en `tests/test_econ.py`.
+El nulo resiste todo lo que se le ha puesto enfrente. Dejando fuera un departamento cada vez, el coeficiente se mueve entre 0,000 y +0,008 y nunca es significativo; sin Bogotá vale +0,000. Quitando 2020, 2021, 2024 o 2025 sigue nulo. Las tres dimensiones por separado, la especificación en cambios, el CCE con cargas heterogéneas, el SLX espacial y los índices alternativos por PCA y Sarma coinciden.
+
+El único diseño con señal es el shift-share con exposición de 2018 (+0,017, p = 0,005), que sobrevive a su propio bootstrap salvaje (p = 0,007) y a su propio placebo (p = 0,004). No sobrevive al contraste que importa: la urbanización inicial produce por su cuenta una pendiente igual de significativa, y con las dos exposiciones en la misma ecuación el índice cae a p = 0,10. Se publica como pendiente diferencial de los departamentos más urbanos, no como efecto del índice.
+
+Todas las cifras salen de `data/processed/econ/resultados.json` (`uv run iif econ`) y se leen en `metodologia/panel.qmd`; el diseño está en ADR-016 y ADR-018, y las pruebas sobre paneles sintéticos en `tests/test_econ.py` y `tests/test_power.py`.
 
 <a id="diagnostics"></a>
 ## Diagnósticos
 
 | Prueba | Resultado |
 |---|---|
-| CD de Pesaran sobre los residuos del modelo base | 2,46 (p = 0,014): dependencia transversal débil pero presente; por eso Driscoll-Kraay acompaña al clúster |
-| CIPS sobre el índice | −2,28 con T = 8: indicio de estacionariedad, no veredicto |
-| I de Moran del crecimiento por año, contigüidad de los arcos del TopoJSON | significativa en 2022 (0,22, p = 0,039) y 2025 (0,23, p = 0,047); el SLX la absorbe |
-| Adecuación muestral del índice por dimensión | KMO 0,314 en acceso y 0,404 en uso: por debajo de 0,5, por eso no hay PCA (ADR-015) |
+| CD de Pesaran sobre los residuos del modelo base | 2,40 (p = 0,016): dependencia transversal débil pero presente; por eso Driscoll-Kraay acompaña al clúster |
+| CIPS sobre el índice | −2,10 con T = 8: por debajo del valor crítico tabulado al 10 %, así que indicio de estacionariedad, no veredicto |
+| I de Moran **sobre los residuos** por año, contigüidad de los arcos del TopoJSON | significativa en 2019 (0,26, p = 0,015); el SLX **no** la absorbe (0,25, p = 0,028). Medida sobre el crecimiento crudo los años significativos serían 2022 y 2025: otra pregunta, y la equivocada (B-048) |
+| Efecto mínimo detectable y equivalencia | MDE₈₀ = 0,58 pp por desviación identificante; equivalencia a ±0,50 pp, no a ±0,25 pp |
+| Adecuación muestral del índice por dimensión | KMO 0,317 en uso y 0,407 en profundidad: por debajo de 0,5, por eso no hay PCA (ADR-015) |
+| Placebo de denominador: índice con los numeradores de 2018 congelados | con el producto contemporáneo correlaciona −0,31 con el crecimiento y lo predice; con el producto rezagado la correlación es +0,05 y no lo predice (ADR-017) |
 
-Cada uno con su prueba en `tests/test_econ.py`, `tests/test_index.py` o en `dbt/tests/`.
+Cada uno con su prueba en `tests/test_econ.py`, `tests/test_power.py`, `tests/test_index.py` o en `dbt/tests/`.
 
 ## Cómo correrlo
 
@@ -139,7 +145,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): qué se construye, semáforo por fase, mapa del repo, glosario, decisiones de valor, hoja de ruta, preguntas abiertas.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): errores (B-001 en adelante) y aciertos (S-001 en adelante) con causa raíz y regla.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-018.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licencia y atribución por fuente.
 
 <a id="que-hay-y-que-falta"></a>
@@ -150,13 +156,14 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | Descargador con manifiesto, 19 fuentes en `data/raw/` (77 MB), parsers DANE y MGN | Hecho |
 | dbt: fuentes, staging de las 13 tablas, `dim_departamento`, `dim_municipio`, `dim_periodo`, SFC en largo por bloque, pruebas de totales y de empalme | Hecho |
 | Sitio Quarto y CI (el sitio compila en `make check`; no se publica aparte, ADR-005) | Hecho |
-| Documentos de gobierno: guía, bitácora, 14 ADR, licencias | Hecho |
+| Documentos de gobierno: guía, bitácora, 18 ADR, licencias | Hecho |
 | Diccionario de las 98 variables de la SFC con su regla de anualización | Hecho |
 | Hechos de inclusión (trimestral y anual, municipal y departamental), puntos de atención, actividad, internet y educación | Hecho |
 | Paneles anuales: departamental 2018-2025 y municipal 2018-2024 | Hecho |
 | Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
 | Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
-| Econometría: `src/iif/econ`, 12 pruebas sintéticas, `metodologia/panel.qmd` con los resultados | Hecho |
+| Econometría: `src/iif/econ`, pruebas sintéticas de la batería y de la potencia, `metodologia/panel.qmd` con los resultados | Hecho |
+| Potencia, equivalencia y curva de especificación (ADR-018) | Hecho |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |

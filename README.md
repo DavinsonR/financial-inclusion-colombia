@@ -36,13 +36,13 @@ The full plan, with a per-phase status light and the decisions of record, is in 
 <a id="abstract"></a>
 ## Abstract
 
-Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test.
+Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test. The headline is a bound rather than an absence: the design rules out effects above half a percentage point of annual growth per standard deviation of the index and cannot speak to anything smaller.
 
 ## Research question
 
 Does financial inclusion predict the economic growth of Colombian departments and municipalities once the national trends that move them all at once are taken out?
 
-A lag of the index orders the relationship in time; it does **not** constitute a causal identification strategy. The project's language is predictive, except in the designs (shift-share, event study) that do look for plausibly exogenous variation.
+The baseline regressor is the **contemporaneous** index; the lag is built and published beside it (+0.007, p = 0.25), and which of the two runs is decided by `REZAGO_INDICE` in `src/iif/econ/run.py`, the single source of truth for that choice. Neither ordering constitutes a causal identification strategy. The project's language is predictive, except in the designs (shift-share, event study) that do look for plausibly exogenous variation.
 
 <a id="data"></a>
 ## Data
@@ -77,30 +77,36 @@ Licences and attribution per source: [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_
 ## Method
 
 1. **Annual frequency and two panels** (ADR-001). Subnational GDP is annual; no annual value is ever repeated across four quarters. A department panel 2018 to 2025 (33 units), a municipal panel 2018 to 2024 (about 1,100), and a quarterly panel only for the 13 departments with ITAED. Temporal disaggregation (Chow-Lin, Denton) is an annex with caveats (ADR-010).
-2. **A two-stage index** (ADR-004). Principal components by dimension (access, use, depth), subindices and a composite; weights fitted over the initial window and frozen; standardisation rather than min-max; implicit weights per variable always published; equal weights and Sarma's distance as alternatives.
+2. **A two-stage index** (ADR-004, ADR-015). Subindices by dimension (access, use, depth) and a composite; weights fitted over the initial window and frozen; standardisation rather than min-max; implicit weights per variable always published; PCA and Sarma's distance as alternatives. Amounts are normalised by the **lagged** product, not the contemporaneous one: the same GDP sits in the dependent variable, and dividing by it manufactures correlation (ADR-017).
 3. **A battery against spurious correlation.** Entity and time fixed effects as the baseline; panel unit root with cross-sectional dependence (CIPS); estimation in index changes; common correlated effects (CCE); a permutation placebo; shift-share with 2018 initial exposure; an event study (Ingreso Solidario 2020, digital correspondents); spatial dependence (Moran, SAR/SDM); heterogeneity through interactions with a wild cluster bootstrap. Never subsamples with few clusters.
 4. **Traceability.** Every published figure traces to a test, a row of the verification ledger, or a dbt test (R-09).
 
 <a id="main-result"></a>
 ## Main result
 
-**With entity and time fixed effects, the financial-inclusion index does not predict growth in departmental real GDP per capita.** Thirty-three departments, 2019 to 2025, N = 228: β = +0.0007 (SE 0.0060, p = 0.90); wild cluster bootstrap p = 0.89; permutation placebo p = 0.68. Without time effects the same coefficient is +0.024 with p < 0.001: that distance is what the national trend was worth.
+**With entity and time fixed effects, this design rules out any effect of the financial-inclusion index on departmental growth larger than half a percentage point per standard deviation — and cannot speak to anything smaller.** Thirty-three departments, 2019 to 2025, N = 228: β = +0.0038 (SE 0.0062, p = 0.54); wild cluster bootstrap p = 0.48; permutation placebo p = 0.51. Without time effects the same coefficient is +0.027 with p < 0.001: that distance is what the national trend was worth.
 
-The three dimensions on their own, the specification in changes, CCE with heterogeneous loadings, the spatial SLX and the alternative PCA and Sarma indices all give the same thing. The only design with a signal is the shift-share with 2018 exposure (+0.018, p = 0.007), and initial urbanisation produces an equally significant slope: it is published as a differential slope for the more urban departments, not as an effect of the index.
+The statement is a bound, not an absence, because a null without its power does not distinguish "there is no effect" from "this design would not see one" (ADR-018). The minimum detectable effect at 80% power is 0.58 percentage points of annual growth per identifying standard deviation of the index; equivalence testing rules out effects above ±0.50 pp (p = 0.04) and **fails** to rule out ±0.25 pp (p = 0.28). The reason is measured, not asserted: two-way fixed effects remove 92% of the index's variance, from a standard deviation of 1.24 to 0.34.
 
-Every figure comes from `data/processed/econ/resultados.json` (`uv run iif econ`) and is read in `metodologia/panel.qmd`; the design is in ADR-016 and the tests over synthetic panels in `tests/test_econ.py`.
+The null is robust to everything tried against it. Leaving out one department at a time, the coefficient stays between 0.000 and +0.008 and is never significant; without Bogotá it is +0.000. Dropping 2020, 2021, 2024 or 2025 leaves it null. The three dimensions on their own, the specification in changes, CCE with heterogeneous loadings, the spatial SLX and the alternative PCA and Sarma indices all agree.
+
+The only design with a signal is the shift-share with 2018 exposure (+0.017, p = 0.005), which survives its own wild bootstrap (p = 0.007) and its own placebo (p = 0.004). It does not survive the contrast that matters: initial urbanisation produces an equally significant slope on its own, and with both exposures in the same equation the index falls to p = 0.10. It is published as a differential slope for the more urban departments, not as an effect of the index.
+
+Every figure comes from `data/processed/econ/resultados.json` (`uv run iif econ`) and is read in `metodologia/panel.qmd`; the design is in ADR-016 and ADR-018, and the tests over synthetic panels in `tests/test_econ.py` and `tests/test_power.py`.
 
 <a id="diagnostics"></a>
 ## Diagnostics
 
 | Test | Result |
 |---|---|
-| Pesaran's CD on the baseline model's residuals | 2.46 (p = 0.014): weak but present cross-sectional dependence; hence Driscoll-Kraay alongside the cluster |
-| CIPS on the index | −2.28 with T = 8: an indication of stationarity, not a verdict |
-| Moran's I of growth by year, contiguity from the TopoJSON arcs | significant in 2022 (0.22, p = 0.039) and 2025 (0.23, p = 0.047); the SLX absorbs it |
-| Sampling adequacy of the index by dimension | KMO 0.314 for access and 0.404 for use: below 0.5, which is why there is no PCA (ADR-015) |
+| Pesaran's CD on the baseline model's residuals | 2.40 (p = 0.016): weak but present cross-sectional dependence; hence Driscoll-Kraay alongside the cluster |
+| CIPS on the index | −2.10 with T = 8: below the 10% tabulated critical value, so an indication of stationarity, not a verdict |
+| Moran's I **on the residuals** by year, contiguity from the TopoJSON arcs | significant in 2019 (0.26, p = 0.015); the SLX does **not** absorb it (0.25, p = 0.028). Measured on raw growth instead, the significant years would be 2022 and 2025 — a different question and the wrong one (B-048) |
+| Minimum detectable effect and equivalence | MDE₈₀ = 0.58 pp per identifying SD; equivalence at ±0.50 pp, not at ±0.25 pp |
+| Sampling adequacy of the index by dimension | KMO 0.317 for use and 0.407 for depth: below 0.5, which is why there is no PCA (ADR-015) |
+| Denominator placebo: index with 2018 numerators frozen | with the contemporaneous product it correlates −0.31 with growth and predicts it; with the lagged product the correlation is +0.05 and it does not (ADR-017) |
 
-Each with its test in `tests/test_econ.py`, `tests/test_index.py` or in `dbt/tests/`.
+Each with its test in `tests/test_econ.py`, `tests/test_power.py`, `tests/test_index.py` or in `dbt/tests/`.
 
 ## How to run it
 
@@ -141,7 +147,7 @@ These are written in Spanish, the language of the thesis.
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): what is being built, a per-phase status light, the repo map, a glossary, the decisions of record, the roadmap and the open questions.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): mistakes (B-001 onwards) and wins (S-001 onwards) with root cause and rule.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-018.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licence and attribution per source.
 
 <a id="que-hay-y-que-falta"></a>
@@ -152,13 +158,14 @@ These are written in Spanish, the language of the thesis.
 | Downloader with a manifest, 19 sources in `data/raw/` (77 MB), statistics-office and framework parsers | Done |
 | dbt: sources, staging of the 13 tables, `dim_departamento`, `dim_municipio`, `dim_periodo`, the supervisor's data in long form by block, total and splice tests | Done |
 | Quarto site and CI (the site builds inside `make check`; it is not published separately, ADR-005) | Done |
-| Governance documents: guide, logbook, ADRs, licences | Done |
+| Governance documents: guide, logbook, 18 ADRs, licences | Done |
 | Dictionary of the supervisor's 98 variables with each annualisation rule | Done |
 | Inclusion facts (quarterly and annual, municipal and departmental), service points, activity, internet and education | Done |
 | Annual panels: department 2018–2025 and municipality 2018–2024 | Done |
 | Index by dimension with frozen, published weights, and its two sensitivity versions | Done |
 | Interactive three-view atlas, inside the project page | Done |
-| Econometrics: `src/iif/econ`, 12 synthetic tests, `metodologia/panel.qmd` with the results | Done |
+| Econometrics: `src/iif/econ`, synthetic tests for the battery and for power, `metodologia/panel.qmd` with the results | Done |
+| Power, equivalence and specification curve (ADR-018) | Done |
 | Temporal-disaggregation annex, MIDAS, manuscript | Phase 4, pending |
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |

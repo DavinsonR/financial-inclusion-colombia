@@ -45,6 +45,41 @@ def contract_variables(contract: dict) -> list[str]:
     return [v["variable_id"] for d in contract["dimensiones"].values() for v in d["variables"]]
 
 
+def denominador_de_producto(
+    panel: pd.DataFrame, contract: dict, id_cols: tuple[str, ...], col_producto: str
+) -> tuple[pd.Series, str]:
+    """El producto que va al denominador de los montos (ADR-017).
+
+    El mismo producto está en el denominador del índice y en el numerador de la dependiente: si el producto
+    cae, el índice sube por aritmética y el crecimiento baja por definición. Un año de separación rompe esa
+    simultaneidad sin renunciar a la lectura de profundidad financiera; el modo `fijo` la rompe del todo, a
+    cambio de dejar de medir profundidad relativa al tamaño actual de la economía (B-050).
+    """
+    modo = str(contract.get("denominador") or "contemporaneo").lower()
+    unidad, tiempo = id_cols[0], id_cols[1]
+    producto = pd.to_numeric(panel[col_producto], errors="coerce")
+
+    if modo == "contemporaneo":
+        return producto, modo
+    if modo == "rezagado":
+        # El mart trae el rezago calculado sobre la serie completa del DANE, así que el primer año del
+        # panel también tiene denominador. Si no estuviera, se calcula aquí y ese primer año se queda sin
+        # índice, que es preferible a inventarlo (R-13).
+        precalculado = f"{col_producto}_rezago"
+        if precalculado in panel.columns:
+            return pd.to_numeric(panel[precalculado], errors="coerce"), modo
+        orden = panel.sort_values([unidad, tiempo]).index
+        rezagado = producto.loc[orden].groupby(panel.loc[orden, unidad], sort=False).shift(1)
+        return rezagado.reindex(panel.index), modo
+    if modo == "fijo":
+        anio_base = contract["calibracion"]["anio_desde"]
+        base = pd.to_numeric(
+            panel.loc[panel[tiempo] == anio_base].set_index(unidad)[col_producto], errors="coerce"
+        )
+        return panel[unidad].map(base[~base.index.duplicated()]), modo
+    raise ValueError(f"denominador desconocido: {modo!r}; admite contemporaneo, rezagado o fijo")
+
+
 def normalize_panel(
     panel: pd.DataFrame,
     contract: dict,
@@ -52,16 +87,19 @@ def normalize_panel(
     *,
     col_poblacion: str = "poblacion_total",
     col_producto: str = "pib_corriente_mm",
+    id_cols: tuple[str, ...] = ("dpto_ccdgo", "anio"),
 ) -> pd.DataFrame:
     """Conteos por 10.000 habitantes y montos como porcentaje del producto (ADR-015, punto 1).
 
     `unidades` mapea cada variable a 'count' o 'cop' (viene de dim_variable). El producto llega en miles de
-    millones de pesos, de ahí el factor 1e9.
+    millones de pesos, de ahí el factor 1e9. Cuál producto —contemporáneo, rezagado o fijo— lo decide
+    `config/index.yaml` (ADR-017), nunca una constante escondida aquí.
     """
     reglas = contract["normalizacion"]
     out = panel.copy()
     poblacion = pd.to_numeric(out[col_poblacion], errors="coerce")
-    producto = pd.to_numeric(out[col_producto], errors="coerce") * 1e9
+    serie_producto, _modo = denominador_de_producto(out, contract, id_cols, col_producto)
+    producto = serie_producto * 1e9
     for v in contract_variables(contract):
         if v not in out.columns:
             raise KeyError(f"el panel no trae la variable {v!r} que exige config/index.yaml")
@@ -227,7 +265,14 @@ def build_index(
 ) -> IndexResult:
     """Calcula subíndices y compuesto. Con `pesos_congelados` reproduce exactamente una corrida anterior."""
     contract = contract or load_contract()
-    norm = normalize_panel(panel, contract, unidades, col_poblacion=col_poblacion, col_producto=col_producto)
+    norm = normalize_panel(
+        panel,
+        contract,
+        unidades,
+        col_poblacion=col_poblacion,
+        col_producto=col_producto,
+        id_cols=id_cols,
+    )
 
     if pesos_congelados:
         fits = {d: DimensionFit(**f) for d, f in pesos_congelados.items()}

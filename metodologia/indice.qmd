@@ -102,7 +102,7 @@ import duckdb, os
 import matplotlib.pyplot as plt
 from iif import config
 
-con = duckdb.connect(str(config.REPO_ROOT / "db" / "iif.duckdb"), read_only=True)
+con = duckdb.connect(str(config.DUCKDB_PATH), read_only=True)
 d = con.sql("select anio, iif_acceso, iif_uso, iif_profundidad, iif_compuesto "
             "from marts.mart_indice_departamento_anual").df()
 med = d.groupby("anio").median(numeric_only=True)

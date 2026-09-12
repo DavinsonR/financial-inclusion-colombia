@@ -35,11 +35,38 @@ class Estimacion:
     r2_within: float
     errores: str
     controles: list[str] = field(default_factory=list)
+    # Todos los coeficientes de la ecuación, no solo el del regresor de interés. El de `log_pib_rezago` es
+    # el término de convergencia condicional, que este panel estima en cada corrida y que hasta ahora se
+    # descartaba: publicarlo cuesta cero y dialoga con la literatura de convergencia regional (B-051).
+    coeficientes: dict = field(default_factory=dict)
 
     def as_dict(self) -> dict:
         d = self.__dict__.copy()
         d["controles"] = list(self.controles)
+        d["coeficientes"] = dict(self.coeficientes)
         return d
+
+
+def _todos_los_coeficientes(res, principal: str, controles: list[str]) -> dict:
+    """Cada coeficiente con su error estándar y su p, salvo los que solo son andamiaje.
+
+    Las cargas del CCE son 2·N columnas cuyo valor individual no significa nada; se cuentan y no se listan,
+    porque publicar sesenta y seis coeficientes sin contenido sustantivo esconde los tres que sí lo tienen.
+    """
+    interesantes = [principal, *controles, "const"]
+    salida = {}
+    for nombre in res.params.index:
+        if nombre not in interesantes:
+            continue
+        salida[nombre] = {
+            "coef": float(res.params[nombre]),
+            "se": float(res.std_errors[nombre]),
+            "p": float(res.pvalues[nombre]),
+        }
+    omitidos = len(res.params.index) - len(salida)
+    if omitidos:
+        salida["_omitidos"] = omitidos
+    return salida
 
 
 def _resumen(res, variable: str, nombre: str, errores: str, controles: list[str]) -> Estimacion:
@@ -58,6 +85,7 @@ def _resumen(res, variable: str, nombre: str, errores: str, controles: list[str]
         r2_within=float(res.rsquared_within),
         errores=errores,
         controles=list(controles),
+        coeficientes=_todos_los_coeficientes(res, variable, controles),
     )
 
 

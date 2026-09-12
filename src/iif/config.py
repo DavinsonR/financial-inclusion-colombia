@@ -27,6 +27,23 @@ DATA_RAW = DATA_DIR / "raw"
 DATA_INTERIM = DATA_DIR / "interim"
 DATA_PROCESSED = DATA_DIR / "processed"
 DBT_DIR = REPO_ROOT / "dbt"
+
+
+def _duckdb_path() -> Path:
+    """La base analítica, con el mismo contrato que `dbt/profiles.yml`.
+
+    dbt lee `IIF_DUCKDB_PATH` con `db/iif.duckdb` por defecto; el paquete tiene que leer exactamente la
+    misma variable o construye la base en un sitio y la consulta en otro, que es lo que pasaba en CI, donde
+    el flujo la pone en /tmp (R-15, B-055).
+    """
+    env = os.environ.get("IIF_DUCKDB_PATH")
+    if env:
+        ruta = Path(env)
+        return ruta if ruta.is_absolute() else (REPO_ROOT / ruta)
+    return REPO_ROOT / "db" / "iif.duckdb"
+
+
+DUCKDB_PATH: Path = _duckdb_path()
 SEEDS_DIR = DBT_DIR / "seeds"
 DOCS_DIR = REPO_ROOT / "docs"
 MANIFEST = DATA_RAW / "manifest.jsonl"

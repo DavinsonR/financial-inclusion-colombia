@@ -185,6 +185,15 @@ def econ(
 
 
 @app.command()
+def curva() -> None:
+    """Estima la curva de especificación y escribe data/processed/econ/curva_especificacion.json (ADR-018)."""
+    from iif.econ.curve import write
+
+    destino = write()
+    typer.echo(f"✓ {destino.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
 def atlas() -> None:
     """Exporta la geometría y las series que consume el atlas (ADR-005)."""
     from iif.export.atlas import export_atlas

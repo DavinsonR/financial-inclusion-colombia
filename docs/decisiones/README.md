@@ -18,6 +18,9 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [012](ADR-012-datos-derivados-cc-by-sa.md) | Datos derivados bajo CC BY-SA 4.0 | aceptada |
 | [013](ADR-013-bogota-separada-y-anm.md) | Bogotá separada y áreas no municipalizadas conservadas | aceptada |
 | [014](ADR-014-snowflake.md) | DuckDB como motor, BigQuery en la nube, Snowflake como demo posterior | aceptada, con adendas |
+| [015](ADR-015-seleccion-de-variables-del-indice.md) | Selección, normalización y ponderación de las variables del índice | aceptada, con adenda |
+| [016](ADR-016-diseno-econometrico.md) | Diseño econométrico del panel departamental | aceptada |
+| [017](ADR-017-denominador-del-indice.md) | El denominador de las variables monetarias del índice | aceptada |
+| [018](ADR-018-potencia-y-equivalencia.md) | Un nulo se publica con su potencia y su prueba de equivalencia | aceptada |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
-- [ADR-016](ADR-016-diseno-econometrico.md) · Diseño econométrico del panel departamental: two-way FE, diagnósticos medidos, cuatro diseños contra la exogeneidad y bootstrap salvaje.

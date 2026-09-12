@@ -227,3 +227,145 @@ def test_los_resultados_publicados_son_los_del_archivo():
         assert clave in res
     assert res["especificacion"]["unidades"] == 33
     assert res["robustez"]["wild_cluster_bootstrap"]["replicas"] >= 499
+
+
+# --- Lo que la auditoria de septiembre de 2026 dejo fijado (B-048, B-049, B-054) ---------------------
+
+
+def _panel_espacial(*, n=24, t=7, semilla=17):
+    """Panel en fila donde la dependiente hereda del regresor toda su estructura espacial.
+
+    El regresor es suave en el espacio —cada unidad se parece a su vecina— y la dependiente es ese regresor
+    mas ruido independiente. Entonces el crecimiento CRUDO tiene dependencia espacial y los residuos del
+    modelo que incluye el regresor no la tienen: es exactamente la distincion que B-048 confundio.
+    """
+    rng = np.random.default_rng(semilla)
+    x_espacial = np.sin(np.linspace(0, 2 * np.pi, n))
+    filas = []
+    for i in range(n):
+        for k in range(t):
+            x = x_espacial[i] + rng.normal(0, 0.15)
+            filas.append(
+                {
+                    "dpto_ccdgo": f"{i:02d}",
+                    "departamento": f"u{i}",
+                    "region": "R",
+                    "anio": 2018 + k,
+                    "x": x,
+                    "y": 0.05 * x + rng.normal(0, 0.02),
+                }
+            )
+    unidades = [f"{i:02d}" for i in range(n)]
+    vecinos = {u: [] for u in unidades}
+    for i in range(n - 1):
+        vecinos[unidades[i]].append(unidades[i + 1])
+        vecinos[unidades[i + 1]].append(unidades[i])
+    return pd.DataFrame(filas), unidades, vecinos
+
+
+def test_moran_se_mide_sobre_residuos_y_no_sobre_la_dependiente():
+    """La dependiente cruda y los residuos dan respuestas distintas, y solo una responde a la pregunta.
+
+    La pregunta de la bateria no es si los vecinos crecen parecido —lo hacen— sino si al modelo le queda
+    dependencia espacial sin explicar. Aqui el regresor explica toda la estructura, asi que el Moran de la
+    dependiente tiene que ser significativo y el de los residuos no.
+    """
+    df, unidades, vecinos = _panel_espacial()
+    W = diagnostics.matriz_pesos(unidades, vecinos)
+    _, res = two_way_fe(df, "y", "x")
+    resid = res.resids.reset_index()
+    resid.columns = ["dpto_ccdgo", "anio", "e"]
+
+    anio = int(df["anio"].median())
+    crudo = diagnostics.moran_i(
+        df[df.anio == anio].set_index("dpto_ccdgo").reindex(unidades)["y"].to_numpy(), W, permutaciones=499
+    )
+    residual = diagnostics.moran_i(
+        resid[resid.anio == anio].set_index("dpto_ccdgo").reindex(unidades)["e"].to_numpy(),
+        W,
+        permutaciones=499,
+    )
+    assert crudo["I"] > 0.4 and crudo["p"] < 0.05, crudo
+    assert residual["p"] > 0.05, residual
+    assert residual["I"] < crudo["I"], (crudo, residual)
+
+
+def test_la_especificacion_publicada_declara_si_el_indice_va_rezagado():
+    """R-09 sobre la prosa: el regresor que corre y el que el texto describe son el mismo (B-049)."""
+    from iif.econ import run as econ_run
+
+    esperado = f"{econ_run.INDICE}_rezago" if econ_run.REZAGO_INDICE else econ_run.INDICE
+    assert econ_run.X == esperado
+
+    ruta = config.REPO_ROOT / "data" / "processed" / "econ" / "resultados.json"
+    if not ruta.exists():
+        pytest.skip("sin resultados generados")
+    publicado = json.loads(ruta.read_text(encoding="utf-8"))["especificacion"]["regresor"]
+    assert publicado == econ_run.X, (
+        f"el JSON publica {publicado!r} y la especificacion corre {econ_run.X!r}"
+    )
+
+
+def _panel_con_persistencia(*, n=33, t=8, rho=0.92, semilla=4):
+    """Panel bajo la nula donde el regresor es persistente dentro de cada unidad.
+
+    La persistencia es justo lo que el placebo antiguo destruia al barajar dentro del anio, y por eso su
+    nube salia demasiado estrecha (B-054).
+    """
+    rng = np.random.default_rng(semilla)
+    filas = []
+    for i in range(n):
+        x = 0.0
+        for k in range(t):
+            x = rho * x + rng.normal(0, 1)
+            filas.append(
+                {
+                    "dpto_ccdgo": f"{i:02d}",
+                    "departamento": f"u{i}",
+                    "region": "R",
+                    "anio": 2018 + k,
+                    "x": x,
+                    "y": rng.normal(0, 0.03),  # nula: el regresor no explica nada
+                }
+            )
+    return pd.DataFrame(filas)
+
+
+def test_el_placebo_por_trayectoria_concuerda_con_el_error_agrupado():
+    """La nube del placebo debe parecerse al error estandar que el estimador reporta.
+
+    Si la nube es mucho mas estrecha, el placebo rechaza donde el estimador no rechaza, que es lo que
+    pasaba barajando dentro del anio. Permutar la trayectoria completa conserva la estructura serial y
+    devuelve una nube del orden del error agrupado.
+    """
+    df = _panel_con_persistencia()
+    est, _ = two_way_fe(df, "y", "x")
+
+    trayectoria = robustness.placebo_permutacion(df, "y", "x", replicas=199, modo="trayectoria")
+    dentro_anio = robustness.placebo_permutacion(df, "y", "x", replicas=199, modo="dentro_del_anio")
+
+    assert trayectoria["modo"] == "trayectoria"
+    assert trayectoria["de_placebos"] == pytest.approx(est.se, rel=0.5), (trayectoria["de_placebos"], est.se)
+    # La nube de dentro-del-anio es sistematicamente mas estrecha porque destruye la persistencia. Sobre
+    # el panel real la razon es 0,33 (0,00177 contra 0,00542); aqui el margen es menor porque ocho anios
+    # de un AR(1) sintetico tienen menos estructura serial que el indice real.
+    assert dentro_anio["de_placebos"] < 0.85 * trayectoria["de_placebos"], (
+        dentro_anio["de_placebos"],
+        trayectoria["de_placebos"],
+    )
+
+
+def test_el_placebo_rechaza_un_modo_que_no_existe():
+    df = _panel_con_persistencia(n=10, t=5)
+    with pytest.raises(ValueError, match="modo de placebo"):
+        robustness.placebo_permutacion(df, "y", "x", replicas=5, modo="inventado")
+
+
+def test_la_estimacion_guarda_todos_los_coeficientes_no_solo_el_de_interes():
+    """El termino de convergencia se estima en cada corrida y hasta ahora se tiraba (B-051)."""
+    df = panel_sintetico(beta=0.02, n=33, t=8)
+    est, _ = two_way_fe(df, "y", "x", ["c"])
+    assert set(est.coeficientes) >= {"x", "c", "const"}
+    assert est.coeficientes["x"]["coef"] == pytest.approx(est.coef, rel=1e-12)
+    assert est.coeficientes["x"]["p"] == pytest.approx(est.p, rel=1e-12)
+

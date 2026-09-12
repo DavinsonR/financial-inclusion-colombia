@@ -46,7 +46,7 @@ def load_frame(db: str | None = None) -> pd.DataFrame:
     el logaritmo del ingreso rezagado (convergencia condicional), el tamaño en logaritmos y el cambio
     del índice, que es la especificación en diferencias.
     """
-    ruta = db or str(config.REPO_ROOT / "db" / "iif.duckdb")
+    ruta = db or str(config.DUCKDB_PATH)
     with duckdb.connect(ruta, read_only=True) as con:
         df = con.sql(CONSULTA).df()
 
@@ -60,6 +60,11 @@ def load_frame(db: str | None = None) -> pd.DataFrame:
     df = df.sort_values(["dpto_ccdgo", "anio"])
     for col in ("iif_compuesto", "iif_acceso", "iif_uso", "iif_profundidad"):
         df[f"d_{col}"] = df.groupby("dpto_ccdgo", sort=False)[col].diff()
+        # El rezago del índice: ordena la relación en el tiempo sin pretender identificarla. Existe como
+        # columna para que la especificación pueda elegirlo y para que el texto no prometa lo que el código
+        # no construye (B-049). Como la muestra de estimación empieza en 2019 —el crecimiento necesita el
+        # nivel anterior— y el índice existe desde 2018, el rezago no cuesta ninguna observación.
+        df[f"{col}_rezago"] = df.groupby("dpto_ccdgo", sort=False)[col].shift(1)
     return df.reset_index(drop=True)
 
 

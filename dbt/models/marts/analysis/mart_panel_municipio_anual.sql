@@ -28,6 +28,17 @@ with inclusion as (
 
 ),
 
+actividad as (
+
+    -- Igual que en el panel departamental: el valor agregado rezagado se calcula sobre la serie completa
+    -- (2011 en adelante) y no sobre el panel recortado, para que 2018 tenga denominador (ADR-017).
+    select
+        *,
+        lag(va_corriente_mm) over (partition by mpio_ccdgo order by anio) as va_corriente_mm_rezago
+    from {{ ref('fct_actividad_municipio_anual') }}
+
+),
+
 base as (
 
     select
@@ -39,6 +50,7 @@ base as (
         cast(a.anio as varchar)                 as periodo_id,
         a.estado_dato,
         a.va_corriente_mm,
+        a.va_corriente_mm_rezago,
         a.va_per_capita_corriente,
         a.peso_relativo_pct,
         a.poblacion_total,
@@ -49,7 +61,7 @@ base as (
         {% for v in variables %}
         inc.{{ v }}{{ "," if not loop.last }}
         {% endfor %}
-    from {{ ref('fct_actividad_municipio_anual') }} as a
+    from actividad as a
     join {{ ref('dim_municipio') }} as m on m.mpio_ccdgo = a.mpio_ccdgo
     left join inclusion as inc on inc.mpio_ccdgo = a.mpio_ccdgo and inc.anio = a.anio
     left join {{ ref('fct_educacion_municipio_anual') }} as e on e.mpio_ccdgo = a.mpio_ccdgo and e.anio = a.anio
