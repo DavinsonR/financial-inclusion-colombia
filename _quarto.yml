@@ -14,7 +14,7 @@ project:
 website:
   title: "Inclusión financiera y crecimiento regional en Colombia"
   description: "Un warehouse abierto de 19 fuentes públicas, un índice de inclusión financiera por dimensiones, paneles anuales y un atlas interactivo."
-  site-url: https://financial-inclusion-colombia.vercel.app/
+  site-url: https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion
   repo-url: https://github.com/DavinsonR/financial-inclusion-colombia
   repo-actions: [source]
   navbar:
@@ -31,6 +31,7 @@ website:
         menu:
           - metodologia/indice.qmd
           - metodologia/panel.qmd
+          - metodologia/especificaciones.qmd
       - text: Atlas
         href: atlas/index.qmd
       - text: Anexos

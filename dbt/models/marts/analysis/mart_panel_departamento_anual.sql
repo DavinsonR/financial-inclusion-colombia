@@ -31,7 +31,14 @@ with inclusion as (
 
 actividad as (
 
-    select * from {{ ref('fct_actividad_departamento_anual') }}
+    -- El producto rezagado se calcula sobre la serie completa del DANE (2005 en adelante) y no sobre el
+    -- panel ya recortado: si se calculara después del filtro, 2018 se quedaría sin rezago y el índice de
+    -- ese año no existiría. Es el denominador que ADR-017 exige para romper la simultaneidad entre el
+    -- regresor y la dependiente.
+    select
+        *,
+        lag(pib_corriente_mm) over (partition by dpto_ccdgo order by anio) as pib_corriente_mm_rezago
+    from {{ ref('fct_actividad_departamento_anual') }}
 
 ),
 
@@ -72,6 +79,7 @@ base as (
         cast(a.anio as varchar)                     as periodo_id,
         a.estado_dato,
         a.pib_corriente_mm,
+        a.pib_corriente_mm_rezago,
         a.pib_constante_2015_mm,
         a.pib_real_per_capita,
         a.poblacion_total,

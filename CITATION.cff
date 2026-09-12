@@ -6,10 +6,10 @@ authors:
   - family-names: "Novoa Ramírez"
     given-names: "Davirson"
 repository-code: "https://github.com/DavinsonR/financial-inclusion-colombia"
-url: "https://financial-inclusion-colombia.vercel.app"
+url: "https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion"
 license: MIT
-version: "0.2.0"
-date-released: "2026-09-06"
+version: "0.3.0"
+date-released: "2026-09-11"
 abstract: "Warehouse dimensional abierto de 19 fuentes públicas colombianas (2005 a 2026), índice de inclusión financiera en dos etapas y paneles anuales departamental y municipal, con una batería de pruebas contra la correlación espuria. Nace del trabajo de grado de la Maestría en Economía de la Pontificia Universidad Javeriana (2026), que sirve de borrador; los resultados se rehacen desde las fuentes."
 references:
   - type: thesis

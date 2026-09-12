@@ -1,6 +1,6 @@
 # Guía del proyecto
 
-Documento de control del autor. Se lee una vez de arriba abajo y después se consulta por sección. Fecha: 2026-09-06. Se actualiza al cierre de cada sesión (R-16 en CLAUDE.md). La memoria de errores está en `docs/BITACORA_AGENTE.md`; las decisiones, en `docs/decisiones/`.
+Documento de control del autor. Se lee una vez de arriba abajo y después se consulta por sección. Fecha: 2026-09-11. Se actualiza al cierre de cada sesión (R-16 en CLAUDE.md). La memoria de errores está en `docs/BITACORA_AGENTE.md`; las decisiones, en `docs/decisiones/`.
 
 ## 1. Qué se construye y por qué
 
@@ -20,6 +20,7 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 | 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (77 MB), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
 | 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
 | 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Hecha: atlas de tres vistas y batería completa en `src/iif/econ` con 12 pruebas sintéticas (ADR-016) | verde |
+| 3.5 | Auditoría adversarial: potencia y equivalencia (ADR-018), denominador del índice (ADR-017), Moran sobre residuos, curva de especificación, CI que reproduce las cifras | Hecha: B-048 a B-056, S-019 | verde |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
 
 Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto (que compila en `make check` y no se publica aparte), CI y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
@@ -52,6 +53,8 @@ bigquery/                     datasets, carga de Parquet, particionado, control 
 snowflake/                    material del demo posterior: roles, warehouse, stages, clonación por vintage
 src/iif/config.py             rutas del proyecto; toca esto si aparece una carpeta nueva
 src/iif/cli.py                comandos `iif`; toca esto si aparece un comando
+src/iif/econ/power.py         MDE, TOST y la escala del regresor (ADR-018)
+src/iif/econ/curve.py         la curva de especificación: 160 combinaciones y su resumen (ADR-018)
 src/iif/legacy/               port del notebook; no se cambia el modo `notebook`, se extiende el modo `corrected`
 src/iif/data/                 scrub y diccionario; toca esto si aparece un artefacto legado nuevo
 src/iif/acquire/, crosswalk/  descarga y DIVIPOLA (pendiente)
@@ -102,6 +105,8 @@ paper/                        PDF tras el depósito institucional; congelado (R-
 | Ventana de pesos | toda la muestra; ventana inicial congelada | ventana inicial (2018 a 2019) congelada | el índice no "aprende" de años posteriores | ADR-004; `config/index.yaml` |
 | Escalado del índice | min-max con EPS; estandarización | estandarización con media y desviación congeladas en la calibración | pierde la lectura "0 a 1"; a cambio el índice es comparable entre años | ADR-004, ADR-015 |
 | Combinación dentro de cada dimensión | componente principal; pesos iguales | pesos iguales, tras medir KMO de 0,31 y 0,40 y ver pesos negativos con PCA | se renuncia a ponderar por estructura factorial, que estos datos no tienen | ADR-015 (adenda); `config/index.yaml` |
+| Denominador de los montos del índice | producto contemporáneo; rezagado; fijo del año base | rezagado, tras medir que el contemporáneo fabrica correlación (placebo de solo-denominador: β = −0,2525, p = 0,0007) | el primer año de cada unidad pierde las variables monetarias; hay que recalibrar | ADR-017; `config/index.yaml` (`denominador`) |
+| Cómo se publica un nulo | solo el p-valor; con MDE y equivalencia | con MDE y TOST, y la afirmación redactada como cota | el titular deja de ser «no predice» y pasa a ser un intervalo | ADR-018; `src/iif/econ/power.py` |
 | Bogotá | dentro de Cundinamarca; separada | separada (33 unidades, como el DANE) | un clúster más, sin municipios | ADR-013; `dbt/seeds/xw_sfc_departamento.csv` |
 | Áreas no municipalizadas | descartar; agregar al departamento; conservar con tipo ANM | conservar con `mpio_tipo = ANM` | filas con población pequeña | ADR-013; `dbt/seeds/` |
 | Empalme 2021Q1 | promedio; preferir ptgf; preferir kx2f | kx2f, con la diferencia guardada | una ruptura documentada en la serie | ADR-009; `dbt/models/intermediate/` |
@@ -164,7 +169,14 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
   Quarto se sigue construyendo en cada corrida y queda como artefacto «sitio» en la pestaña Actions, que es
   donde se mira cuando hace falta; para regenerarlo sin tocar el código, «Run workflow» sobre `main`.
 - Atlas: `uv run iif atlas` deja `atlas/data/` por debajo de 3 MB y `pytest tests/test_atlas.py` comprueba el giro de los anillos, el área esférica de Colombia, el presupuesto y el tipo de cada acompañante. Lo que una prueba no ve (encuadre, colisiones de rótulos, fugas de oyentes) se mide en el navegador; el procedimiento está en S-016.
-- CI: `ci.yml` corre lo mismo que `make check` y publica `_site` como artefacto.
+- CI: `ci.yml` corre lo mismo que `make check`, publica `_site` como artefacto y además corre la cadena
+  entera del CLI (`iif index`, `iif econ`, `iif curva`) y compara cifra a cifra el `resultados.json`
+  regenerado contra el commiteado (`tests/test_resultados_publicados.py`). Si el código y el número
+  publicado se separan, el flujo se pone en rojo: es lo que convierte R-09 en una garantía y no en una
+  promesa.
+- En Windows hay que exportar `PYTHONIOENCODING=utf-8` antes de `iif index` o `iif econ`: el CLI escribe un
+  carácter que la página de códigos por defecto no representa y el comando muere después de hacer su
+  trabajo (B-056, abierta).
 
 ## 9. Preguntas abiertas
 
@@ -178,4 +190,16 @@ Riesgos que no se maquillan:
 - El traslape municipal entre inclusión y valor agregado es de 7 años (2018 a 2024) con un cambio de esquema de la SFC en 2021Q1. El departamental es de 8 años con 2025 preliminar.
 - El valor agregado municipal del DANE es una distribución del PIB departamental con indicadores. Si un indicador de reparto correlaciona con presencia bancaria hay endogeneidad mecánica. Leer `DSO-PIB-DEP-MET-001-V8.pdf` antes de usarlo como dependiente; probar variantes.
 - El proyecto no publica resultados hasta la fase 3. Un repositorio con mucha infraestructura y ninguna estimación se ve incompleto para un lector apurado; la guía y el README lo dicen sin rodeos.
-- El resultado nuevo puede volver a ser un nulo. Se publica igual, con su prueba.
+- El resultado nuevo puede volver a ser un nulo. Se publica igual, con su prueba, y desde ADR-018 con su
+  cota: el diseño descarta efectos por encima de 0,50 pp por desviación típica y no puede pronunciarse por
+  debajo de 0,25 pp. Esa cota es la justificación cuantitativa de cualquier extensión futura.
+- La dimensión de acceso descansa en una sola variable, y tras los efectos fijos esa variable explica casi
+  toda la variación del compuesto. El índice mide, en la práctica, corresponsales por habitante. Está
+  declarado en el README y en `metodologia/indice.qmd`; el arreglo de fondo son los puntos de atención de
+  la SFC, que empiezan en 2023.
+- El panel municipal está construido y no se estima. Estimarlo tal cual da un coeficiente negativo y
+  significativo que es el sesgo del denominador amplificado: el valor agregado municipal es una
+  distribución del PIB departamental y la única dependiente disponible es nominal. Antes de publicarlo hay
+  que resolver las dos cosas.
+- El término cuadrático del índice es significativo por clúster (p = 0,042) y no sobrevive al bootstrap
+  salvaje (p = 0,099). Se estima y se publica en `resultados.json`, y no se presenta como hallazgo.

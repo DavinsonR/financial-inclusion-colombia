@@ -188,7 +188,7 @@ def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict
     out_dir = out_dir or (config.REPO_ROOT / "atlas" / "data")
     out_dir.mkdir(parents=True, exist_ok=True)
     contrato = load_contract()
-    ruta_db = db or (config.REPO_ROOT / "db" / "iif.duckdb")
+    ruta_db = db or config.DUCKDB_PATH
     if not ruta_db.exists():
         raise FileNotFoundError(f"no existe {ruta_db}; corre `make dbt-build` y `make index` antes")
 

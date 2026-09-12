@@ -498,3 +498,82 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Qué funcionó: preguntar si ese sitio tenía que existir. No tenía: la investigación entera ya vive en la página del portafolio, atlas incluido, y dos superficies para el mismo contenido garantizan que una se quede sin dueño. Al retirarlo desaparecen de golpe el ajuste invisible de consola, el token y los cinco pasos de publicación, sin perder nada que alguien estuviera leyendo.
 - Regla derivada: antes de invertir en publicar algo, comprobar que ese algo tiene que existir. Un despliegue que cuesta cinco intentos casi siempre está resolviendo el problema equivocado.
 - Dónde se reutiliza: ADR-005, adenda 5. `quarto render` se queda dentro de `make check`, que es lo que de verdad daba valor: la prueba de que la documentación compila.
+
+## B-048 · 2026-09-11 · La I de Moran se calculó sobre el crecimiento crudo y no sobre los residuos
+- Contexto: ADR-016 punto 3 pide dependencia espacial medida, no supuesta, y el README publica una tabla de I de Moran por año con su inferencia por permutación.
+- Qué pasó: la tabla publicada marca 2022 (0,22; p = 0,039) y 2025 (0,23; p = 0,047) como los años con dependencia espacial, y el README afirma a continuación que el SLX la absorbe. Calculada sobre los residuos del modelo base, la dependencia no está en 2022 ni en 2025 sino en 2019 (I = 0,243; p = 0,025), y sobre los residuos del SLX sigue ahí prácticamente intacta (I = 0,242; p = 0,039).
+- Causa raíz: `run.py` pasaba a `moran_i` la serie `crecimiento` de la muestra, que es la variable dependiente cruda. Un Moran sobre la dependiente cruda mide si los vecinos crecen parecido —que es un hecho conocido sobre Colombia y no una propiedad del modelo—; lo que la batería necesita saber es si al modelo le queda dependencia espacial sin explicar, y eso solo lo dicen los residuos. La función `moran_i` estaba bien; el objeto que se le daba, no.
+- Regla: R-09. Una frase publicada sobre lo que un estimador absorbe se acompaña del contraste que lo demuestra, sobre los residuos de ese estimador. Si no existe el contraste, no se escribe la frase.
+- Evidencia: `src/iif/econ/run.py::run`, `tests/test_econ.py::test_moran_se_mide_sobre_residuos_y_no_sobre_la_dependiente`.
+- Estado: cerrada
+
+## B-049 · 2026-09-11 · El texto publicado prometía un rezago del índice que el código nunca construyó
+- Contexto: el README declara, en su sección de pregunta de investigación, que un rezago del índice ordena la relación en el tiempo y que no constituye una estrategia de identificación causal.
+- Qué pasó: no existe ningún rezago del índice en `src/iif/econ/`. Las únicas apariciones de la palabra son el rezago espacial del SLX y el rezago del ingreso, que es el término de convergencia. El regresor de `run.py` es `iif_compuesto`, el índice contemporáneo del mismo año cuyo crecimiento se explica.
+- Causa raíz: la frase se escribió describiendo la intención del diseño y nunca se contrastó contra la constante `X` de `run.py`. Nada en la cadena de pruebas comparaba el texto con la especificación, porque las pruebas miran cifras y esta era una afirmación en prosa.
+- Regla: R-09, extendida: una afirmación sobre la especificación es una cifra publicada más. La especificación se escribe una sola vez, en `run.py`, y el texto la cita desde ahí.
+- Evidencia: `src/iif/econ/run.py`, `tests/test_econ.py::test_la_especificacion_publicada_declara_si_el_indice_va_rezagado`. El rezago estimado da +0,00554 (p = 0,38) sin coste muestral: el veredicto no cambia, la descripción sí.
+- Estado: cerrada
+
+## B-050 · 2026-09-11 · El denominador del índice era el mismo producto que está en la dependiente
+- Contexto: ADR-015 normaliza los montos como porcentaje del producto, que es la definición estándar de profundidad financiera.
+- Qué pasó: cinco de las ocho variables del índice llevan el PIB corriente en el denominador y la dependiente es el crecimiento del PIB real per cápita. Un índice placebo con los numeradores congelados en 2018 —sin ninguna información financiera, solo el denominador moviéndose— produce beta = −0,2525 con p = 0,0007 en la especificación publicada. Los coeficientes por dimensión cambian de signo según el denominador: profundidad va de −0,0208 a +0,0104 y uso de −0,0037 a +0,0104.
+- Causa raíz: la decisión de normalización se tomó mirando la variable por separado —donde la razón sobre producto es correcta e incuestionable— y no mirando la ecuación completa, donde ese mismo producto aparece al otro lado. La correlación mecánica no es un defecto de la normalización sino de la combinación entre la normalización y la dependiente, y ninguna prueba miraba la combinación.
+- Regla: ADR-017. Un denominador que aparece también en la dependiente se rezaga o se fija, y el sesgo se mide con un placebo de solo-denominador que se publica al lado. Regla general nueva: antes de aceptar una normalización, escribir la ecuación final y buscar la misma serie en los dos lados.
+- Evidencia: ADR-017, `config/index.yaml` (clave `denominador`), `tests/test_index.py::test_el_placebo_de_solo_denominador_pierde_fuerza_al_rezagar`.
+- Estado: cerrada
+
+## B-051 · 2026-09-11 · Un nulo publicado sin su efecto mínimo detectable afirma más de lo que puede
+- Contexto: ADR-016 aceptó de antemano que el resultado pudiera ser nulo y decidió publicarlo con su N, sus clústeres y sus pruebas. Se cumplió.
+- Qué pasó: el README afirma que el índice no predice el crecimiento. Un contraste que no rechaza no distingue entre que el efecto sea cero y que este diseño no lo vería aunque existiera, y la cifra que separa las dos lecturas —el MDE— no existía en el repositorio. Medida: los efectos fijos de dos vías destruyen el 92 % de la varianza del índice (de 1,2171 a 0,3337), el MDE al 80 % es 0,0167, y el TOST descarta efectos por encima de 0,50 pp por desviación pero no de 0,25 pp.
+- Causa raíz: la batería se diseñó contra la correlación espuria, que es el riesgo de un falso positivo, y no contra el falso negativo. Toda la infraestructura mide si un coeficiente distinto de cero es real; ninguna pieza medía si un coeficiente igual a cero es informativo.
+- Regla: ADR-018. Un resultado nulo se publica con su MDE y su prueba de equivalencia, y la afirmación del texto es la cota, no la ausencia.
+- Evidencia: ADR-018, `src/iif/econ/power.py`, `tests/test_power.py`.
+- Estado: cerrada
+
+## B-052 · 2026-09-11 · Tres superficies públicas contradecían al README
+- Contexto: ADR-005 adenda 5 retiró el sitio Quarto independiente y dejó la página del portafolio como única superficie pública.
+- Qué pasó: `CITATION.cff` seguía apuntando a `financial-inclusion-colombia.vercel.app`, el proyecto que esa misma adenda manda borrar, de modo que quien citara el trabajo obtendría un enlace muerto. `index.qmd` anunciaba la fase 2 en curso y la fase 3 pendiente cuando las dos están hechas y sus resultados publicados. Y el abstract de `README.es.md` decía que todavía no hay resultados, cuarenta y seis líneas antes de publicarlos.
+- Causa raíz: las tres son superficies que se escribieron antes de que la fase 3 cerrara y que ninguna prueba recorre. `make check` compila el sitio pero no comprueba que lo que el sitio afirma coincida con lo que el README afirma, y el estado de fase vive escrito a mano en dos sitios distintos (R-15 incumplida sin que nada avise).
+- Regla: R-15 aplicada al estado del proyecto: el semáforo de fases tiene una sola fuente. Prueba nueva que recorre las superficies públicas buscando la URL retirada y la contradicción de estado.
+- Evidencia: `tests/test_repo.py::test_las_superficies_publicas_no_se_contradicen`.
+- Estado: cerrada
+
+## S-019 · 2026-09-11 · La auditoría adversarial encontró lo que doce pruebas sintéticas no podían encontrar
+- Contexto: la batería econométrica tiene doce pruebas sobre paneles sintéticos (S-017) que garantizan que cada estimador encuentra lo que hay cuando se sabe lo que hay. Todas pasaban, y aun así cuatro cifras publicadas estaban mal.
+- Qué funcionó: atacar el repositorio desde diez ángulos independientes con instrucción de encontrar defectos, y someter cada hallazgo a un refutador con instrucción de tumbarlo. De 67 hallazgos sobrevivieron 57, y diez cayeron —incluidas dos críticas al shift-share que atacaban afirmaciones que ADR-016 nunca hizo, y una lectura del CIPS que era correcta tal como estaba. El refutador importa tanto como el atacante: sin él, la auditoría habría producido una lista de la que un tercio era ruido.
+- Por qué funcionó: las pruebas sintéticas validan el estimador contra una verdad conocida, y por eso son ciegas a los errores que están fuera del estimador: el objeto que se le pasa (B-048), la ecuación que el texto describe (B-049), la construcción del regresor aguas arriba (B-050) y la pregunta que el diseño no se hizo (B-051). Ninguno de los cuatro es un fallo de código; los cuatro son fallos de correspondencia entre piezas que por separado funcionan.
+- Dónde se reutiliza: la rejilla de 180 especificaciones que salió de la auditoría es ahora `metodologia/especificaciones.qmd`, y el contraste que publica —53 % de las especificaciones significativas sin efectos de tiempo, 7 % con ellos— es la demostración más comunicable que el proyecto tiene. Regla derivada: una batería que solo se prueba contra sí misma no encuentra los errores de correspondencia; hace falta un lector hostil, y se puede fabricar.
+
+## B-053 · 2026-09-11 · La opción `--recalibrar` del índice nunca recalibraba
+- Contexto: ADR-015 punto 6 congela los pesos en la ventana de calibración y exige que recalibrar sea una decisión explícita. `iif index --recalibrar` es esa decisión.
+- Qué pasó: al cambiar el denominador (ADR-017) y correr `iif index --recalibrar`, las medias y desviaciones de las cinco variables monetarias salieron idénticas a las anteriores, cuando por fuerza tenían que cambiar: la escala de la variable había cambiado.
+- Causa raíz: `run()` leía `pesos_congelados` del contrato y se los pasaba a `build_level` **también** cuando `recalibrar` era cierto. Con los pesos dentro, `build_index` toma la rama que los reutiliza y nunca llama a `fit_dimension`, de modo que `res_dep.fits` devolvía exactamente los pesos viejos reconstruidos. La orden se cumplía escribiendo de nuevo los mismos números, y no había forma de notarlo salvo cambiando algo aguas arriba que obligara a los pesos a moverse.
+- Regla: una opción que dice reestimar tiene que entrar por el camino que estima. Regla general: cuando una bandera cambia el comportamiento de una función, la prueba compara resultados **distintos**, no que la función devuelva algo.
+- Evidencia: `src/iif/index/run.py::run`, `tests/test_index.py::test_recalibrar_vuelve_a_estimar_los_pesos`.
+- Estado: cerrada
+
+## B-054 · 2026-09-11 · El placebo por permutación barajaba dentro del año y su nube era tres veces demasiado estrecha
+- Contexto: el placebo construye la distribución del coeficiente cuando por diseño no hay nada que encontrar, y es una de las dos piezas que sostienen la inferencia con 33 clústeres.
+- Qué pasó: al cambiar el denominador el coeficiente base pasó de +0,00074 a +0,00382, y el placebo pasó a dar p = 0,038 mientras el error agrupado daba p = 0,54 y el bootstrap salvaje p = 0,48. Un placebo que rechaza donde el estimador no rechaza no es un contraste conservador: es un contraste mal especificado, y publicarlo al lado del resultado habría sugerido un efecto que ninguna otra pieza de la batería ve.
+- Causa raíz: barajar el índice entre departamentos **dentro de cada año** conserva la trayectoria nacional, que era el objetivo, pero destruye también la correlación serial del índice dentro de cada departamento. El regresor placebo resultante es mucho más ruidoso que el real, su coeficiente mucho más preciso, y la nube mucho más estrecha que el error estándar que el estimador reporta: desviación de 0,00177 contra un SE agrupado de 0,00618.
+- Regla: una permutación tiene que destruir exactamente la variación que identifica el efecto y conservar todo lo demás, estructura serial incluida. Permutar la **trayectoria completa** de cada departamento es esa permutación: conserva la trayectoria nacional y la estructura serial, y su nube (0,00542) sí concuerda con el SE agrupado. El modo antiguo se conserva publicado al lado como diagnóstico de cuánta variación destruye cada uno.
+- Evidencia: `src/iif/econ/robustness.py::placebo_permutacion` (parámetro `modo`), `tests/test_econ.py::test_el_placebo_por_trayectoria_concuerda_con_el_error_agrupado`.
+- Estado: cerrada
+
+## B-055 · 2026-09-11 · El paquete construía la base en un sitio y la leía en otro
+- Contexto: `dbt/profiles.yml` resuelve la ruta de DuckDB con `env_var('IIF_DUCKDB_PATH', 'db/iif.duckdb')`, y tanto el Makefile como el flujo de CI definen esa variable. En CI apunta a `/tmp/iif.duckdb`.
+- Qué pasó: al añadir una prueba que regenera la batería y la compara contra el JSON publicado, la prueba se saltaba en CI. Tres funciones de Python —`econ.frame.load_frame`, `index.run._con` y `export.atlas`— tenían la ruta escrita a mano como `REPO_ROOT / "db" / "iif.duckdb"` e ignoraban la variable de entorno. En CI, dbt construía la base en `/tmp` y el paquete la buscaba en `db/`, donde no había nada.
+- Causa raíz: una constante con dos dueños. dbt tenía su contrato y el paquete tenía el suyo, y como en local los dos caminos coinciden, la discrepancia no se manifestaba nunca. El único escenario que la revelaba —CI con la base fuera del repositorio— no ejecutaba ninguno de los tres comandos.
+- Regla: R-15. La ruta de la base vive en `iif.config.DUCKDB_PATH`, con el mismo contrato que `dbt/profiles.yml`, y nadie más la construye. Regla general: cuando una configuración la leen dos herramientas distintas, la segunda no la reescribe, la importa.
+- Evidencia: `src/iif/config.py::_duckdb_path`, y el paso «El indice y la bateria corren de punta a punta» de `.github/workflows/ci.yml`, que habría fallado con la ruta vieja.
+- Estado: cerrada
+
+## B-056 · 2026-09-11 · El CLI escribía un carácter que la consola de Windows no sabe representar
+- Contexto: `iif index` e `iif econ` terminan confirmando por pantalla con `typer.echo(f"✓ {ruta}")`.
+- Qué pasó: en una consola de Windows con la página de códigos por defecto (cp1252), el comando completaba su trabajo —el Parquet quedaba escrito— y después moría con `UnicodeEncodeError: 'charmap' codec can't encode character '\u2713'`. El código de salida era 1, de modo que cualquier encadenamiento posterior se detenía por un fallo que ya había ocurrido después del trabajo útil.
+- Causa raíz: la salida del programa asume UTF-8 sin declararlo. En Linux y en CI la asunción se cumple y el error no existe; en la máquina del autor, no.
+- Regla: R-04 en espíritu, ampliada al entorno: un comando no asume la codificación de la terminal que lo llama. Mientras el carácter se conserve, la variable `PYTHONIOENCODING=utf-8` queda declarada en el flujo de CI y anotada en la guía como requisito para Windows.
+- Evidencia: `.github/workflows/ci.yml`, paso «El indice y la bateria corren de punta a punta».
+- Estado: abierta — el arreglo de fondo es que `cli.py` fuerce UTF-8 en su salida o use un carácter ASCII; queda anotado y sin hacer para no mezclarlo con esta tanda.
+
