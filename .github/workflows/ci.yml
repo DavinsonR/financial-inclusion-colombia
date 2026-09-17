@@ -77,8 +77,15 @@ jobs:
 
       # Si la corrida anterior cambio una cifra publicada, el arbol queda sucio y hay que regenerar y
       # commitear a proposito, no descubrirlo en una lectura.
+      # Compara CONTENIDO, no bytes. Comparar bytes no puede funcionar aqui y se
+      # comprobo por que: los dos JSON llevan `generado_en` con la hora de
+      # generacion, y los parquet salen con las filas en otro orden y con ruido de
+      # ultimo bit (1,4e-14) segun la maquina, porque la agregacion va en paralelo.
+      # Ninguna de las dos cosas es una cifra que cambie. El criterio es el mismo
+      # que ya usa tests/test_resultados_publicados.py: tolerancia y `generado_en`
+      # fuera.
       - name: El arbol no cambia al regenerar
-        run: git diff --stat -- data/processed ':!data/processed/econ/resultados.json' && git diff --quiet -- data/processed ':!data/processed/econ/resultados.json'
+        run: uv run python scripts/check_processed.py
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
