@@ -107,7 +107,8 @@ Cada uno con su prueba en `tests/test_econ.py`, `tests/test_index.py` o en `dbt/
 ```bash
 make setup           # uv sync con todos los grupos y kernel de Jupyter
 make quarto-install  # Quarto por tarball (sin gh, sin apt)
-make acquire         # descarga las 19 fuentes al manifiesto
+make data            # baja data/raw del Release data-v1 y lo verifica contra el manifiesto
+make acquire         # vuelve a descargar las 19 fuentes desde su origen público
 make parse           # XLSX del DANE y GeoJSON del MGN a Parquet tidy
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
