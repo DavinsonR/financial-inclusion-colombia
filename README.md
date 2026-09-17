@@ -107,7 +107,8 @@ Each with its test in `tests/test_econ.py`, `tests/test_index.py` or in `dbt/tes
 ```bash
 make setup           # uv sync with every group, plus the Jupyter kernel
 make quarto-install  # Quarto from a tarball (no gh, no apt)
-make acquire         # downloads the 19 sources into the manifest
+make data            # raw downloads from the `data-v1` Release, checked against the manifest
+make acquire         # re-downloads the 19 sources from the original public endpoints
 make parse           # statistics-office XLSX and framework GeoJSON into tidy Parquet
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```

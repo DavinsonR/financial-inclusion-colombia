@@ -4,7 +4,7 @@ export IIF_DUCKDB_PATH ?= $(CURDIR)/db/iif.duckdb
 export QUARTO_PYTHON := $(CURDIR)/.venv/bin/python
 DBT_FLAGS := --profiles-dir dbt --project-dir dbt
 
-.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check acquire parse index atlas manifest clean
+.PHONY: setup quarto-install lint test test-data dbt-build reproduce render check data acquire parse index atlas manifest clean
 
 setup:            ## dependencias de Python (uv) y kernel de Jupyter
 	uv sync --all-groups --all-extras
@@ -35,6 +35,9 @@ render:           ## sitio Quarto
 	quarto render
 
 check: lint test dbt-build render
+
+data:             ## baja data/raw desde el Release y lo verifica contra el manifiesto
+	python3 scripts/fetch_data.py
 
 acquire:          ## descarga todas las fuentes registradas en config/sources.yaml
 	uv run iif acquire all

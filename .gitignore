@@ -20,8 +20,14 @@ _site/
 .quarto/
 /.jupyter_cache/
 
-# Datos que no se versionan
-data/raw/_large/
+# Datos que no se versionan.
+# Las descargas crudas pesaban 121 MB de los 124 MB del repositorio y salieron
+# del historial: viven en el Release `data-v1` y vuelven con `make data`.
+# Se versionan solo las dos piezas que son documentacion, no datos: el README
+# y el manifiesto con los sha256 de cada descarga.
+data/raw/*
+!data/raw/README.md
+!data/raw/manifest.jsonl
 data/raw/**/*.tmp
 
 # Secretos
