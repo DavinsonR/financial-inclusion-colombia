@@ -42,8 +42,25 @@ jobs:
           uv run dbt seed --profiles-dir dbt --project-dir dbt
           uv run dbt build --profiles-dir dbt --project-dir dbt
 
+      # data/raw ya no esta en el historial (pesaba 121 MB de 124). Sin este paso,
+      # test_legacy_vs_ptgf.py se saltaria en silencio: su guarda es la existencia
+      # de data/raw/sfc_ptgf_ywrb. La cache va por el manifiesto, que es lo unico
+      # que cambia cuando cambian las descargas.
+      - name: Cache de data/raw
+        id: cache-raw
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ hashFiles('data/raw/manifest.jsonl') }}
+
+      - name: Datos crudos desde el Release
+        if: steps.cache-raw.outputs.cache-hit != 'true'
+        run: python3 scripts/fetch_data.py
+
+      # `-rs` imprime el motivo de cada prueba saltada. Con los datos ya presentes
+      # no deberia saltarse ninguna por falta de data/raw, y si se salta, se lee.
       - name: Pruebas con datos crudos
-        run: uv run pytest -q -m data
+        run: uv run pytest -q -m data -rs
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
