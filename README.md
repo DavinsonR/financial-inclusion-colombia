@@ -6,7 +6,7 @@
 
 MSc Economics thesis, Pontificia Universidad Javeriana (2026; supervisor: Gabriel Penagos Londoño). The question: does financial inclusion predict departmental growth once the national trends that move every department at once are taken out? The answer is published with its specification, its N, its clusters and its tests, whatever the sign.
 
-Project page: <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion>. Author: Davirson Novoa Ramírez.
+Project page: <https://davirson.com/en/research/fintech-inclusion>. Author: Davirson Novoa Ramírez.
 
 *Documentación del proyecto (guía, bitácora, ADR, metodología) en español: ver [README.es.md](README.es.md).*
 
@@ -164,7 +164,7 @@ These are written in Spanish, the language of the thesis.
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |
 | Thesis PDF | After deposit in the Javeriana institutional repository |
-| Public page, the only one | <https://proyecto-davirson-git.vercel.app/en/research/fintech-inclusion> |
+| Public page, the only one | <https://davirson.com/en/research/fintech-inclusion> |
 
 ## How to cite
 

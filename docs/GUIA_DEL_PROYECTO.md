@@ -160,7 +160,7 @@ Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDA
 - Limpieza: `tests/test_repo.py::test_no_private_strings_in_published_trees` recorre `data/legacy`, `notebooks` y `docs` con la lista de cadenas privadas de `iif.data.scrub`; debe dar cero.
 - Sitio: `_site/index.html`, `_site/datos/fuentes.html` (manifiesto) y `_site/datos/crosswalk.html` (cobertura y empalme) se renderizan con datos reales; el atlas y la metodología del índice ya están publicados y solo el panel econométrico y el anexo siguen como borrador.
 - Sitio publicado: ninguno. La única dirección pública del proyecto es su página en el portafolio,
-  <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> (ADR-005, adenda 5). El sitio
+  <https://davirson.com/es/research/fintech-inclusion> (ADR-005, adenda 5). El sitio
   Quarto se sigue construyendo en cada corrida y queda como artefacto «sitio» en la pestaña Actions, que es
   donde se mira cuando hace falta; para regenerarlo sin tocar el código, «Run workflow» sobre `main`.
 - Atlas: `uv run iif atlas` deja `atlas/data/` por debajo de 3 MB y `pytest tests/test_atlas.py` comprueba el giro de los anillos, el área esférica de Colombia, el presupuesto y el tipo de cada acompañante. Lo que una prueba no ve (encuadre, colisiones de rótulos, fugas de oyentes) se mide en el navegador; el procedimiento está en S-016.
