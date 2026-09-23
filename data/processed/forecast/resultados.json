@@ -1,0 +1,1535 @@
+{
+ "generado_en": "2026-09-23T18:34:51+00:00",
+ "vintage": {
+  "archivo": "data\\interim\\dane\\pib_departamento_anual.parquet",
+  "sha256": "a2cee8dc548b639e1f49e11a8e0307ac1b8ba18d66f0e36f33d6cc50a59008b6",
+  "anio_minimo": 2005,
+  "anio_maximo": 2025,
+  "n_departamentos": 33,
+  "estado_por_anio": {
+   "2005": "definitivo",
+   "2006": "definitivo",
+   "2007": "definitivo",
+   "2008": "definitivo",
+   "2009": "definitivo",
+   "2010": "definitivo",
+   "2011": "definitivo",
+   "2012": "definitivo",
+   "2013": "definitivo",
+   "2014": "definitivo",
+   "2015": "definitivo",
+   "2016": "definitivo",
+   "2017": "definitivo",
+   "2018": "definitivo",
+   "2019": "definitivo",
+   "2020": "definitivo",
+   "2021": "definitivo",
+   "2022": "definitivo",
+   "2023": "definitivo",
+   "2024": "provisional",
+   "2025": "preliminar"
+  }
+ },
+ "horizonte": [
+  2026,
+  2027,
+  2028
+ ],
+ "nivel_intervalo": 0.8,
+ "ancla": {
+  "fuente": "FMI, World Economic Outlook (via DBnomics)",
+  "fecha_corte": "2025-05-15",
+  "escenario": "central",
+  "crecimiento": {
+   "2026": 2.625,
+   "2027": 2.76,
+   "2028": 2.76
+  }
+ },
+ "puerta_de_calidad": {
+  "modelo_publicado": "combinacion",
+  "mae": 3.413147,
+  "ganancia_sobre_ingenuo_pct": 38.553882,
+  "dm_p": 0.0,
+  "cobertura": 1.0,
+  "n_pares": 264
+ },
+ "backtest": {
+  "completo": [
+   {
+    "modelo": "combinacion",
+    "mae": 3.413147,
+    "cobertura": 1.0,
+    "ganancia_pct": 38.553882,
+    "dm_p": 0.0,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "arima_110_atipicos",
+    "mae": 3.633379,
+    "cobertura": 1.0,
+    "ganancia_pct": 34.589103,
+    "dm_p": 0.0,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "arima_111_atipicos",
+    "mae": 3.806372,
+    "cobertura": 1.0,
+    "ganancia_pct": 31.474736,
+    "dm_p": 4e-06,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "arima_011_atipicos",
+    "mae": 3.815314,
+    "cobertura": 1.0,
+    "ganancia_pct": 31.313758,
+    "dm_p": 6e-06,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "arima_210_atipicos",
+    "mae": 3.930935,
+    "cobertura": 1.0,
+    "ganancia_pct": 29.232257,
+    "dm_p": 1.7e-05,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "deriva",
+    "mae": 3.974638,
+    "cobertura": 1.0,
+    "ganancia_pct": 28.445496,
+    "dm_p": 0.0,
+    "n": 264,
+    "aprobado": true
+   },
+   {
+    "modelo": "ingenuo",
+    "mae": 5.554699,
+    "cobertura": 1.0,
+    "ganancia_pct": null,
+    "dm_p": null,
+    "n": 264,
+    "aprobado": true
+   }
+  ],
+  "por_regimen": {
+   "calma": [
+    {
+     "modelo": "combinacion",
+     "mae": 2.112165,
+     "cobertura": 1.0,
+     "ganancia_pct": 17.999891,
+     "dm_p": 0.030984,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "deriva",
+     "mae": 2.114314,
+     "cobertura": 1.0,
+     "ganancia_pct": 17.916462,
+     "dm_p": 0.029511,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_110_atipicos",
+     "mae": 2.1272,
+     "cobertura": 1.0,
+     "ganancia_pct": 17.416204,
+     "dm_p": 0.048619,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_111_atipicos",
+     "mae": 2.302434,
+     "cobertura": 1.0,
+     "ganancia_pct": 10.613123,
+     "dm_p": 0.242949,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_011_atipicos",
+     "mae": 2.305354,
+     "cobertura": 1.0,
+     "ganancia_pct": 10.499789,
+     "dm_p": 0.269046,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_210_atipicos",
+     "mae": 2.345176,
+     "cobertura": 1.0,
+     "ganancia_pct": 8.953786,
+     "dm_p": 0.323942,
+     "n": 198,
+     "aprobado": true
+    },
+    {
+     "modelo": "ingenuo",
+     "mae": 2.575808,
+     "cobertura": 1.0,
+     "ganancia_pct": null,
+     "dm_p": null,
+     "n": 198,
+     "aprobado": true
+    }
+   ],
+   "ruptura": [
+    {
+     "modelo": "combinacion",
+     "mae": 7.316093,
+     "cobertura": 1.0,
+     "ganancia_pct": 49.514153,
+     "dm_p": 1e-06,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_110_atipicos",
+     "mae": 8.151915,
+     "cobertura": 1.0,
+     "ganancia_pct": 43.74643,
+     "dm_p": 1e-06,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_111_atipicos",
+     "mae": 8.318187,
+     "cobertura": 1.0,
+     "ganancia_pct": 42.599045,
+     "dm_p": 1e-06,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_011_atipicos",
+     "mae": 8.345197,
+     "cobertura": 1.0,
+     "ganancia_pct": 42.412662,
+     "dm_p": 2e-06,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "arima_210_atipicos",
+     "mae": 8.688215,
+     "cobertura": 1.0,
+     "ganancia_pct": 40.045609,
+     "dm_p": 5e-06,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "deriva",
+     "mae": 9.555608,
+     "cobertura": 1.0,
+     "ganancia_pct": 34.06003,
+     "dm_p": 0.0,
+     "n": 66,
+     "aprobado": true
+    },
+    {
+     "modelo": "ingenuo",
+     "mae": 14.491374,
+     "cobertura": 1.0,
+     "ganancia_pct": null,
+     "dm_p": null,
+     "n": 66,
+     "aprobado": true
+    }
+   ]
+  }
+ },
+ "coherencia_jerarquica_pct": {
+  "2005": 0.579845,
+  "2006": 0.534856,
+  "2007": 0.69835,
+  "2008": 0.94462,
+  "2009": 1.283847,
+  "2010": 0.686639,
+  "2011": 0.22704,
+  "2012": 0.326321,
+  "2013": -0.057429,
+  "2014": -0.032276,
+  "2015": 0.0,
+  "2016": 0.0,
+  "2017": -0.004061,
+  "2018": 0.005783,
+  "2019": 0.010652,
+  "2020": 0.027387,
+  "2021": -0.02305,
+  "2022": 0.038264,
+  "2023": -0.005797,
+  "2024": 0.024424,
+  "2025": 0.071839
+ },
+ "departamentos": {
+  "05": {
+   "nombre": "Antioquia",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     159470.94649,
+     165663.717487,
+     171802.208606
+    ],
+    "crecimiento_pct": [
+     3.634119,
+     3.883322,
+     3.705393
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     158152.946489,
+     163021.090777,
+     167917.276006
+    ],
+    "crecimiento_pct": [
+     2.777601,
+     3.078124,
+     3.003406
+    ],
+    "per_capita": [
+     22710105.3404,
+     23301406.547728,
+     23901181.9841
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.064891,
+    10.012765,
+    12.564765
+   ]
+  },
+  "08": {
+   "nombre": "Atlántico",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     48022.172713,
+     49947.454739,
+     51856.408495
+    ],
+    "crecimiento_pct": [
+     3.724137,
+     4.009152,
+     3.821924
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     47625.277699,
+     49150.705275,
+     50683.788809
+    ],
+    "crecimiento_pct": [
+     2.866875,
+     3.202979,
+     3.119149
+    ],
+    "per_capita": [
+     16502724.171978,
+     16918957.557629,
+     17340044.677483
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.698652,
+    11.53117,
+    14.948289
+   ]
+  },
+  "11": {
+   "nombre": "Bogotá D.C.",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     286604.846688,
+     297628.478237,
+     308375.959381
+    ],
+    "crecimiento_pct": [
+     3.920308,
+     3.846282,
+     3.611039
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     284236.106824,
+     292880.782252,
+     301402.708993
+    ],
+    "crecimiento_pct": [
+     3.061425,
+     3.041371,
+     2.909691
+    ],
+    "per_capita": [
+     35770985.389932,
+     36868448.828068,
+     37969894.829459
+    ]
+   },
+   "intervalo_ancho_pp": [
+    4.886782,
+    7.881035,
+    9.865236
+   ]
+  },
+  "13": {
+   "nombre": "Bolívar",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     37802.858589,
+     39131.933446,
+     40470.053632
+    ],
+    "crecimiento_pct": [
+     3.677131,
+     3.515805,
+     3.41951
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     37490.424451,
+     38507.710507,
+     39554.911551
+    ],
+    "crecimiento_pct": [
+     2.820257,
+     2.713456,
+     2.719458
+    ],
+    "per_capita": [
+     16653602.961624,
+     17039722.262683,
+     17443152.109353
+    ]
+   },
+   "intervalo_ancho_pp": [
+    8.900249,
+    12.33957,
+    14.835201
+   ]
+  },
+  "15": {
+   "nombre": "Boyacá",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     26367.478759,
+     27274.125938,
+     28198.321759
+    ],
+    "crecimiento_pct": [
+     3.008272,
+     3.438505,
+     3.388544
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     26149.556073,
+     26839.055817,
+     27560.678155
+    ],
+    "crecimiento_pct": [
+     2.156926,
+     2.636755,
+     2.688702
+    ],
+    "per_capita": [
+     20179493.330069,
+     20631762.975902,
+     21110768.413601
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.957927,
+    13.050763,
+    16.610617
+   ]
+  },
+  "17": {
+   "nombre": "Caldas",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     16529.654166,
+     16990.74737,
+     17460.707028
+    ],
+    "crecimiento_pct": [
+     2.723498,
+     2.789491,
+     2.765974
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     16393.039412,
+     16719.715164,
+     17065.871185
+    ],
+    "crecimiento_pct": [
+     1.874506,
+     1.992771,
+     2.070346
+    ],
+    "per_capita": [
+     15511387.649042,
+     15792863.586126,
+     16096750.239642
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.812071,
+    10.915532,
+    13.813405
+   ]
+  },
+  "18": {
+   "nombre": "Caquetá",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     4145.470237,
+     4282.51107,
+     4424.522711
+    ],
+    "crecimiento_pct": [
+     3.257973,
+     3.305797,
+     3.316083
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     4111.208637,
+     4214.197511,
+     4324.471771
+    ],
+    "crecimiento_pct": [
+     2.404563,
+     2.505075,
+     2.616732
+    ],
+    "per_capita": [
+     9519617.468563,
+     9700878.680711,
+     9900324.795065
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.648905,
+    10.742046,
+    13.957985
+   ]
+  },
+  "19": {
+   "nombre": "Cauca",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     18149.985316,
+     18773.162,
+     19452.56962
+    ],
+    "crecimiento_pct": [
+     3.034239,
+     3.433483,
+     3.619037
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     17999.978803,
+     18473.697155,
+     19012.692144
+    ],
+    "crecimiento_pct": [
+     2.182679,
+     2.631772,
+     2.917635
+    ],
+    "per_capita": [
+     11157041.621746,
+     11355647.800344,
+     11596159.564117
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.610581,
+    12.011245,
+    15.724371
+   ]
+  },
+  "20": {
+   "nombre": "Cesar",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     15667.069919,
+     15964.215277,
+     16303.477351
+    ],
+    "crecimiento_pct": [
+     1.359217,
+     1.896624,
+     2.125141
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     15537.584275,
+     15709.558058,
+     15934.809735
+    ],
+    "crecimiento_pct": [
+     0.5215,
+     1.106824,
+     1.433851
+    ],
+    "per_capita": [
+     10401214.785255,
+     10351880.298133,
+     10345310.752609
+    ]
+   },
+   "intervalo_ancho_pp": [
+    10.232663,
+    16.290924,
+    21.446667
+   ]
+  },
+  "23": {
+   "nombre": "Córdoba",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     17755.886957,
+     18219.668157,
+     18689.415947
+    ],
+    "crecimiento_pct": [
+     2.966915,
+     2.611986,
+     2.578246
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     17609.137599,
+     17929.03251,
+     18266.795528
+    ],
+    "crecimiento_pct": [
+     2.115911,
+     1.816642,
+     1.883889
+    ],
+    "per_capita": [
+     8742010.968888,
+     8811734.004757,
+     8893227.268462
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.871857,
+    9.954167,
+    11.624841
+   ]
+  },
+  "25": {
+   "nombre": "Cundinamarca",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     63943.17513,
+     66385.698526,
+     68838.11112
+    ],
+    "crecimiento_pct": [
+     3.30079,
+     3.819834,
+     3.694188
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     63414.695763,
+     65326.730257,
+     67281.487231
+    ],
+    "crecimiento_pct": [
+     2.447026,
+     3.015128,
+     2.992277
+    ],
+    "per_capita": [
+     17608946.982699,
+     17818760.593545,
+     18036936.091784
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.078804,
+    9.988283,
+    12.574816
+   ]
+  },
+  "27": {
+   "nombre": "Chocó",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     3883.493228,
+     3965.665251,
+     4047.683438
+    ],
+    "crecimiento_pct": [
+     2.139107,
+     2.115931,
+     2.068208
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     3851.396823,
+     3902.405939,
+     3956.153896
+    ],
+    "crecimiento_pct": [
+     1.294944,
+     1.324432,
+     1.377303
+    ],
+    "per_capita": [
+     6424691.265041,
+     6445516.83226,
+     6472987.285664
+    ]
+   },
+   "intervalo_ancho_pp": [
+    13.89099,
+    25.172967,
+    33.7395
+   ]
+  },
+  "41": {
+   "nombre": "Huila",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     16099.764618,
+     16479.154604,
+     16861.209723
+    ],
+    "crecimiento_pct": [
+     2.239008,
+     2.356494,
+     2.318415
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     15966.702827,
+     16216.283199,
+     16479.930205
+    ],
+    "crecimiento_pct": [
+     1.39402,
+     1.56313,
+     1.625816
+    ],
+    "per_capita": [
+     13067677.726045,
+     13136869.596648,
+     13221556.848926
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.159057,
+    10.329144,
+    13.256588
+   ]
+  },
+  "44": {
+   "nombre": "La Guajira",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     8405.051923,
+     8454.627989,
+     8523.376256
+    ],
+    "crecimiento_pct": [
+     0.128588,
+     0.589837,
+     0.813144
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     8335.585612,
+     8319.761852,
+     8330.638674
+    ],
+    "crecimiento_pct": [
+     -0.698958,
+     -0.189834,
+     0.130735
+    ],
+    "per_capita": [
+     7699470.738478,
+     7578487.275762,
+     7488773.251335
+    ]
+   },
+   "intervalo_ancho_pp": [
+    11.567459,
+    17.62964,
+    22.792258
+   ]
+  },
+  "47": {
+   "nombre": "Magdalena",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     13929.961693,
+     14394.299808,
+     14864.069591
+    ],
+    "crecimiento_pct": [
+     3.146736,
+     3.333377,
+     3.263582
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     13814.832951,
+     14164.685492,
+     14527.951045
+    ],
+    "crecimiento_pct": [
+     2.294246,
+     2.532441,
+     2.564586
+    ],
+    "per_capita": [
+     8862775.093091,
+     9012775.641567,
+     9174194.110588
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.022238,
+    9.41282,
+    11.739811
+   ]
+  },
+  "50": {
+   "nombre": "Meta",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     34096.614002,
+     35778.152761,
+     37650.723473
+    ],
+    "crecimiento_pct": [
+     4.361388,
+     4.931688,
+     5.233838
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     33814.81134,
+     35207.428503,
+     36799.3344
+    ],
+    "crecimiento_pct": [
+     3.498859,
+     4.118364,
+     4.521506
+    ],
+    "per_capita": [
+     28984488.382162,
+     29931850.123387,
+     31047478.528271
+    ]
+   },
+   "intervalo_ancho_pp": [
+    17.033139,
+    29.014473,
+    40.168736
+   ]
+  },
+  "52": {
+   "nombre": "Nariño",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     15493.511868,
+     16024.14779,
+     16557.932373
+    ],
+    "crecimiento_pct": [
+     3.178255,
+     3.424891,
+     3.331126
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     15365.460652,
+     15768.534542,
+     16183.510811
+    ],
+    "crecimiento_pct": [
+     2.325504,
+     2.623246,
+     2.631673
+    ],
+    "per_capita": [
+     8924405.121422,
+     9118876.522602,
+     9321445.104244
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.053778,
+    11.369868,
+    14.318912
+   ]
+  },
+  "54": {
+   "nombre": "Norte de Santander",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     16694.694363,
+     17300.118823,
+     17939.735038
+    ],
+    "crecimiento_pct": [
+     3.406812,
+     3.626448,
+     3.697178
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     16556.715579,
+     17024.1516,
+     17534.06702
+    ],
+    "crecimiento_pct": [
+     2.552173,
+     2.823241,
+     2.995247
+    ],
+    "per_capita": [
+     9638370.407599,
+     9869433.84002,
+     10128840.987512
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.818262,
+    11.111103,
+    14.772176
+   ]
+  },
+  "63": {
+   "nombre": "Quindío",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     8353.813122,
+     8651.316761,
+     8961.872835
+    ],
+    "crecimiento_pct": [
+     2.857346,
+     3.561292,
+     3.589697
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     8284.77029,
+     8513.313092,
+     8759.219609
+    ],
+    "crecimiento_pct": [
+     2.007247,
+     2.758589,
+     2.888494
+    ],
+    "per_capita": [
+     14851250.856366,
+     15267011.50654,
+     15722603.450947
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.393572,
+    12.378933,
+    15.936912
+   ]
+  },
+  "66": {
+   "nombre": "Risaralda",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     17440.422776,
+     18012.306793,
+     18589.072879
+    ],
+    "crecimiento_pct": [
+     3.386403,
+     3.279072,
+     3.202067
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     17296.280676,
+     17724.978923,
+     18168.7215
+    ],
+    "crecimiento_pct": [
+     2.531932,
+     2.478557,
+     2.503487
+    ],
+    "per_capita": [
+     17179716.300622,
+     17551221.82727,
+     17944575.804014
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.004903,
+    9.412452,
+    11.824483
+   ]
+  },
+  "68": {
+   "nombre": "Santander",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     66184.847249,
+     68338.14039,
+     70561.992598
+    ],
+    "crecimiento_pct": [
+     3.240718,
+     3.253453,
+     3.254189
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     65637.840846,
+     67248.027251,
+     68966.386886
+    ],
+    "crecimiento_pct": [
+     2.387451,
+     2.453137,
+     2.555257
+    ],
+    "per_capita": [
+     27227710.144955,
+     27768555.514062,
+     28359533.544604
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.319424,
+    10.463685,
+    12.871434
+   ]
+  },
+  "70": {
+   "nombre": "Sucre",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     8676.567963,
+     8978.033489,
+     9297.650515
+    ],
+    "crecimiento_pct": [
+     3.274853,
+     3.474479,
+     3.559989
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     8604.857618,
+     8834.818116,
+     9087.404408
+    ],
+    "crecimiento_pct": [
+     2.421304,
+     2.67245,
+     2.858987
+    ],
+    "per_capita": [
+     8218176.000561,
+     8339848.129093,
+     8483838.672974
+    ]
+   },
+   "intervalo_ancho_pp": [
+    6.403196,
+    9.834726,
+    12.839291
+   ]
+  },
+  "73": {
+   "nombre": "Tolima",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     21490.130191,
+     22037.107834,
+     22589.755536
+    ],
+    "crecimiento_pct": [
+     2.736035,
+     2.54525,
+     2.507805
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     21312.517954,
+     21685.577332,
+     22078.937436
+    ],
+    "crecimiento_pct": [
+     1.886939,
+     1.750424,
+     1.813925
+    ],
+    "per_capita": [
+     15321922.177017,
+     15546531.772362,
+     15792225.985504
+    ]
+   },
+   "intervalo_ancho_pp": [
+    5.853136,
+    9.571343,
+    12.237224
+   ]
+  },
+  "76": {
+   "nombre": "Valle del Cauca",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     105791.535348,
+     109663.457118,
+     113524.68649
+    ],
+    "crecimiento_pct": [
+     3.451284,
+     3.659954,
+     3.520981
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     104917.186467,
+     107914.132731,
+     110957.573069
+    ],
+    "crecimiento_pct": [
+     2.596277,
+     2.856487,
+     2.820243
+    ],
+    "per_capita": [
+     22251850.634317,
+     22866598.548612,
+     23499038.726976
+    ]
+   },
+   "intervalo_ancho_pp": [
+    5.232676,
+    9.038067,
+    11.817564
+   ]
+  },
+  "81": {
+   "nombre": "Arauca",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     4817.038432,
+     4803.465157,
+     4793.19294
+    ],
+    "crecimiento_pct": [
+     -0.416876,
+     -0.281776,
+     -0.21385
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     4777.226436,
+     4726.841467,
+     4684.805326
+    ],
+    "crecimiento_pct": [
+     -1.239913,
+     -1.054691,
+     -0.889307
+    ],
+    "per_capita": [
+     17060182.541837,
+     16838638.141091,
+     16659751.164317
+    ]
+   },
+   "intervalo_ancho_pp": [
+    11.607636,
+    17.909841,
+    23.016656
+   ]
+  },
+  "85": {
+   "nombre": "Casanare",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     12731.759766,
+     12783.687117,
+     12868.824763
+    ],
+    "crecimiento_pct": [
+     -0.612628,
+     0.407857,
+     0.665987
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     12626.533957,
+     12579.764897,
+     12577.824332
+    ],
+    "crecimiento_pct": [
+     -1.434048,
+     -0.370403,
+     -0.015426
+    ],
+    "per_capita": [
+     26417222.056267,
+     26070214.528846,
+     25834952.915188
+    ]
+   },
+   "intervalo_ancho_pp": [
+    10.296107,
+    18.769542,
+    25.614126
+   ]
+  },
+  "86": {
+   "nombre": "Putumayo",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     3491.165493,
+     3624.329746,
+     3771.119475
+    ],
+    "crecimiento_pct": [
+     2.492688,
+     3.814321,
+     4.050121
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     3462.311609,
+     3566.515333,
+     3685.843825
+    ],
+    "crecimiento_pct": [
+     1.645604,
+     3.009658,
+     3.345801
+    ],
+    "per_capita": [
+     8752272.830492,
+     8910919.504448,
+     9110927.209942
+    ]
+   },
+   "intervalo_ancho_pp": [
+    18.715455,
+    31.089733,
+    40.544197
+   ]
+  },
+  "88": {
+   "nombre": "San Andrés, Providencia y Santa Catalina (Archipiélago)",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     1654.592423,
+     1711.693542,
+     1771.017202
+    ],
+    "crecimiento_pct": [
+     3.335867,
+     3.451069,
+     3.465787
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     1640.917501,
+     1684.389029,
+     1730.969507
+    ],
+    "crecimiento_pct": [
+     2.481813,
+     2.649221,
+     2.765423
+    ],
+    "per_capita": [
+     25830237.551872,
+     26490351.951659,
+     27198540.383488
+    ]
+   },
+   "intervalo_ancho_pp": [
+    10.233148,
+    14.887296,
+    18.449515
+   ]
+  },
+  "91": {
+   "nombre": "Amazonas",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     763.731087,
+     786.272526,
+     809.745904
+    ],
+    "crecimiento_pct": [
+     2.894177,
+     2.951489,
+     2.9854
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     757.418981,
+     773.730101,
+     791.435265
+    ],
+    "crecimiento_pct": [
+     2.043774,
+     2.153513,
+     2.288287
+    ],
+    "per_capita": [
+     8817860.907736,
+     8926281.731814,
+     9061855.396241
+    ]
+   },
+   "intervalo_ancho_pp": [
+    4.283228,
+    6.58963,
+    8.502885
+   ]
+  },
+  "94": {
+   "nombre": "Guainía",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     355.400263,
+     363.206986,
+     372.527873
+    ],
+    "crecimiento_pct": [
+     2.854457,
+     2.1966,
+     2.566274
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     352.46294,
+     357.413198,
+     364.103966
+    ],
+    "crecimiento_pct": [
+     2.004382,
+     1.404476,
+     1.871998
+    ],
+    "per_capita": [
+     5771930.571838,
+     5726674.319867,
+     5717533.470882
+    ]
+   },
+   "intervalo_ancho_pp": [
+    9.181338,
+    11.372719,
+    13.978133
+   ]
+  },
+  "95": {
+   "nombre": "Guaviare",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     840.840854,
+     860.019299,
+     879.750787
+    ],
+    "crecimiento_pct": [
+     2.155176,
+     2.280865,
+     2.294308
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     833.891449,
+     846.300484,
+     859.85714
+    ],
+    "crecimiento_pct": [
+     1.310881,
+     1.488088,
+     1.601873
+    ],
+    "per_capita": [
+     9829800.297044,
+     9968555.821292,
+     10119537.955181
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.534866,
+    11.762086,
+    14.764046
+   ]
+  },
+  "97": {
+   "nombre": "Vaupés",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     298.08355,
+     308.70387,
+     319.98737
+    ],
+    "crecimiento_pct": [
+     3.373559,
+     3.562867,
+     3.655121
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     295.61994,
+     303.779502,
+     312.751552
+    ],
+    "crecimiento_pct": [
+     2.519194,
+     2.760153,
+     2.953474
+    ],
+    "per_capita": [
+     6644637.902265,
+     6783517.986656,
+     6936008.349756
+    ]
+   },
+   "intervalo_ancho_pp": [
+    7.993071,
+    12.297225,
+    16.003092
+   ]
+  },
+  "99": {
+   "nombre": "Vichada",
+   "especificaciones_convergidas": 5,
+   "sin_anclar": {
+    "nivel": [
+     656.212846,
+     673.097071,
+     689.76451
+    ],
+    "crecimiento_pct": [
+     2.620607,
+     2.57298,
+     2.476231
+    ]
+   },
+   "reconciliado": {
+    "nivel": [
+     650.789359,
+     662.359992,
+     674.166989
+    ],
+    "crecimiento_pct": [
+     1.772466,
+     1.777938,
+     1.782565
+    ],
+    "per_capita": [
+     4220697.575744,
+     4149501.279964,
+     4087222.944224
+    ]
+   },
+   "intervalo_ancho_pp": [
+    9.746615,
+    13.389347,
+    15.995999
+   ]
+  }
+ }
+}

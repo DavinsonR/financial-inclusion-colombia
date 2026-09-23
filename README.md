@@ -160,6 +160,7 @@ These are written in Spanish, the language of the thesis.
 | Index by dimension with frozen, published weights, and its two sensitivity versions | Done |
 | Interactive three-view atlas, inside the project page | Done |
 | Econometrics: `src/iif/econ`, 12 synthetic tests, `metodologia/panel.qmd` with the results | Done |
+| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to the national consensus and reconciled (ADR-019 to ADR-022) | Engine done; map layer pending |
 | Temporal-disaggregation annex, MIDAS, manuscript | Phase 4, pending |
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |

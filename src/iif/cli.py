@@ -173,6 +173,23 @@ def index(
 
 
 @app.command()
+def forecast(
+    escenario: str = typer.Option("central", help="Escenario del ancla nacional."),
+    sin_red: bool = typer.Option(False, help="Exige que el ancla venga de config/forecast.yaml."),
+) -> None:
+    """Proyecta el crecimiento departamental 2026-2028 y escribe data/processed/forecast/resultados.json."""
+    from iif.forecast.backtest import PuertaDeCalidad
+    from iif.forecast.run import write
+
+    try:
+        destino = write(escenario=escenario, sin_red=sin_red)
+    except PuertaDeCalidad as exc:
+        typer.echo(f"! puerta de calidad: {exc}")
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"OK {destino.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
 def econ(
     replicas: int = typer.Option(999, help="Réplicas del bootstrap salvaje por clúster."),
     placebos: int = typer.Option(499, help="Permutaciones del placebo."),

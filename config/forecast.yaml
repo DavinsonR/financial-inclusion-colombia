@@ -1,0 +1,33 @@
+# Anclas nacionales para la capa de proyección (ADR-021 decisión 4).
+#
+# Este archivo tiene prioridad sobre la descarga automática del WEO. Está pensado para
+# transcribir a mano la Encuesta mensual de expectativas de analistas económicos (EME) de
+# Banrep, que es el ancla preferida y solo se publica en PDF, y el Marco Fiscal de Mediano
+# Plazo de MinHacienda.
+#
+# Todo bloque debe declarar `fuente` y `fecha_corte`. Sin eso no se carga: un mapa anclado
+# sin decir a qué está anclado atribuye a su autor la visión de otro.
+#
+# Mientras no haya transcripción, el módulo baja la senda del FMI (WEO) por su cuenta.
+# Advertencia sobre esa red de seguridad: la senda del WEO para Colombia repite el mismo
+# número de 2027 en adelante (2,76 % hasta 2030), porque es su valor de convergencia de
+# mediano plazo y no un pronóstico año a año.
+
+anclas: {}
+
+# Ejemplo de cómo se rellena, con los tres escenarios que ADR-021 decisión 6 pide construir
+# a partir de la dispersión de la EME (consenso, mínimo y máximo de los analistas):
+#
+# anclas:
+#   central:
+#     fuente: "Banrep, Encuesta mensual de expectativas de analistas economicos (EME)"
+#     fecha_corte: "2026-05-31"
+#     crecimiento: {2026: 2.8, 2027: 3.0, 2028: 3.0}
+#   pesimista:
+#     fuente: "Banrep, EME - minimo de los analistas"
+#     fecha_corte: "2026-05-31"
+#     crecimiento: {2026: 2.1, 2027: 2.3, 2028: 2.4}
+#   optimista:
+#     fuente: "Banrep, EME - maximo de los analistas"
+#     fecha_corte: "2026-05-31"
+#     crecimiento: {2026: 3.4, 2027: 3.6, 2028: 3.6}
