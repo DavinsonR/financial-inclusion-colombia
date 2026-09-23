@@ -103,6 +103,12 @@ las periféricas — Amazonía, Orinoquía, Chocó, San Andrés. El mapa tiene q
 
 ## 2. Viabilidad del ARIMA — medida, no supuesta
 
+> **Superado por ADR-020.** Las cifras de esta seccion vienen de una sola particion
+> (entrena hasta 2023, pronostica 2024-2025). ADR-020 rehizo la medicion con origen movil
+> sobre 2018-2025 y prueba de Diebold-Mariano: 264 pares por modelo en vez de 66, y una
+> conclusion mas precisa. Para citar numeros, usar ADR-020.
+
+
 Regla R-17 del repo: antes de elegir un método se mide su supuesto. Lo hice.
 
 **Diseño:** entrenamiento con datos definitivos hasta 2023 (19 observaciones anuales por
@@ -358,7 +364,19 @@ Las reglas del repo obligan a que las decisiones de valor pasen por un ADR antes
 
 ---
 
-## 8. Las dos decisiones que son tuyas
+## 8. Las dos decisiones que eran del autor - ya tomadas (23-sep-2026)
+
+> **Horizonte: 2026-2028.** Fijado en ADR-019, con la medicion de cuanto aporta el ARIMA
+> sobre la deriva a cada horizonte: +14,6 % a un anio, +23,6 % a dos, +13,3 % a tres,
+> +5,3 % a cuatro y -1,5 % a cinco.
+>
+> **Ancla nacional: aceptada.** Registrada en ADR-019; la reconciliacion jerarquica se
+> detalla en ADR-021.
+>
+> **Tablero macro auxiliar:** resuelto aparte, en el repositorio `macro-forecast-lab-latam`.
+
+Texto original de la consulta:
+
 
 1. **Horizonte.** 2026–2028 es lo que los datos aguantan con decencia. Más allá de tres años,
    un ARIMA con 20 observaciones converge a la deriva y el mapa deja de tener información.
