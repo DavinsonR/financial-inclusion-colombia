@@ -172,6 +172,11 @@ departamento-contra-departamento: no existe el contrafactual. El cruce tiene que
 
 ### 3.2 Arquitectura propuesta: abajo-arriba anclado y reconciliado
 
+> **Superado por ADR-021 en un punto.** Esta seccion propone reconciliacion MinT.
+> Medida contra el reparto proporcional al tamano sobre los mismos ocho origenes, MinT pierde:
+> +21,3 % contra +41,2 % sobre el abajo-arriba. Se adopta el reparto proporcional.
+
+
 ```
    [33 ARIMA departamentales]          [consenso nacional de analistas]
       pronóstico base ŷ_i                      ancla ŷ_nac

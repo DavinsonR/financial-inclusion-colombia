@@ -22,6 +22,8 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [016](ADR-016-diseno-econometrico.md) | Diseño econométrico del panel departamental | aceptada |
 | [019](ADR-019-grano-y-horizonte-del-pronostico.md) | Grano anual y horizonte de tres años para el pronóstico departamental | aceptada |
 | [020](ADR-020-atipicos-declarados-2020-2021.md) | 2020 y 2021 entran al modelo como atípicos declarados | aceptada |
+| [021](ADR-021-ancla-nacional-y-reconciliacion.md) | Ancla nacional y reconciliación proporcional, no MinT | aceptada |
+| [022](ADR-022-incertidumbre-visible-en-el-mapa.md) | La incertidumbre viaja al mapa como capa propia | aceptada |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
 
