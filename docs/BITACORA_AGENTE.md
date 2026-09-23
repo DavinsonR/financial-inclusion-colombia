@@ -506,3 +506,20 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Regla: la dirección pública del proyecto vive en los dos README, en la guía y en `CITATION.cff`, y los cuatro se revisan juntos cuando el portafolio cambie de host. Un enlace que redirige no es un enlace correcto → esta entrada y R-12.
 - Evidencia: `grep -rn "proyecto-davirson-git" .` solo debe devolver `docs/decisiones/` y este archivo, que son registros fechados y no se reescriben.
 - Estado: cerrada en los README, la guía y `CITATION.cff`; abierta en `_quarto.yml` (`site-url`), que sigue apuntando al sitio Quarto retirado y no se toca sin poder correr `quarto render`.
+
+## B-049 · 2026-09-23 · Una propiedad medida en una ventana, afirmada para todas
+- Contexto: ADR-019 y ADR-021 justifican la reconciliación jerárquica con que la suma de los 33 departamentos cuadra con el total nacional del DANE.
+- Qué pasó: ambos afirmaban "menos del 0,08 % **en todos los años**, máximo 0,072 % en 2025". Es falso. Esa comprobación se corrió solo sobre 2018–2025, que es la ventana del backtest. Sobre 2005–2025 la brecha máxima es **1,284 % en 2009**, y los años 2005–2012 van de 0,23 % a 1,28 %.
+- Causa raíz: la comprobación exploratoria se hizo sobre el subconjunto que interesaba para el backtest, y su resultado se generalizó a la serie completa al redactar el ADR sin volver a medir. El dato correcto siempre estuvo disponible.
+- Regla: R-09 (toda cifra publicada traza a una prueba) → la traza tiene que incluir **sobre qué muestra** se midió, no solo el número. Una cifra sin su ventana no es trazable.
+- Evidencia: `data/interim/dane/pib_departamento_anual.parquet`; la no aditividad de 2005–2012 viene de la retropolación del DANE a base 2015, que no impone suma exacta en los años reconstruidos.
+- Consecuencia útil: corregido, el ADR queda mejor. La restricción de agregación es exacta en la ventana donde se reconcilia (2018–2025, ≤ 0,072 %) y aproximada en el tramo antiguo del entrenamiento, y eso ahora está escrito.
+- Estado: cerrada
+
+## B-050 · 2026-09-23 · Rutas locales en un documento del repositorio
+- Contexto: `docs/HOJA_DE_RUTA_PROYECCION.md`, rescatado de un directorio temporal.
+- Qué pasó: el documento traía tres rutas del equipo donde se redactó, incluida una ruta local en un bloque de comandos, y referencias a un directorio de trabajo externo al repositorio.
+- Causa raíz: el texto se escribió como nota de sesión, no como documento del repositorio, y al versionarlo no se revisó contra las reglas del proyecto.
+- Regla: R-04 (nunca rutas absolutas) y R-08 (nunca rutas locales) → revisar todo texto importado desde fuera antes de versionarlo, no solo el que se escribe aquí.
+- Evidencia: `grep -rnE "~/Desktop|C:\\Users|/c/Users" docs/` ahora no devuelve nada.
+- Estado: cerrada

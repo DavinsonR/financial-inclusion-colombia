@@ -18,6 +18,13 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [012](ADR-012-datos-derivados-cc-by-sa.md) | Datos derivados bajo CC BY-SA 4.0 | aceptada |
 | [013](ADR-013-bogota-separada-y-anm.md) | Bogotá separada y áreas no municipalizadas conservadas | aceptada |
 | [014](ADR-014-snowflake.md) | DuckDB como motor, BigQuery en la nube, Snowflake como demo posterior | aceptada, con adendas |
+| [015](ADR-015-seleccion-de-variables-del-indice.md) | Selección, normalización y ponderación de las variables del índice | aceptada, con adenda |
+| [016](ADR-016-diseno-econometrico.md) | Diseño econométrico del panel departamental | aceptada |
+| [019](ADR-019-grano-y-horizonte-del-pronostico.md) | Grano anual y horizonte de tres años para el pronóstico departamental | aceptada |
+| [020](ADR-020-atipicos-declarados-2020-2021.md) | 2020 y 2021 entran al modelo como atípicos declarados | aceptada |
+| [021](ADR-021-ancla-nacional-y-reconciliacion.md) | Ancla nacional y reconciliación proporcional, no MinT | aceptada |
+| [022](ADR-022-incertidumbre-visible-en-el-mapa.md) | La incertidumbre viaja al mapa como capa propia | aceptada |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
-- [ADR-016](ADR-016-diseno-econometrico.md) · Diseño econométrico del panel departamental: two-way FE, diagnósticos medidos, cuatro diseños contra la exogeneidad y bootstrap salvaje.
+
+017 y 018 (denominador del índice, y potencia y equivalencia) llegan con la rama `auditoria-potencia-y-denominador`; se añaden a esta tabla cuando se fusione.
