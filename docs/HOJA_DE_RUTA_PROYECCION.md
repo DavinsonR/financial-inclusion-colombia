@@ -32,11 +32,11 @@ construye.
 
 ## 1. Diagnóstico — qué hay realmente
 
-### 1.1 Los datos no están donde creías
+### 1.1 Los insumos que ya existen en este repositorio
 
-El directorio `Tesis de grado` **no tiene datos**. Su `CLAUDE.md` lo dice y es correcto: nada
-estadístico es re-ejecutable ahí. Los datos vivos están en
-`~/Desktop/Claude/Financial-Inclusion-Colombia`, ya clonado, ya limpio, ya en Parquet.
+Todo lo que la capa de proyección necesita está ya adquirido y parseado aquí, en Parquet.
+No hace falta ninguna fuente nueva para el pronóstico base; el ancla nacional (ADR-021) sí
+es una fuente nueva.
 
 | Insumo | Archivo | Cobertura | Estado |
 |---|---|---|---|
@@ -396,9 +396,12 @@ Texto original de la consulta:
 ## Anexo — comandos de verificación usados en este plan
 
 ```bash
-cd ~/Desktop/Claude/Financial-Inclusion-Colombia
-.venv/Scripts/python.exe   # 33 deptos, 2005-2025, backtest 2024-2025
+uv run python -m iif.forecast.backtest   # cuando el modulo exista
 ```
+
+Las mediciones de este documento se hicieron con `statsmodels` sobre
+`data/interim/dane/pib_departamento_anual.parquet`. Las definitivas, con prueba de
+significancia y origen movil, estan en ADR-019, ADR-020, ADR-021 y ADR-022.
 
 Cifras citadas y su origen:
 

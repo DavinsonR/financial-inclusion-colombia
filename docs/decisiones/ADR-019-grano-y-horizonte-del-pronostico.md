@@ -55,11 +55,14 @@ Dos hechos más del panel condicionan el diseño:
    histórico de desempeño y el backtest deja de valer dentro de un año.
 4. **Se acepta el anclaje al consenso nacional**, con la reconciliación jerárquica que detallará ADR-021.
    Aquí solo se registra que la decisión de alcance está tomada y que la arquitectura es abajo-arriba
-   anclada, no abajo-arriba pura. Lo que la habilita es que la jerarquía cierra: la suma de los 33
-   departamentos difiere del total nacional del DANE en menos del **0,08 %** en todos los años
-   (máximo 0,072 % en 2025).
-5. **El IIF no entra como regresor del pronóstico.** ADR-016 y ADR-018 establecen que el índice no predice
-   el crecimiento y publican la cota. Usarlo aquí contradiría el resultado del propio repositorio. En el
+   anclada, no abajo-arriba pura. Lo que la habilita es que la jerarquía cierra **en la ventana que
+   importa**: desde 2013 la suma de los 33 departamentos difiere del total nacional del DANE en menos
+   del 0,08 % (máximo 0,072 % en 2025). En los años retropolados 2005–2012 la aditividad no es exacta
+   y llega a **1,28 % en 2009**; eso contamina el entrenamiento en su tramo más antiguo, no la
+   restricción sobre la que se reconcilia. Véase ADR-021.
+5. **El IIF no entra como regresor del pronóstico.** ADR-016 establece que el índice no predice
+   el crecimiento, y la cota del nulo se publica en la rama `auditoria-potencia-y-denominador`
+   (ADR-018, pendiente de fusión). Usarlo aquí contradiría el resultado del propio repositorio. En el
    atlas las dos capas conviven y se ve que no coinciden, que es la ilustración visual del nulo.
 
 ## Alternativas consideradas

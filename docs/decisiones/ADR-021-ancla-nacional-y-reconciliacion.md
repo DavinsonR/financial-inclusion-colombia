@@ -27,9 +27,19 @@ En los años tranquilos el abajo-arriba cuadra casi solo. En 2020 se pasó de la
 33 modelos extrapolando cada uno su propia tendencia no vieron la caída, y sus errores no se cancelaron
 sino que se sumaron en la misma dirección. Ahí es donde un ancla vale algo.
 
-**Nada de esto tendría sentido si la jerarquía no cerrara.** Cierra: la suma de los 33 departamentos
-difiere del total nacional publicado por el DANE en menos del 0,08 % en todos los años, con un máximo de
-0,072 % en 2025. La restricción de agregación es real, no una aproximación.
+**Nada de esto tendría sentido si la jerarquía no cerrara**, y aquí hay un matiz que conviene no
+esconder. Cierra desde 2013, y no antes:
+
+| Tramo | Brecha de la suma contra el total nacional |
+|---|---|
+| 2005–2012 (retropolados) | de +0,23 % a **+1,28 %**, máximo en 2009 |
+| 2013–2017 | ≤ 0,06 % |
+| **2018–2025 (ventana de backtest)** | **≤ 0,072 %**, máximo en 2025 |
+
+La no aditividad de 2005–2012 viene de la retropolación del DANE a base 2015, que no impone suma exacta
+en los años reconstruidos. Afecta al tramo más antiguo del entrenamiento, no a la restricción sobre la
+que se reconcilia: en la ventana donde se mide y donde se va a pronosticar, la agregación es exacta a
+menos de una décima de punto porcentual.
 
 ## Decisión
 
