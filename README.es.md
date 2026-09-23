@@ -6,7 +6,7 @@
 
 Tesis de Maestría en Economía, Pontificia Universidad Javeriana (2026; director: Gabriel Penagos Londoño). Pregunta: ¿la inclusión financiera predice el crecimiento de los departamentos una vez descontadas las tendencias nacionales que los mueven a todos a la vez? La respuesta se publica con su especificación, su N, sus clústeres y sus pruebas, sea cual sea el signo.
 
-Página del proyecto: <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion>. Autor: Davirson Novoa Ramírez.
+Página del proyecto: <https://davirson.com/es/research/fintech-inclusion>. Autor: Davirson Novoa Ramírez.
 
 *English summary: see [Abstract](#abstract).*
 
@@ -162,7 +162,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
 | PDF de la tesis | Tras el depósito en el repositorio institucional de la Javeriana |
-| Página pública, la única | <https://proyecto-davirson-git.vercel.app/es/research/fintech-inclusion> |
+| Página pública, la única | <https://davirson.com/es/research/fintech-inclusion> |
 
 ## Cómo citar
 
