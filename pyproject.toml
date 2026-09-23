@@ -62,5 +62,8 @@ extend-immutable-calls = ["typer.Option", "typer.Argument"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["data: pruebas que requieren datos crudos descargados (se saltan si no existen)"]
+markers = [
+  "data: pruebas que requieren datos crudos descargados (se saltan si no existen)",
+  "slow: pruebas de extremo a extremo que reajustan modelos en cada origen",
+]
 addopts = "-q"
