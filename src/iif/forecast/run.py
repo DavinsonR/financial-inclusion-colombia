@@ -90,8 +90,16 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
 
     # 4. Per cápita: división, no modelo (ADR-019 decisión 2).
     pob = frame.poblacion()
-    pob_horizonte = pob.reindex(index=anios, columns=marco.departamentos)
-    per_capita = reconciliado / pob_horizonte * 1e9 if not pob_horizonte.isna().all().all() else None
+    anio_base = int(marco.pib_nivel.index[-1])
+    pob_tramo = pob.reindex(index=[anio_base, *anios], columns=marco.departamentos)
+    per_capita = per_capita_crec = None
+    if not pob_tramo.isna().all().all():
+        niveles_tramo = pd.concat([marco.pib_nivel.iloc[[-1]], reconciliado])
+        pc_tramo = niveles_tramo / pob_tramo * 1e9
+        per_capita = pc_tramo.loc[anios]
+        # El per capita crece por dos vias: el PIB y el denominador. Publicar solo el nivel
+        # dejaria al lector sin saber cual manda en cada departamento.
+        per_capita_crec = (pc_tramo.pct_change().dropna() * 100)
 
     # 5. Intervalos, que viajan siempre (ADR-022).
     z_bajo, z_alto = models.Pronostico(media_log.to_numpy(), var_log.to_numpy()).intervalo(NIVEL_INTERVALO)
@@ -134,6 +142,9 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
                                         _crecimiento(reconciliado, ultimo)[cod].to_numpy()],
                     "per_capita": ([float(per_capita.loc[a, cod]) for a in anios]
                                    if per_capita is not None else None),
+                    "per_capita_crecimiento_pct": (
+                        [float(per_capita_crec.loc[a, cod]) for a in anios]
+                        if per_capita_crec is not None else None),
                 },
                 "intervalo_ancho_pp": [float(ancho_pp.loc[a, cod]) for a in anios],
             }

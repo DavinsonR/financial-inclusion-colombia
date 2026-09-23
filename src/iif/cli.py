@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import typer
 
 from iif import config
+
+# La consola de Windows es cp1252 y revienta con el visto de los mensajes de exito: el
+# comando hacia todo su trabajo y moria al imprimir. UTF-8 en la salida y el error, si el
+# flujo lo admite.
+for _flujo in (sys.stdout, sys.stderr):
+    if hasattr(_flujo, "reconfigure"):
+        _flujo.reconfigure(encoding="utf-8")
 
 app = typer.Typer(help="Inclusión financiera y crecimiento regional en Colombia", no_args_is_help=True)
 
@@ -186,7 +194,7 @@ def forecast(
     except PuertaDeCalidad as exc:
         typer.echo(f"! puerta de calidad: {exc}")
         raise typer.Exit(code=1) from exc
-    typer.echo(f"OK {destino.relative_to(config.REPO_ROOT)}")
+    typer.echo(f"2713 {destino.relative_to(config.REPO_ROOT)}")
 
 
 @app.command()

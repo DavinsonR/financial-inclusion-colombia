@@ -4,6 +4,14 @@
 version: 1
 presupuesto_mb: 3.0
 
+# El grupo `proyeccion` no sale del warehouse: son años que todavía no existen en ningún
+# mart. Se adjunta desde `data/processed/forecast/resultados.json`, que produce
+# `uv run iif forecast`. Si ese archivo falta, el atlas se exporta sin la capa; si está
+# pero le falta el ancho del intervalo, la exportación falla (ADR-022 decisión 6).
+proyeccion:
+  origen: data/processed/forecast/resultados.json
+  nivel: departamento
+
 # Geometría del MGN 2024 a TopoJSON, servida con extensión .json para que Quarto la copie al sitio.
 # Geometría del MGN 2024 a TopoJSON. `simplificacion` en grados: 0,002 son unos 220 m y 0,003 unos 330 m.
 # Comprobado que a estas tolerancias no se pierde ninguna unidad (33 y 1.121).
@@ -98,6 +106,30 @@ indicadores:
       grupo: contexto
       escala: secuencial
       decimales: 0
+    # Proyección 2026-2028 (ADR-019 a ADR-022). Los años proyectados van marcados en
+    # `anios_proyectados` dentro de `series_departamento.json`, y el ancho del intervalo
+    # viaja como indicador propio: el tamaño del departamento no predice su incertidumbre
+    # (Spearman -0,358), así que ninguna heurística del navegador puede sustituirlo.
+    - id: crecimiento_pib_real_proy
+      etiqueta: "Crecimiento proyectado del PIB real"
+      grupo: proyeccion
+      escala: divergente
+      decimales: 2
+    - id: crecimiento_pib_real_pc_proy
+      etiqueta: "Crecimiento proyectado por habitante"
+      grupo: proyeccion
+      escala: divergente
+      decimales: 2
+    - id: crecimiento_pib_real_proy_sin_anclar
+      etiqueta: "Crecimiento proyectado, sin anclar al consenso"
+      grupo: proyeccion
+      escala: divergente
+      decimales: 2
+    - id: intervalo_ancho_proy
+      etiqueta: "Ancho del intervalo al 80 %"
+      grupo: proyeccion
+      escala: secuencial
+      decimales: 1
   # A nivel municipal solo viajan el índice y el contexto mínimo: 1.123 unidades por 7 años multiplican
   # cada indicador por 7.861 números, y el presupuesto manda.
   municipio:

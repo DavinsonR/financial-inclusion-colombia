@@ -125,3 +125,93 @@ def test_build_series_deja_nulo_lo_no_observado():
     datos = build_series("departamento", [{"id": "iif_compuesto", "decimales": 3}], df)
     assert datos["ids"] == ["05", "08"] and datos["anios"] == [2018, 2019]
     assert datos["series"]["iif_compuesto"] == [[1.235, -0.5], [None, None]]
+
+
+# --------------------------------------------------------- capa de proyección (ADR-022)
+
+def _serie_minima():
+    return {
+        "nivel": "departamento", "ids": ["05", "11"], "anios": [2024, 2025],
+        "nombres": ["Antioquia", "Bogotá"],
+        "series": {"iif_compuesto": [[0.1, 0.2], [0.3, 0.4]]},
+    }
+
+
+def _indicadores_proy(con_intervalo=True):
+    base = [
+        {"id": "iif_compuesto", "etiqueta": "Índice", "grupo": "indice",
+         "escala": "divergente", "decimales": 3},
+        {"id": "crecimiento_pib_real_proy", "etiqueta": "Proyectado", "grupo": "proyeccion",
+         "escala": "divergente", "decimales": 2},
+    ]
+    if con_intervalo:
+        base.append({"id": "intervalo_ancho_proy", "etiqueta": "Ancho", "grupo": "proyeccion",
+                     "escala": "secuencial", "decimales": 1})
+    return base
+
+
+def _forecast_json(tmp_path, con_intervalo=True, anios=(2026, 2027)):
+    contenido = {
+        "horizonte": list(anios), "nivel_intervalo": 0.8,
+        "ancla": {"fuente": "prueba", "fecha_corte": "2026-01-01"},
+        "vintage": {"sha256": "a" * 64},
+        "puerta_de_calidad": {"modelo_publicado": "combinacion", "mae": 3.4},
+        "departamentos": {
+            cod: {
+                "reconciliado": {"crecimiento_pct": [2.0, 2.5],
+                                 "per_capita_crecimiento_pct": [1.4, 1.9]},
+                "sin_anclar": {"crecimiento_pct": [1.2, 1.7]},
+                "intervalo_ancho_pp": ([6.0, 9.0] if con_intervalo else None),
+            } for cod in ("05", "11")
+        },
+    }
+    ruta = tmp_path / "resultados.json"
+    ruta.write_text(json.dumps(contenido), encoding="utf-8")
+    return ruta
+
+
+def test_la_proyeccion_marca_sus_anios_y_no_pisa_los_observados(tmp_path):
+    from iif.export.atlas import adjuntar_proyeccion
+
+    datos = adjuntar_proyeccion(_serie_minima(), _indicadores_proy(), _forecast_json(tmp_path))
+    assert datos["anios"] == [2024, 2025, 2026, 2027]
+    assert datos["anios_proyectados"] == [2026, 2027]
+    # el indicador observado queda vacío en los años proyectados, y al revés
+    assert datos["series"]["iif_compuesto"][-1] == [None, None]
+    assert datos["series"]["crecimiento_pib_real_proy"][0] == [None, None]
+    assert datos["series"]["crecimiento_pib_real_proy"][-1] == [2.5, 2.5]
+
+
+def test_la_proyeccion_lleva_su_procedencia(tmp_path):
+    """El mapa tiene que poder decir a qué está anclado y con qué backtest (ADR-021, ADR-022)."""
+    from iif.export.atlas import adjuntar_proyeccion
+
+    datos = adjuntar_proyeccion(_serie_minima(), _indicadores_proy(), _forecast_json(tmp_path))
+    assert datos["proyeccion"]["ancla"]["fuente"] == "prueba"
+    assert datos["proyeccion"]["backtest"]["modelo_publicado"] == "combinacion"
+    assert len(datos["proyeccion"]["vintage"]) == 12
+
+
+def test_sin_indicador_de_intervalo_no_se_exporta(tmp_path):
+    """ADR-022 decisión 6: ninguna capa de proyección se publica sin su incertidumbre."""
+    from iif.export.atlas import ProyeccionIncompleta, adjuntar_proyeccion
+
+    with pytest.raises(ProyeccionIncompleta, match="intervalo_ancho_proy"):
+        adjuntar_proyeccion(_serie_minima(), _indicadores_proy(con_intervalo=False),
+                            _forecast_json(tmp_path))
+
+
+def test_con_intervalos_vacios_tampoco(tmp_path):
+    from iif.export.atlas import ProyeccionIncompleta, adjuntar_proyeccion
+
+    with pytest.raises(ProyeccionIncompleta, match="sin ancho de intervalo"):
+        adjuntar_proyeccion(_serie_minima(), _indicadores_proy(),
+                            _forecast_json(tmp_path, con_intervalo=False))
+
+
+def test_un_anio_proyectado_que_ya_es_observado_es_un_error(tmp_path):
+    from iif.export.atlas import ProyeccionIncompleta, adjuntar_proyeccion
+
+    with pytest.raises(ProyeccionIncompleta, match="2025"):
+        adjuntar_proyeccion(_serie_minima(), _indicadores_proy(),
+                            _forecast_json(tmp_path, anios=(2025, 2026)))
