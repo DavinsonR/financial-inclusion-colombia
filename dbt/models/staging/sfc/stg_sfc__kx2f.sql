@@ -49,7 +49,7 @@ base as (
         f.nombre_entidad                            as nombre_entidad,
         f.pull_id,
         {% for c in cols %}
-        cast(f.{{ c }} as double)                   as {{ c }}{{ "," if not loop.last }}
+        cast(f.{{ c }} as {{ type_double() }})                   as {{ c }}{{ "," if not loop.last }}
         {% endfor %}
     from fuente as f
 
@@ -66,7 +66,7 @@ select
     xw.dpto_ccdgo,
     case
         when b.unicap <= 33 and b.renglon <> 999
-        then xw.dpto_ccdgo || lpad(cast(b.renglon as varchar), 3, '0')
+        then xw.dpto_ccdgo || lpad(cast(b.renglon as {{ dbt.type_string() }}), 3, '0')
     end                                                                 as mpio_ccdgo,
     b.nombre_unidad_raw,
     b.nombre_renglon_raw,

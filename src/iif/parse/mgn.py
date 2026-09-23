@@ -8,7 +8,7 @@ import pandas as pd
 import pandera.pandas as pa
 
 from iif import config
-from iif.acquire.manifest import latest_record
+from iif.acquire.manifest import latest_record, resolve_path
 from iif.acquire.mgn import geojson_attributes
 
 INTERIM = config.DATA_INTERIM / "mgn"
@@ -43,7 +43,7 @@ def _attrs(source_id: str, manifest: Path | None) -> pd.DataFrame:
         raise FileNotFoundError(
             f"{source_id}: no hay descarga en el manifiesto; corre `iif acquire {source_id}`"
         )
-    df = geojson_attributes(config.REPO_ROOT / rec.path)
+    df = geojson_attributes(resolve_path(rec.path))
     df.columns = [c.lower() for c in df.columns]
     if "mpio_cdpmp" in df.columns:
         # En el MGN `mpio_ccdgo` son los 3 dígitos internos del departamento; el DIVIPOLA de 5 es `mpio_cdpmp`.

@@ -90,7 +90,13 @@ REFERENCIAS: dict[str, object] = {"ingenuo": naive, "deriva": drift}
 
 
 def predecir(nombre: str, serie: pd.Series, h: int) -> Pronostico:
-    """Una especificación por nombre. Devuelve NaN si no converge, nunca lanza."""
+    """Una especificación por nombre. Devuelve NaN si no converge; solo lanza si el nombre no existe.
+
+    Un nombre mal escrito no es un fallo de convergencia: tragárselo dejaría un modelo con
+    cobertura cero en el backtest y un error que no dice de dónde viene.
+    """
+    if nombre not in ESPECIFICACIONES and nombre not in REFERENCIAS:
+        raise KeyError(f"especificación desconocida: {nombre!r}")
     try:
         if nombre == "ingenuo":
             return naive(serie, h)

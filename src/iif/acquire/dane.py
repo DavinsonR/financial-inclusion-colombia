@@ -9,7 +9,16 @@ from pathlib import Path
 import requests
 
 from iif import config
-from iif.acquire.manifest import PullRecord, append_record, latest_record, make_pull_id, now_iso, sha256_of
+from iif.acquire.manifest import (
+    PullRecord,
+    append_record,
+    latest_record,
+    make_pull_id,
+    now_iso,
+    rel_path,
+    resolve_path,
+    sha256_of,
+)
 
 TIMEOUT = 300
 
@@ -57,9 +66,7 @@ def fetch_file(
         row_count=None,
         bytes=len(r.content),
         sha256=sha256_of(target),
-        path=str(target.relative_to(config.REPO_ROOT))
-        if target.is_relative_to(config.REPO_ROOT)
-        else str(target),
+        path=rel_path(target),
         license=source.get("license", "DANE"),
         notes=source.get("notes", ""),
     )
@@ -69,7 +76,7 @@ def fetch_file(
 
 def latest_file(source_id: str, manifest: Path | None = None) -> Path | None:
     rec = latest_record(source_id, manifest)
-    return (config.REPO_ROOT / rec.path) if rec else None
+    return resolve_path(rec.path) if rec else None
 
 
 def parse_datetime(s: str) -> datetime:

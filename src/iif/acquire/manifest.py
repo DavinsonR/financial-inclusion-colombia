@@ -46,6 +46,23 @@ def sha256_of(path: Path) -> str:
     return h.hexdigest()
 
 
+def rel_path(path: Path, root: Path | None = None) -> str:
+    r"""La ruta tal como se guarda en el manifiesto: relativa a `root` y con `/` en cualquier sistema.
+
+    `str(Path)` en Windows produce `data\raw\...`, y esa cadena no se resuelve en Linux: el manifiesto
+    versionado dejaría de verificar en CI según la máquina que hizo la descarga (R-04, R-07).
+    """
+    root = root or config.REPO_ROOT
+    return path.relative_to(root).as_posix() if path.is_relative_to(root) else path.as_posix()
+
+
+def resolve_path(path: str, root: Path | None = None) -> Path:
+    r"""Inversa de `rel_path`. Acepta también registros viejos escritos con `\` como separador."""
+    root = root or config.REPO_ROOT
+    q = Path(path.replace("\\", "/"))
+    return q if q.is_absolute() else root / q
+
+
 def append_record(rec: PullRecord, manifest: Path | None = None) -> None:
     manifest = manifest or config.MANIFEST
     manifest.parent.mkdir(parents=True, exist_ok=True)
@@ -83,7 +100,7 @@ def verify_manifest(manifest: Path | None = None, root: Path | None = None) -> l
     root = root or config.REPO_ROOT
     problems = []
     for r in latest_records(manifest):
-        p = root / r.path
+        p = resolve_path(r.path, root)
         if not p.exists():
             problems.append(f"falta {r.path} ({r.pull_id})")
         elif r.sha256 and sha256_of(p) != r.sha256:

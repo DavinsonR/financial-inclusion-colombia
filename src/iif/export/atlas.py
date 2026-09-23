@@ -9,6 +9,7 @@ valores redondeados a los decimales que cada indicador necesita.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -107,8 +108,11 @@ def _limpiar(rasgo: dict, tolerancia: float) -> tuple[dict, int]:
     return {**rasgo, "geometry": mapping(figura)}, descartadas
 
 
-def build_topojson(spec: dict) -> tuple[str, int]:
-    """GeoJSON del MGN a TopoJSON con solo la clave como propiedad. Devuelve (json, número de unidades)."""
+def build_topojson(spec: dict) -> tuple[str, int, int]:
+    """GeoJSON del MGN a TopoJSON con solo la clave como propiedad.
+
+    Devuelve (json, número de unidades, número de islas descartadas).
+    """
     import topojson as tp
 
     fc = json.loads((config.REPO_ROOT / spec["origen"]).read_text(encoding="utf-8"))
@@ -146,7 +150,8 @@ def build_topojson(spec: dict) -> tuple[str, int]:
 
 def series_frame(nivel: str, indicadores: list[dict], con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     spec = NIVELES[nivel]
-    cols = [spec["clave"], spec["nombre"], "anio", *spec["extra"], *[i["id"] for i in indicadores]]
+    del_warehouse = [i["id"] for i in indicadores if i.get("grupo") != "proyeccion"]
+    cols = [spec["clave"], spec["nombre"], "anio", *spec["extra"], *del_warehouse]
     disponibles = {r[0] for r in con.sql(f"describe {spec['tabla']}").fetchall()}
     faltan = [c for c in cols if c not in disponibles]
     if faltan:
@@ -172,6 +177,8 @@ def build_series(nivel: str, indicadores: list[dict], df: pd.DataFrame) -> dict:
         salida[campo] = [_escalar(meta[campo].get(i)) for i in ids]
 
     for ind in indicadores:
+        if ind.get("grupo") == "proyeccion":
+            continue       # no sale del warehouse; lo pega `adjuntar_proyeccion`
         matriz = []
         for anio in anios:
             fila: list[float | None] = [None] * len(ids)
@@ -184,11 +191,97 @@ def build_series(nivel: str, indicadores: list[dict], df: pd.DataFrame) -> dict:
     return salida
 
 
+CAMPOS_PROYECCION = {
+    "crecimiento_pib_real_proy": ("reconciliado", "crecimiento_pct"),
+    "crecimiento_pib_real_pc_proy": ("reconciliado", "per_capita_crecimiento_pct"),
+    "crecimiento_pib_real_proy_sin_anclar": ("sin_anclar", "crecimiento_pct"),
+}
+INDICADOR_INCERTIDUMBRE = "intervalo_ancho_proy"
+
+
+class ProyeccionIncompleta(ValueError):
+    """La capa de proyección no viaja sin su capa de incertidumbre (ADR-022 decisión 6)."""
+
+
+def adjuntar_proyeccion(datos: dict, indicadores: list[dict], ruta: Path) -> dict:
+    """Añade los años proyectados y sus indicadores a una serie ya construida.
+
+    La proyección no sale del warehouse: 2026, 2027 y 2028 no existen en ningún mart. Se
+    lee del JSON que produce `uv run iif forecast` y se pega al final de la matriz, con los
+    años nuevos marcados en `anios_proyectados` para que el navegador sepa dónde termina el
+    dato y empieza el pronóstico.
+
+    Los indicadores observados reciben `None` en los años proyectados, y los de proyección
+    reciben `None` en los observados. Un hueco aquí es una fila que nadie midió, nunca un
+    cero, igual que en el resto del atlas (R-13).
+    """
+    proy = [i for i in indicadores if i.get("grupo") == "proyeccion"]
+    if not proy:
+        return datos
+    if not ruta.exists():
+        raise FileNotFoundError(
+            f"falta {ruta}; corre `uv run iif forecast` o quita el grupo `proyeccion` de atlas.yaml")
+
+    if not any(i["id"] == INDICADOR_INCERTIDUMBRE for i in proy):
+        raise ProyeccionIncompleta(
+            "el grupo `proyeccion` no declara `intervalo_ancho_proy`. Un mapa de calor de un "
+            "pronóstico puntual sin su intervalo comunica una precisión que el modelo no tiene "
+            "(ADR-022 decisión 6).")
+
+    contenido = json.loads(ruta.read_text(encoding="utf-8"))
+    anios_proy = [int(a) for a in contenido["horizonte"]]
+    deps = contenido["departamentos"]
+    ids = datos["ids"]
+
+    solapan = sorted(set(anios_proy) & set(datos["anios"]))
+    if solapan:
+        raise ProyeccionIncompleta(f"los años {solapan} ya existen como observados")
+
+    n_obs = len(datos["anios"])
+    datos["anios"] = datos["anios"] + anios_proy
+    datos["anios_proyectados"] = anios_proy
+    datos["proyeccion"] = {
+        "ancla": contenido["ancla"],
+        "nivel_intervalo": contenido["nivel_intervalo"],
+        "vintage": contenido["vintage"]["sha256"][:12],
+        "backtest": contenido["puerta_de_calidad"],
+    }
+
+    for ind in indicadores:
+        if ind.get("grupo") != "proyeccion":
+            datos["series"][ind["id"]] += [[None] * len(ids) for _ in anios_proy]
+
+    for ind in proy:
+        matriz = [[None] * len(ids) for _ in range(n_obs)]
+        for k in range(len(anios_proy)):
+            fila: list[float | None] = [None] * len(ids)
+            for j, clave in enumerate(ids):
+                bloque_dep = deps.get(clave)
+                if bloque_dep is None:
+                    continue
+                if ind["id"] == INDICADOR_INCERTIDUMBRE:
+                    valores = bloque_dep.get("intervalo_ancho_pp")
+                else:
+                    rama, campo = CAMPOS_PROYECCION[ind["id"]]
+                    valores = bloque_dep.get(rama, {}).get(campo)
+                if valores and valores[k] is not None:
+                    fila[j] = round(float(valores[k]), ind["decimales"])
+            matriz.append(fila)
+        datos["series"][ind["id"]] = matriz
+
+    faltantes = sum(1 for fila in datos["series"][INDICADOR_INCERTIDUMBRE][n_obs:]
+                    for v in fila if v is None)
+    if faltantes:
+        raise ProyeccionIncompleta(
+            f"{faltantes} celdas proyectadas sin ancho de intervalo. No se publica (ADR-022).")
+    return datos
+
+
 def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict[str, Path]:
     out_dir = out_dir or (config.REPO_ROOT / "atlas" / "data")
     out_dir.mkdir(parents=True, exist_ok=True)
     contrato = load_contract()
-    ruta_db = db or (config.REPO_ROOT / "db" / "iif.duckdb")
+    ruta_db = db or config.DUCKDB_PATH
     if not ruta_db.exists():
         raise FileNotFoundError(f"no existe {ruta_db}; corre `make dbt-build` y `make index` antes")
 
@@ -208,6 +301,10 @@ def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict
         for nivel, indicadores in contrato["indicadores"].items():
             df = series_frame(nivel, indicadores, con)
             datos = build_series(nivel, indicadores, df)
+            spec_proy = contrato.get("proyeccion")
+            if spec_proy and spec_proy.get("nivel") == nivel:
+                datos = adjuntar_proyeccion(
+                    datos, indicadores, config.REPO_ROOT / spec_proy["origen"])
             destino = out_dir / f"series_{nivel}.json"
             destino.write_text(json.dumps(datos, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
             escritos[f"series_{nivel}"] = destino
@@ -215,7 +312,7 @@ def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict
 
     meta = {
         "version": contrato["version"],
-        "generado_en": pd.Timestamp.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generado_en": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "indicadores": meta_indicadores,
         "unidades": unidades,
         "islas_descartadas": islas_descartadas,

@@ -81,11 +81,19 @@ def reparto_proporcional(base: np.ndarray, objetivo: float) -> np.ndarray:
     """Lleva la suma de `base` a `objetivo` repartiendo la diferencia según el peso.
 
     El resultado suma exactamente `objetivo` salvo error de redondeo de punto flotante.
+
+    Falla en vez de devolver `base` sin tocar. Antes, un objetivo no finito o una suma no
+    positiva dejaban pasar el pronóstico sin anclar con la etiqueta de reconciliado, y un
+    departamento sin pronóstico (NaN) convertía en NaN a los 33 sin avisar.
     """
     base = np.asarray(base, dtype=float)
+    if not np.all(np.isfinite(base)):
+        raise ValueError(f"la base a reconciliar tiene {int((~np.isfinite(base)).sum())} valores no finitos")
+    if not np.isfinite(objetivo):
+        raise ValueError(f"el objetivo de la reconciliación no es finito: {objetivo}")
     suma = base.sum()
-    if suma <= 0 or not np.isfinite(objetivo):
-        return base
+    if suma <= 0:
+        raise ValueError(f"la base suma {suma}; el reparto proporcional necesita una suma positiva")
     return base + (objetivo - suma) * (base / suma)
 
 
@@ -98,6 +106,8 @@ def reparto_mint_diagonal(base: np.ndarray, varianza_log: np.ndarray,
     """
     base = np.asarray(base, dtype=float)
     var_nivel = (base ** 2) * np.asarray(varianza_log, dtype=float)
+    if not np.all(np.isfinite(var_nivel)):
+        raise ValueError("MinT recibió varianzas no finitas; el reparto quedaría en NaN")
     total = var_nivel.sum()
     if total <= 0 or not np.isfinite(objetivo):
         return reparto_proporcional(base, objetivo)

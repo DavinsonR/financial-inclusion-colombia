@@ -58,24 +58,25 @@ seeds:
     +quote_columns: false
     # Tipos explícitos donde la inferencia de dbt fallaría: códigos DIVIPOLA con cero a la izquierda,
     # banderas booleanas y columnas vacías (que dbt tiparía como entero).
+    # BigQuery no acepta varchar ni double: allí el texto es string y el doble float64 (macros/portable_types.sql).
     xw_departamento_region:
       +column_types:
-        dpto_ccdgo: varchar(2)
+        dpto_ccdgo: "{{ 'string' if target.type == 'bigquery' else 'varchar(2)' }}"
         region_id: integer
     xw_sfc_departamento:
       +column_types:
-        fuente: varchar
+        fuente: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
         unicap: integer
-        dpto_ccdgo: varchar(2)
+        dpto_ccdgo: "{{ 'string' if target.type == 'bigquery' else 'varchar(2)' }}"
     sfc_unidades_no_geograficas:
       +column_types:
-        fuente: varchar
+        fuente: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
         unicap: integer
     map_sfc_tipo:
       +column_types:
-        fuente: varchar
-        tipo_raw: varchar
-        tipo_id: varchar
+        fuente: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        tipo_raw: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        tipo_id: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
         n_filas: bigint
     dim_canal:
       +column_types:
@@ -83,30 +84,30 @@ seeds:
         en_vkbt: boolean
     xw_sfc_municipio_overrides:
       +column_types:
-        fuente: varchar
+        fuente: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
         unicap: integer
         renglon: integer
-        nombre_raw: varchar
-        mpio_ccdgo: varchar(5)
-        motivo: varchar
+        nombre_raw: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        mpio_ccdgo: "{{ 'string' if target.type == 'bigquery' else 'varchar(5)' }}"
+        motivo: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
     dim_municipio_extra:
       +column_types:
-        mpio_ccdgo: varchar(5)
-        dpto_ccdgo: varchar(2)
+        mpio_ccdgo: "{{ 'string' if target.type == 'bigquery' else 'varchar(5)' }}"
+        dpto_ccdgo: "{{ 'string' if target.type == 'bigquery' else 'varchar(2)' }}"
     xw_sfc_columns_empalme:
       +column_types:
         numero: integer
-        ptgf_column: varchar
-        kx2f_column: varchar
+        ptgf_column: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        kx2f_column: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
     map_sfc_columns:
       +column_types:
-        fuente: varchar
-        tipo_id: varchar
-        columna: varchar
+        fuente: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        tipo_id: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        columna: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
         n_no_cero: bigint
-        frac_no_cero: double
+        frac_no_cero: "{{ 'float64' if target.type == 'bigquery' else 'double' }}"
     dim_variable:
       +column_types:
         es_total_bloque: boolean
-        ptgf_column: varchar
-        kx2f_column: varchar
+        ptgf_column: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+        kx2f_column: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"

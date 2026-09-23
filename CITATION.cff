@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "Si usas este código o estos datos, cítalos como se indica abajo."
+message: "Si usas este código o estos datos, cítalos como se indica abajo. El código es MIT; los datos derivados son CC BY-SA 4.0 porque contienen datos de la Superintendencia Financiera, MinTIC y MEN publicados en datos.gov.co bajo esa licencia (docs/LICENCIAS_DATOS.md)."
 title: "Inclusión financiera y crecimiento regional en Colombia: proyecto de investigación reproducible"
 type: software
 authors:

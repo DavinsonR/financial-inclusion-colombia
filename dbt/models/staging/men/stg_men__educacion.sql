@@ -27,17 +27,17 @@
 
 select
     cast(a_o as integer)                                    as anio,
-    cast(a_o as varchar)                                    as periodo_id,
-    lpad(cast(c_digo_departamento as varchar), 2, '0')      as dpto_ccdgo,
-    lpad(cast(c_digo_municipio as varchar), 5, '0')         as mpio_ccdgo,
+    cast(a_o as {{ dbt.type_string() }})                                    as periodo_id,
+    lpad(cast(c_digo_departamento as {{ dbt.type_string() }}), 2, '0')      as dpto_ccdgo,
+    lpad(cast(c_digo_municipio as {{ dbt.type_string() }}), 5, '0')         as mpio_ccdgo,
     municipio                                               as nombre_municipio_raw,
     c_digo_etc                                              as codigo_etc,
     etc,
-    cast(poblaci_n_5_16 as double)                          as poblacion_5_16,
-    cast(sedes_conectadas_a_internet as double)             as sedes_conectadas_internet,
+    cast(poblaci_n_5_16 as {{ type_double() }})                          as poblacion_5_16,
+    cast(sedes_conectadas_a_internet as {{ type_double() }})             as sedes_conectadas_internet,
     {% for c in tasas %}
-    nullif(cast({{ c }} as double), 0)                      as {{ nombres.get(c, c) }}{{ "," if not loop.last }}
+    nullif(cast({{ c }} as {{ type_double() }}), 0)                      as {{ nombres.get(c, c) }}{{ "," if not loop.last }}
     {% endfor %},
     pull_id
 from {{ source('men', 'men_nudc_7mev') }}
-where lpad(cast(c_digo_municipio as varchar), 5, '0') <> '00000'  -- fila 'NACIONAL' (3 en 2011-2024): no es un municipio
+where lpad(cast(c_digo_municipio as {{ dbt.type_string() }}), 5, '0') <> '00000'  -- fila 'NACIONAL' (3 en 2011-2024): no es un municipio

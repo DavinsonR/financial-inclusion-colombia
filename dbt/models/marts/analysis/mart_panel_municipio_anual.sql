@@ -36,7 +36,7 @@ base as (
         m.municipio,
         m.mpio_tipo,
         a.anio,
-        cast(a.anio as varchar)                 as periodo_id,
+        cast(a.anio as {{ dbt.type_string() }})                 as periodo_id,
         a.estado_dato,
         a.va_corriente_mm,
         a.va_per_capita_corriente,

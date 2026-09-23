@@ -66,4 +66,4 @@ markers = [
   "data: pruebas que requieren datos crudos descargados (se saltan si no existen)",
   "slow: pruebas de extremo a extremo que reajustan modelos en cada origen",
 ]
-addopts = "-q"
+addopts = "-q --strict-markers"

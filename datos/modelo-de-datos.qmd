@@ -1,22 +1,30 @@
 ---
 title: "Modelo de datos"
-subtitle: "Esquema estrella con vintages, en DuckDB para desarrollo y Snowflake para producción"
+subtitle: "Esquema estrella en dbt, con DuckDB como motor y BigQuery como warehouse en la nube"
 ---
 
 ```{mermaid}
 erDiagram
     dim_departamento ||--o{ dim_municipio : contiene
+    dim_departamento ||--o{ fct_inclusion_departamento_trimestre : mide
     dim_municipio ||--o{ fct_inclusion_municipio_trimestre : mide
+    dim_variable ||--o{ fct_inclusion_departamento_trimestre : define
+    dim_variable ||--o{ fct_inclusion_municipio_trimestre : define
     dim_periodo ||--o{ fct_inclusion_municipio_trimestre : fecha
-    dim_variable ||--o{ fct_inclusion_municipio_trimestre_long : define
-    dim_vintage ||--o{ fct_pib_departamento_anual : versiona
-    dim_departamento ||--o{ fct_pib_departamento_anual : mide
-    dim_municipio ||--o{ fct_va_municipio_anual : mide
-    dim_municipio ||--o{ fct_poblacion_municipio_anual : cuenta
+    fct_inclusion_departamento_trimestre ||--o{ fct_inclusion_departamento_anual : anualiza
+    fct_inclusion_municipio_trimestre ||--o{ fct_inclusion_municipio_anual : anualiza
+    dim_departamento ||--o{ fct_actividad_departamento_anual : mide
+    dim_municipio ||--o{ fct_actividad_municipio_anual : mide
+    dim_municipio ||--o{ fct_internet_municipio_anual : mide
+    dim_municipio ||--o{ fct_educacion_municipio_anual : mide
+    dim_municipio ||--o{ fct_puntos_atencion_municipio_mes : mide
     dim_canal ||--o{ fct_puntos_atencion_municipio_mes : clasifica
-    dim_departamento ||--o{ fct_itaed_departamento_trimestre : mide
+    dim_departamento ||--o{ mart_panel_departamento_anual : agrega
+    dim_municipio ||--o{ mart_panel_municipio_anual : agrega
 ```
 
-Dimensiones: geografía (municipio → departamento → región, con DIVIPOLA), periodo (anual, trimestral, mensual), entidad, canal, variable y **vintage** (una fila por descarga, con la fecha de actualización de la fuente). Todos los hechos llevan `pull_id` e `is_current`; los del DANE llevan además `estado_dato` (definitivo, provisional, preliminar).
+Dimensiones: geografía (municipio → departamento → región, con DIVIPOLA), periodo (anual, trimestral y mensual en una sola tabla), variable (el diccionario de las 98 variables de la SFC, semilla `dim_variable`) y canal. Los hechos del DANE llevan `estado_dato` (definitivo, provisional, preliminar) porque el DANE revisa toda la serie cada julio. Los paneles `mart_panel_*_anual` y los índices `mart_indice_*_anual` se construyen sobre los hechos.
 
-Las reglas de construcción viven en `dbt/` y se prueban en cada `dbt build`. La misma estrella se materializa en DuckDB (local y CI) y en Snowflake (producción, con clones por vintage). Ver ADR-002 y ADR-014.
+La vintage de cada descarga (fecha de actualización en la fuente, sha256, filas y licencia) vive hoy en `data/raw/manifest.jsonl`. La tabla `dim_vintage` y las columnas `pull_id` e `is_current` en los hechos que prevé ADR-002 todavía no están construidas.
+
+Las reglas de construcción viven en `dbt/` y se prueban en cada `dbt build`. DuckDB es el motor en local, en CI y para el sitio; BigQuery es el warehouse en la nube (`bigquery/`); Snowflake queda como demo posterior. Ver ADR-002 y ADR-014.

@@ -192,6 +192,108 @@ def test_diebold_mariano_calla_sin_pares_suficientes():
     assert ganancia is None and p is None
 
 
+# ------------------------------------------------------------------ auditoría: fallos que no avisaban
+
+def _marco_sintetico(anios=range(2005, 2026), nacional_hasta: int | None = None) -> frame.Marco:
+    """Un departamento con crecimiento de 3 % hasta 2019 y de 10 % desde 2020: verdad conocida."""
+    anios = list(anios)
+    g = np.array([0.03 if a < 2020 else 0.10 for a in anios])
+    log_pib = pd.DataFrame({"01": np.log(100.0) + np.cumsum(g)}, index=pd.Index(anios, name="anio"))
+    nivel = np.exp(log_pib)
+    fin = nacional_hasta if nacional_hasta is not None else anios[-1]
+    nacional = nivel["01"].loc[:fin]
+    vintage = frame.Vintage("sintetico", "0" * 64, anios[0], anios[-1], 1)
+    return frame.Marco(log_pib, nivel, nacional, {"01": "Uno"}, vintage)
+
+
+def test_rolling_origin_a_h_pasos_mide_el_anio_objetivo():
+    """Con h=2 el error es el del segundo año, no el del primero con la etiqueta cambiada."""
+    marco = _marco_sintetico()
+    d1 = backtest.rolling_origin(marco, primer_origen=2022, h=1, modelos=["ingenuo"])
+    d2 = backtest.rolling_origin(marco, primer_origen=2022, h=2, modelos=["ingenuo"])
+    serie = marco.log_pib["01"]
+    fila = d2[d2.origen == 2022].iloc[0]
+    assert fila.real == pytest.approx(serie.loc[2023])
+    # el ingenuo repite el último crecimiento (10 %) dos veces desde 2021
+    assert fila.pronostico == pytest.approx(serie.loc[2021] + 2 * 0.10)
+    assert fila.error == pytest.approx(0.0, abs=1e-9)
+    # el último origen a dos pasos no existe: su objetivo cae fuera de la muestra
+    assert d2.origen.max() == 2024 and d1.origen.max() == 2025
+    assert {"varianza", "pronostico", "real"} <= set(d2.columns)
+    with pytest.raises(ValueError):
+        backtest.rolling_origin(marco, h=0)
+
+
+def test_cobertura_del_intervalo_se_mide_contra_la_verdad():
+    """Errores normales con la varianza correcta cubren el 80 %; con la cuarta parte, mucho menos."""
+    rng = np.random.default_rng(11)
+    n = 4000
+    real = rng.normal(0, 0.03, n)
+    base = pd.DataFrame(dict(dpto_ccdgo="01", origen=np.arange(n), real=real, pronostico=0.0))
+    bien = base.assign(modelo="bien", varianza=0.03 ** 2)
+    corto = base.assign(modelo="corto", varianza=(0.03 / 2) ** 2)
+    caido = base.iloc[:10].assign(modelo="caido", pronostico=np.nan, varianza=np.nan)
+    cob = backtest.cobertura_intervalo(pd.concat([bien, corto, caido]), 0.80).set_index("modelo")
+    assert cob.loc["bien", "cobertura_empirica"] == pytest.approx(0.80, abs=0.02)
+    assert cob.loc["corto", "cobertura_empirica"] < 0.55
+    assert "caido" not in cob.index, "sin pronóstico no hay intervalo que evaluar"
+
+
+def test_predecir_rechaza_un_nombre_desconocido():
+    """Un nombre mal escrito no es un fallo de convergencia y no se disfraza de NaN."""
+    serie = pd.Series(np.log(np.linspace(100, 150, 20)), index=range(2005, 2025))
+    with pytest.raises(KeyError):
+        models.predecir("arima_110_atipcos", serie, 1)
+
+
+def test_reparto_proporcional_no_deja_pasar_la_base_sin_anclar():
+    """Antes devolvía la base intacta con un objetivo NaN: el mapa 'reconciliado' no lo estaba."""
+    base = np.array([100.0, 50.0])
+    with pytest.raises(ValueError):
+        reconcile.reparto_proporcional(base, float("nan"))
+    with pytest.raises(ValueError):
+        reconcile.reparto_proporcional(np.array([100.0, np.nan]), 200.0)
+    with pytest.raises(ValueError):
+        reconcile.reparto_proporcional(np.array([0.0, 0.0]), 200.0)
+    with pytest.raises(ValueError):
+        reconcile.reparto_mint_diagonal(base, np.array([0.01, np.nan]), 200.0)
+
+
+def test_el_horizonte_tiene_que_seguir_al_ultimo_dato():
+    """Un panel que llega a 2024 no puede publicar su primer paso como 2026."""
+    from iif.forecast import run
+
+    run._exigir_horizonte_contiguo(_marco_sintetico(), [2026, 2027, 2028])
+    corto = _marco_sintetico(anios=range(2005, 2025))
+    with pytest.raises(ValueError, match="no sigue"):
+        run._exigir_horizonte_contiguo(corto, [2026, 2027, 2028])
+    with pytest.raises(ValueError, match="no sigue"):
+        run.pronosticar(corto, [2026, 2027, 2028])
+    with pytest.raises(ValueError, match="no sigue"):
+        run._exigir_horizonte_contiguo(_marco_sintetico(), [2026, 2028])
+
+
+def test_el_total_nacional_tiene_que_llegar_al_ultimo_anio():
+    """Si el nacional termina un año antes, el ancla se saltaría un año de crecimiento."""
+    from iif.forecast import run
+
+    run._exigir_nacional_al_dia(_marco_sintetico())
+    with pytest.raises(ValueError, match="total nacional"):
+        run._exigir_nacional_al_dia(_marco_sintetico(nacional_hasta=2024))
+
+
+def test_el_marco_no_promedia_filas_repetidas(tmp_path):
+    """`pivot_table` promediaba en silencio dos versiones del mismo año."""
+    filas = [dict(dpto_ccdgo=c, anio=a, pib_constante_2015_mm=100.0 + a - 2005,
+                  estado_dato="definitivo", departamento=c)
+             for c in ("00", "05") for a in range(2005, 2010)]
+    filas.append(dict(filas[-1], pib_constante_2015_mm=999.0))
+    ruta = tmp_path / "pib.parquet"
+    pd.DataFrame(filas).to_parquet(ruta)
+    with pytest.raises(ValueError, match="repite"):
+        frame._sin_duplicados(pd.read_parquet(ruta), ruta)
+
+
 # ------------------------------------------------------------------ extremo a extremo
 
 @pytest.mark.slow

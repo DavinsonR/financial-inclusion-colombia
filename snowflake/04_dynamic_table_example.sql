@@ -1,13 +1,16 @@
 -- 04_dynamic_table_example.sql — una dynamic table como alternativa a un modelo dbt programado.
--- Ejecutar como TRANSFORMER una vez existan fct_inclusion_departamento_trimestre, dim_periodo y dim_variable
--- en IIF.MARTS (fase 2). Idempotente por el IF NOT EXISTS.
+-- Ejecutar como TRANSFORMER una vez existan IIF.MARTS.FCT_INCLUSION_DEPARTAMENTO_TRIMESTRE e IIF.SEEDS.DIM_VARIABLE
+-- (tras `dbt build --target snowflake`). Idempotente por el IF NOT EXISTS.
 -- Sin probar contra una cuenta real hasta que existan credenciales (ver README.md).
 --
 -- Qué demuestra: Snowflake mantiene el agregado anual por sí mismo, con un retraso máximo (TARGET_LAG) de un
 -- día respecto a los hechos trimestrales, refrescando de forma incremental cuando puede. Aplica la regla de
--- anualización de dim_variable: flujos = suma de los cuatro trimestres (se exigen los cuatro), stocks = valor
--- del cuarto trimestre, medias = promedio. Es la misma lógica de fct_inclusion_departamento_anual en dbt;
--- aquí vive en la base para que Power BI la lea sin depender de un `dbt run`.
+-- anualización de dim_variable exactamente como fct_inclusion_departamento_anual en dbt (ADR-001):
+-- flujos = suma de los cuatro trimestres, y solo con los cuatro; stocks = valor del cuarto trimestre (un stock
+-- no exige los cuatro). No hay regla 'mean': dim_variable solo admite 'sum' y 'last'.
+-- dim_variable es una semilla y vive en IIF.SEEDS, no en MARTS. Los hechos aún no llevan pull_id ni
+-- is_current (ADR-002 pendiente): cuando los lleven, se añade el filtro `WHERE f.is_current`.
+-- Aquí vive en la base para que Power BI la lea sin depender de un `dbt run`.
 
 USE ROLE TRANSFORMER;
 USE WAREHOUSE WH_IIF_XS;
@@ -21,22 +24,17 @@ CREATE DYNAMIC TABLE IF NOT EXISTS IIF.MARTS.DT_INCLUSION_DEPARTAMENTO_ANUAL
 AS
 SELECT
     f.dpto_ccdgo,
-    p.anio,
+    f.anio,
     f.variable_id,
     v.regla_anualizacion,
-    CASE v.regla_anualizacion
-        WHEN 'sum'  THEN SUM(f.valor)
-        WHEN 'last' THEN MAX(CASE WHEN p.trimestre = 4 THEN f.valor END)
-        WHEN 'mean' THEN AVG(f.valor)
-    END                                   AS valor_anual,
-    COUNT(*)                              AS n_trimestres,
-    MAX(f.pull_id)                        AS pull_id
+    CASE
+        WHEN v.regla_anualizacion = 'sum' AND COUNT(DISTINCT f.trimestre) = 4 THEN SUM(f.valor)
+        WHEN v.regla_anualizacion = 'last' THEN MAX(CASE WHEN f.trimestre = 4 THEN f.valor END)
+    END                                   AS valor_anual,   -- nulo si la regla no se puede aplicar
+    COUNT(DISTINCT f.trimestre)           AS trimestres_observados
 FROM IIF.MARTS.FCT_INCLUSION_DEPARTAMENTO_TRIMESTRE f
-JOIN IIF.MARTS.DIM_PERIODO  p ON p.periodo_id = f.periodo_id AND p.frecuencia = 'Q'
-JOIN IIF.MARTS.DIM_VARIABLE v ON v.variable_id = f.variable_id
-WHERE f.is_current
-GROUP BY f.dpto_ccdgo, p.anio, f.variable_id, v.regla_anualizacion
-HAVING COUNT(*) = 4;                      -- un año incompleto no se anualiza (no se inventan trimestres)
+JOIN IIF.SEEDS.DIM_VARIABLE v ON v.variable_id = f.variable_id
+GROUP BY f.dpto_ccdgo, f.anio, f.variable_id, v.regla_anualizacion;
 
 -- Operación:
 --   SHOW DYNAMIC TABLES IN SCHEMA IIF.MARTS;

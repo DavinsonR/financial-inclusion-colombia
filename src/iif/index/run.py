@@ -27,7 +27,7 @@ NIVELES = {
 
 
 def _con(db: Path | None = None) -> duckdb.DuckDBPyConnection:
-    path = db or Path(config.REPO_ROOT / "db" / "iif.duckdb")
+    path = db or config.DUCKDB_PATH
     if not path.exists():
         raise FileNotFoundError(f"no existe {path}; corre `make dbt-build` antes de construir el índice")
     return duckdb.connect(str(path), read_only=True)

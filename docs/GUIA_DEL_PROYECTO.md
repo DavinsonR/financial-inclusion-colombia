@@ -17,7 +17,7 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 | Fase | Contenido | Estado al 2026-09-06 | Semáforo |
 |---|---|---|---|
 | 0 | Reestructura del repo, limpieza y subida de los tres artefactos legados, paquete `iif`, documentos de gobierno, dbt, Quarto, CI | Hecha: S1 a S8 completos | verde |
-| 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (77 MB), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
+| 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (fuera de git, Release `data-v1`), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
 | 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
 | 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Hecha: atlas de tres vistas y batería completa en `src/iif/econ` con 12 pruebas sintéticas (ADR-016) | verde |
 | 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
@@ -36,35 +36,38 @@ README.md                     portada con 7 anclas; toca esto si cambia el resul
 CITATION.cff                  cómo citar; toca esto si cambia el título o el año
 LICENSE                       MIT para el código
 pyproject.toml / uv.lock      dependencias; toca esto con `uv add`, nunca a mano
-requirements.txt              exportado desde uv para lectores sin uv (pendiente de regenerar)
+requirements.txt              exportado desde uv para lectores sin uv; se regenera con `uv export --frozen --no-hashes --no-dev --no-emit-project -o requirements.txt` tras cada `uv lock`
 Makefile                      todos los comandos; toca esto si aparece un paso nuevo
-_quarto.yml, *.qmd            sitio (pendiente); toca esto si cambia una página
+_quarto.yml, *.qmd            sitio (compila en `make check`, no se publica); toca esto si cambia una página
 config/tesis_documento.yaml   cifras del documento de la tesis; toca esto solo si se corrige una errata del documento
-config/sources.yaml           fuentes y reglas de descarga (pendiente); toca esto si una fuente cambia de URL
-config/index.yaml             dimensiones, variables, ventana de pesos del índice (pendiente)
+config/sources.yaml           fuentes y reglas de descarga; toca esto si una fuente cambia de URL
+config/index.yaml             dimensiones, variables, ventana de pesos del índice
 config/atlas.yaml             contrato de exportación del atlas
+config/forecast.yaml          anclas y horizonte de la capa de proyección (ADR-019 a ADR-022)
 data/legacy/                  congelado (R-06); no se toca
-data/raw/                     descargas con manifest.jsonl (pendiente); no se edita a mano
+data/raw/                     descargas con manifest.jsonl; no se edita a mano
 data/interim/, data/processed/ Parquet derivado; se regenera, no se edita
 db/                           iif.duckdb local, ignorado por git
 dbt/                          seeds, staging, intermediate, marts, tests; toca seeds si cambia un mapa
 bigquery/                     datasets, carga de Parquet, particionado, control de coste y vistas autorizadas
 snowflake/                    material del demo posterior: roles, warehouse, stages, clonación por vintage
-src/iif/config.py             rutas del proyecto; toca esto si aparece una carpeta nueva
+src/iif/config.py             rutas del proyecto y `DUCKDB_PATH` (sigue a `IIF_DUCKDB_PATH`); toca esto si aparece una carpeta nueva
 src/iif/cli.py                comandos `iif`; toca esto si aparece un comando
 src/iif/legacy/               port del notebook; no se cambia el modo `notebook`, se extiende el modo `corrected`
 src/iif/data/                 scrub y diccionario; toca esto si aparece un artefacto legado nuevo
-src/iif/acquire/, crosswalk/  descarga y DIVIPOLA (pendiente)
+src/iif/acquire/, crosswalk/  descarga y DIVIPOLA
+src/iif/index/, econ/         índice (ADR-015) y batería econométrica (ADR-016)
+src/iif/forecast/             capa de proyección con puerta de calidad (ADR-019 a ADR-022)
 tests/                        pytest; marca `data` para pruebas que leen data/raw
 notebooks/legacy/             congelado (R-06)
 docs/GUIA_DEL_PROYECTO.md     este documento
 docs/BITACORA_AGENTE.md       errores y aciertos; toca esto antes de arreglar cualquier error (R-10)
-docs/decisiones/              ADR-001 a ADR-014; toca esto antes de cambiar una decisión de valor (R-11)
+docs/decisiones/              ADR-001 a ADR-016 y ADR-019 a ADR-022; toca esto antes de cambiar una decisión de valor (R-11)
 docs/LICENCIAS_DATOS.md       licencias por fuente y qué implican
 docs/decisiones-metodologicas.md  decisiones de la versión corregida de la tesis (ago-2026); histórico
 docs/legacy/                  dump original y reproducción; se regenera con `make reproduce`
 scripts/install_quarto.sh     Quarto por tarball
-.github/workflows/            ci.yml: lint, pruebas, dbt y render; `_site` queda como artefacto
+.github/workflows/            ci.yml: llama a los objetivos de `make` (data, lint, test, dbt-build, test-data, render); `_site` queda como artefacto
 paper/                        PDF tras el depósito institucional; congelado (R-06)
 ```
 
@@ -141,6 +144,16 @@ Entrada: hechos de fase 1 verdes en dbt. Salida: índice con pesos implícitos p
 
 ### Fase 3: econometría
 Entrada: marts de fase 2. Salida: two-way FE anual como base, CIPS, estimación en cambios, CCE, placebo por permutación, shift-share, estudio de eventos, Moran y SAR/SDM, heterogeneidad por interacciones con wild cluster bootstrap; cada tabla del sitio trazada a una prueba; README con el resultado actualizado.
+
+### Auditoría transversal (2026-09-23)
+Salida: `ruff`, `pytest` y `dbt build` en verde; entradas B-051 a B-066 y S-019 en la bitácora.
+- [x] Paquete: rutas del manifiesto en POSIX, `config.DUCKDB_PATH` único, errores de uso claros en la CLI
+- [x] Índice y proyección: R-17 exigida en la ruta de publicación; la proyección falla en vez de degradar
+- [x] dbt: SQL portable por macros, 127 pruebas nuevas, cifras publicadas fijadas en `assert_cifras_publicadas.sql`
+- [x] CI llama a `make`; permisos mínimos; acciones de terceros fijadas por SHA; secreto de BigQuery por `env:`
+- [x] Documentación: KMO bien atribuido, estado real de la proyección, `site-url` retirado, atribución CC BY-SA completa
+- [ ] Decidir en un ADR la prueba Diebold-Mariano agrupada por origen (B-065) y el tratamiento de faltantes en Sarma (B-064)
+- [ ] Primera compilación real en BigQuery (B-058) y primer `quarto render` tras los cambios
 
 ### Fase 4: anexo y manuscrito
 Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDAS como sensibilidad, manuscrito en Quarto con PDF por tectonic.

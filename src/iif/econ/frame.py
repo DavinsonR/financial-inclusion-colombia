@@ -46,7 +46,7 @@ def load_frame(db: str | None = None) -> pd.DataFrame:
     el logaritmo del ingreso rezagado (convergencia condicional), el tamaño en logaritmos y el cambio
     del índice, que es la especificación en diferencias.
     """
-    ruta = db or str(config.REPO_ROOT / "db" / "iif.duckdb")
+    ruta = db or str(config.DUCKDB_PATH)
     with duckdb.connect(ruta, read_only=True) as con:
         df = con.sql(CONSULTA).df()
 

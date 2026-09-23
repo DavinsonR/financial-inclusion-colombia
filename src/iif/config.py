@@ -34,6 +34,19 @@ LEGACY_XLSX = DATA_LEGACY / "panel_fintech_colombia_trimestral.xlsx"
 LEGACY_PARQUET = DATA_LEGACY / "panel_fintech_colombia_trimestral.parquet"
 
 
+def _duckdb_path() -> Path:
+    """El warehouse local. `IIF_DUCKDB_PATH` es la misma variable que lee dbt (dbt/profiles.yml) y que
+    fijan el Makefile y CI; sin ella, `db/iif.duckdb`. Una ruta relativa cuelga de REPO_ROOT."""
+    env = os.environ.get("IIF_DUCKDB_PATH")
+    if not env:
+        return REPO_ROOT / "db" / "iif.duckdb"
+    p = Path(env)
+    return p if p.is_absolute() else REPO_ROOT / p
+
+
+DUCKDB_PATH: Path = _duckdb_path()
+
+
 def load_yaml(path: Path) -> dict:
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}

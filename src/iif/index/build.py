@@ -10,6 +10,10 @@ import pandas as pd
 
 from iif import config
 
+# R-17 y ADR-015 (adenda): por debajo de este KMO las variables no comparten varianza común y el
+# primer componente no resume nada. El contrato puede declararlo como `kmo_minimo`.
+KMO_MINIMO = 0.5
+
 
 @dataclass
 class DimensionFit:
@@ -102,8 +106,15 @@ def _bartlett(corr: np.ndarray, n: int) -> tuple[float, float]:
     return float(chi2), float(stats.chi2.sf(chi2, gl))
 
 
-def fit_dimension(calib: pd.DataFrame, dimension: str, spec: dict, *, min_obs: int = 20) -> DimensionFit:
-    """Estima media, desviación y cargas de una dimensión sobre la ventana de calibración."""
+def fit_dimension(
+    calib: pd.DataFrame, dimension: str, spec: dict, *, min_obs: int = 20, kmo_minimo: float | None = None
+) -> DimensionFit:
+    """Estima media, desviación y cargas de una dimensión sobre la ventana de calibración.
+
+    Con `kmo_minimo`, el PCA se niega a estimarse si el KMO medido no llega (R-17): el supuesto se mide
+    antes de usar el método. La sensibilidad lo llama sin umbral a propósito, porque su papel es
+    enseñar lo que da el método que los datos no sostienen.
+    """
     variables = [v["variable_id"] for v in spec["variables"]]
     signos = {v["variable_id"]: v.get("signo_esperado", 1) for v in spec["variables"]}
     x = calib[variables].apply(pd.to_numeric, errors="coerce").dropna()
@@ -147,6 +158,10 @@ def fit_dimension(calib: pd.DataFrame, dimension: str, spec: dict, *, min_obs: i
 
     corr = np.corrcoef(z.to_numpy(), rowvar=False)
     kmo = _kmo(corr)
+    if kmo_minimo is not None and kmo < kmo_minimo:
+        raise ValueError(
+            f"{dimension}: KMO {kmo:.3f} < {kmo_minimo}; el PCA no se sostiene (R-17), usa pesos_iguales"
+        )
     chi2, p_val = _bartlett(corr, len(z))
     # Componente principal: primer vector propio de la matriz de correlación de las estandarizadas.
     valores, vectores = np.linalg.eigh(corr)
@@ -234,9 +249,22 @@ def build_index(
     else:
         c = contract["calibracion"]
         calib = norm[(norm["anio"] >= c["anio_desde"]) & (norm["anio"] <= c["anio_hasta"])]
-        fits = {dim: fit_dimension(calib, dim, spec) for dim, spec in contract["dimensiones"].items()}
+        kmo_minimo = float(contract.get("kmo_minimo", KMO_MINIMO))
+        fits = {
+            dim: fit_dimension(calib, dim, spec, kmo_minimo=kmo_minimo)
+            for dim, spec in contract["dimensiones"].items()
+        }
 
     pesos_dim = contract["compuesto"]["pesos"]
+    implicitos = pesos_implicitos(fits, pesos_dim)
+    negativos = implicitos[implicitos["peso_estandarizado"] < 0]
+    if not negativos.empty:
+        # R-17: el índice publica sus pesos implícitos y ninguno puede ser negativo. Se comprueba
+        # aquí, antes de puntuar, y también con pesos congelados, que llegan de un YAML editable.
+        raise ValueError(
+            "pesos implícitos negativos (R-17): "
+            + ", ".join(f"{r.variable_id}={r.peso_estandarizado:.4f}" for r in negativos.itertuples())
+        )
     scores = norm[list(id_cols)].copy()
     for dim, fit in fits.items():
         scores[f"iif_{dim}"] = apply_dimension(norm, fit)
@@ -278,7 +306,7 @@ def build_index(
     return IndexResult(
         scores=scores,
         fits=fits,
-        implicitos=pesos_implicitos(fits, pesos_dim),
+        implicitos=implicitos,
         sensibilidad=sens,
         correlacion_rangos=corr,
         normalizado=norm,

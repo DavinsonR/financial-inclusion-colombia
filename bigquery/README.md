@@ -19,7 +19,7 @@ cuenta en la nube.
 | Tablas particionadas y agrupadas | `02_partitioning_clustering.sql` | el equivalente en BigQuery a un índice: partición por fecha y `CLUSTER BY` por departamento |
 | Control de coste explícito | `03_cost_controls.sql` | cuota de bytes por consulta y por usuario, y la consulta que mide el gasto real |
 | Vistas autorizadas y control de acceso | `04_authorized_views.sql` | publicar marts sin dar acceso a las tablas crudas |
-| dbt con el objetivo `bigquery` | `dbt/profiles.yml` | los mismos modelos y pruebas que en DuckDB |
+| dbt con el objetivo `bigquery` | `dbt/profiles.yml` | los mismos modelos y pruebas que en DuckDB, salvo el panel legado (`stg_legacy__panel_trimestral`), que lee un Parquet local y solo se habilita en DuckDB; los tipos cambian por macro (`dbt/macros/portable_types.sql`) |
 
 ## Cómo levantarlo
 

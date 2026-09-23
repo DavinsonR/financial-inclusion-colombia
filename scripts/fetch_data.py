@@ -37,6 +37,9 @@ URL = (
 TARBALL_SHA256 = "3de592f4cc4f221a353830c63c129bbce3fbc7bf4ab8839b7d4ed76601602ecc"
 
 ROOT = Path(__file__).resolve().parent.parent
+# Segundos sin recibir bytes antes de abandonar. Sin esto, una conexion colgada deja a CI esperando
+# hasta su propio timeout de 25 minutos sin decir por que.
+TIMEOUT_S = 60
 MANIFEST = ROOT / "data" / "raw" / "manifest.jsonl"
 
 
@@ -50,7 +53,7 @@ def sha256_of(path: Path) -> str:
 
 def download(dest: Path) -> None:
     print(f"bajando  {URL}")
-    with urllib.request.urlopen(URL) as resp:  # noqa: S310 — URL fija, https, del propio repositorio
+    with urllib.request.urlopen(URL, timeout=TIMEOUT_S) as resp:  # noqa: S310 — URL fija, https, del propio repositorio
         total = int(resp.headers.get("Content-Length") or 0)
         done = 0
         with open(dest, "wb") as fh:
@@ -113,6 +116,14 @@ def main() -> int:
             if hasattr(tarfile, "data_filter"):  # Python 3.12+: rechaza rutas fuera del destino
                 tf.extractall(ROOT, members=miembros, filter="data")
             else:
+                # Python 3.11 (el de CI) no tiene `filter`: la misma guarda, a mano. Solo ficheros y
+                # directorios, y todos dentro del repositorio.
+                raiz = ROOT.resolve()
+                for m in miembros:
+                    destino = (raiz / m.name).resolve()
+                    if not (m.isfile() or m.isdir()) or not destino.is_relative_to(raiz):
+                        print(f"ERROR: miembro no permitido en el tarball: {m.name}", file=sys.stderr)
+                        return 1
                 tf.extractall(ROOT, members=miembros)  # noqa: S202
 
     problems = verify_against_manifest()

@@ -95,3 +95,47 @@ models:
               arguments:
                 to: ref('dim_periodo')
                 field: periodo_id
+
+  - name: dim_municipio
+    description: >
+      Municipios, áreas no municipalizadas e isla: unión del MGN 2024 (1.121), de los códigos del DANE que no
+      tienen polígono (27493, 94663) y de la semilla dim_municipio_extra (27086). Clave natural DIVIPOLA.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(mpio_ccdgo) = 5 and left(mpio_ccdgo, 2) = dpto_ccdgo"
+    columns:
+      - name: mpio_ccdgo
+        description: "DIVIPOLA municipal de cinco dígitos, texto con cero a la izquierda."
+        data_tests: [unique, not_null]
+      - name: dpto_ccdgo
+        description: "DIVIPOLA departamental; son los dos primeros dígitos de mpio_ccdgo."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: municipio
+        description: "Nombre del MGN; si no está, el del DANE; si tampoco, el de la semilla."
+        data_tests: [not_null]
+      - name: nombre_normalizado
+        description: "Clave de cruce por nombre (macro normalize_geo_name). No es única: hay homónimos entre departamentos."
+      - name: mpio_tipo
+        description: "M (municipio), ANM (área no municipalizada) o ISLA (ADR-013)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["M", "ANM", "ISLA"]
+      - name: area_km2
+        description: "Área del polígono MGN; nula si el código no está en el MGN 2024."
+      - name: en_mgn
+        data_tests: [not_null]
+      - name: en_dane
+        data_tests: [not_null]
+      - name: nota
+        description: "Motivo cuando el código viene de dim_municipio_extra."
+      - name: es_capital
+        description: "Verdadero para el código dpto || '001' (capital departamental por convención DIVIPOLA)."
+        data_tests: [not_null]

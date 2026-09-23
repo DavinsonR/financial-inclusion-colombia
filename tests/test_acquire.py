@@ -385,3 +385,38 @@ def test_soda_client_error_is_not_retried(tmp_path: Path, monkeypatch):
     with pytest.raises(requests.HTTPError):
         soda.fetch_soda(_source(tmp_path), out_dir=tmp_path / "raw", manifest=tmp_path / "m.jsonl")
     assert len([c for c in responses.calls if "offset" in c.request.url]) == 1
+
+
+def test_manifest_paths_use_forward_slashes(tmp_path: Path):
+    r"""En Windows `str(Path)` usa `\`; el manifiesto versionado debe resolverse igual en Linux (R-07)."""
+    from iif.acquire.manifest import rel_path, resolve_path
+
+    f = tmp_path / "data" / "raw" / "x" / "a.bin"
+    assert rel_path(f, tmp_path) == "data/raw/x/a.bin"
+    assert resolve_path("data/raw/x/a.bin", tmp_path) == f
+    assert resolve_path(r"data\raw\x\a.bin", tmp_path) == f, "registros viejos escritos en Windows"
+
+
+def test_manifest_verify_accepts_backslash_records(tmp_path: Path):
+    from iif.acquire.manifest import PullRecord, append_record, sha256_of
+
+    f = tmp_path / "sub" / "a.bin"
+    f.parent.mkdir()
+    f.write_bytes(b"abc")
+    man = tmp_path / "m.jsonl"
+    append_record(
+        PullRecord(pull_id="p1", source_id="s", dataset_id=None, url="u", sha256=sha256_of(f), path=r"sub\a.bin"),
+        man,
+    )
+    assert verify_manifest(man, root=tmp_path) == []
+
+
+@responses.activate
+def test_soda_numeric_year_partition_with_nulls(tmp_path: Path):
+    """Un año numérico con nulos llega como float; antes `astype(int)` reventaba con NaN."""
+    rows = [{"anno": "2019", "nro": "1"}, {"anno": "2020", "nro": "2"}, {"nro": "3"}]
+    _mock_soda(responses, rows)
+    src = _source(tmp_path, partition_col="anno", date_cols=[], numeric_cols=["anno"], numeric_regex="^nro")
+    recs = soda.fetch_soda(src, out_dir=tmp_path / "raw", manifest=tmp_path / "m.jsonl")
+    assert {Path(r.path).parent.name for r in recs} == {"anio=2019", "anio=2020", "anio=sin_fecha"}
+    assert sum(r.row_count for r in recs) == 3
