@@ -183,7 +183,9 @@ seeds:
             combination_of_columns: [fuente, unicap, renglon]
       - dbt_utils.expression_is_true:
           arguments:
-            expression: "length(mpio_ccdgo) = 5 and left(mpio_ccdgo, 2) = lpad(cast(unicap as varchar), 2, '0') or mpio_ccdgo is null"
+            # `unicap` es la numeración interna de la SFC, no el DIVIPOLA: el prefijo departamental se prueba
+            # contra xw_sfc_departamento en tests/assert_overrides_municipio_en_su_departamento.sql.
+            expression: "mpio_ccdgo is null or length(mpio_ccdgo) = 5"
     columns:
       - name: fuente
         data_tests:
@@ -212,9 +214,23 @@ seeds:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [ptgf_column, kx2f_column]
+      # La regla de anualización se deriva de la naturaleza (ADR-001): stock -> last, flujo -> sum.
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(naturaleza = 'stock' and regla_anualizacion = 'last') or (naturaleza = 'flujo' and regla_anualizacion = 'sum')"
+      # `disponible_en` debe coincidir con las columnas que la variable tiene en cada fuente.
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(disponible_en = 'ambas' and ptgf_column is not null and kx2f_column is not null) or (disponible_en = 'ptgf' and ptgf_column is not null and kx2f_column is null) or (disponible_en = 'kx2f' and ptgf_column is null and kx2f_column is not null)"
     columns:
       - name: variable_id
         data_tests: [unique, not_null]
+      - name: ptgf_column
+        description: "Columna de ptgf-ywrb; vacía si la variable solo existe en kx2f. Cada columna es una sola variable."
+        data_tests: [unique]
+      - name: kx2f_column
+        description: "Columna de kx2f-xjdq; vacía si la variable solo existe en ptgf. Cada columna es una sola variable."
+        data_tests: [unique]
       - name: bloque
         data_tests:
           - not_null

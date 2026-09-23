@@ -5,3 +5,7 @@
 *.topojson -diff
 atlas/data/* linguist-generated
 _freeze/** linguist-generated
+# Scripts de shell y el Makefile siempre con LF, aunque el clon sea en Windows con core.autocrlf=true:
+# bash falla con `$'\r': command not found` sobre un .sh con CRLF.
+*.sh text eol=lf
+Makefile text eol=lf

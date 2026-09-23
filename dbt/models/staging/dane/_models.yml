@@ -58,3 +58,30 @@ models:
               arguments:
                 to: ref('dim_municipio')
                 field: mpio_ccdgo
+  - name: stg_dane__poblacion_departamento_anual
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio, area]
+    columns:
+      - name: area
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["total", "cabecera", "resto"]
+  - name: stg_dane__va_departamento_actividad_anual
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio, cuenta, seccion_ciiu, actividad]
+  - name: stg_mgn__departamentos
+    columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo

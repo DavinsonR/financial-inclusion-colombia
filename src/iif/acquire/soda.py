@@ -19,7 +19,16 @@ import pandas as pd
 import requests
 
 from iif import config
-from iif.acquire.manifest import PullRecord, append_record, latest_record, make_pull_id, now_iso, sha256_of
+from iif.acquire.manifest import (
+    PullRecord,
+    append_record,
+    latest_record,
+    make_pull_id,
+    now_iso,
+    rel_path,
+    resolve_path,
+    sha256_of,
+)
 
 BASE = "https://www.datos.gov.co"
 DEFAULT_PAGE = 50_000
@@ -195,10 +204,12 @@ def fetch_soda(
     pull_id = make_pull_id(source_id, when)
     df["pull_id"] = pull_id
     if part_col and part_col in df.columns:
+        # Un año numérico con nulos es float: `astype(int)` revienta con NaN antes de llegar al `fillna`.
+        # Los nulos van a `anio=sin_fecha`, igual que las fechas ilegibles.
         years = (
             pd.to_datetime(df[part_col], errors="coerce").dt.year
             if not pd.api.types.is_numeric_dtype(df[part_col])
-            else df[part_col].astype(int)
+            else df[part_col]
         )
         groups = df.groupby(years.fillna(-1).astype(int))
     else:
@@ -236,12 +247,11 @@ def fetch_soda(
 
 
 def _rel(p: Path) -> str:
-    return str(p.relative_to(config.REPO_ROOT)) if p.is_relative_to(config.REPO_ROOT) else str(p)
+    return rel_path(p)
 
 
 def _abs(p: str) -> Path:
-    q = Path(p)
-    return q if q.is_absolute() else config.REPO_ROOT / q
+    return resolve_path(p)
 
 
 def _record_for(

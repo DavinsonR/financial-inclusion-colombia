@@ -11,7 +11,7 @@ if [ -x "$OPT/quarto-${QUARTO_VERSION}/bin/quarto" ]; then
 else
   TGZ="${TMPDIR:-/tmp}/quarto-${QUARTO_VERSION}.tgz"
   if [ ! -s "$TGZ" ]; then
-    curl -fL --retry 3 -o "$TGZ" \
+    curl -fL --retry 3 --connect-timeout 30 -o "$TGZ" \
       "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz"
   fi
   tar -xzf "$TGZ" -C "$OPT"

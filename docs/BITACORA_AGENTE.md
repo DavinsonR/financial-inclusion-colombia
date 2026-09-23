@@ -523,3 +523,117 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Regla: R-04 (nunca rutas absolutas) y R-08 (nunca rutas locales) → revisar todo texto importado desde fuera antes de versionarlo, no solo el que se escribe aquí.
 - Evidencia: `grep -rnE "~/Desktop|C:\\Users|/c/Users" docs/` ahora no devuelve nada.
 - Estado: cerrada
+
+## B-051 · 2026-09-23 · El manifiesto guardaba rutas con el separador del sistema
+- Contexto: `acquire/{dane,mgn,soda}.py` escriben `path` en `data/raw/manifest.jsonl`, que se versiona y se verifica en Linux.
+- Qué pasó: la ruta se serializaba con `str(path.relative_to(REPO_ROOT))`; una descarga hecha en Windows habría escrito `data\raw\...`, que `iif manifest verify` y `fetch_data.py` no resuelven en Linux.
+- Causa raíz: `str(Path)` depende del sistema y la serialización estaba copiada en tres módulos.
+- Regla: R-04 y R-07. Toda ruta persistida pasa por `manifest.rel_path` (POSIX) y se lee con `manifest.resolve_path`.
+- Evidencia: `tests/test_acquire.py::test_manifest_paths_use_forward_slashes`, `::test_manifest_verify_accepts_backslash_records`.
+- Estado: cerrada
+
+## B-052 · 2026-09-23 · Un año de partición numérico con nulos rompía la descarga SODA
+- Qué pasó: `astype(int)` sobre la columna de partición fallaba con `IntCastingNaNError` antes del `fillna` que debía mandar el nulo a `anio=sin_fecha`.
+- Causa raíz: la conversión de tipo iba antes del tratamiento del faltante, y solo la rama de fechas tenía prueba.
+- Regla: R-13. El faltante se trata antes de cualquier conversión, y cada rama de tipado lleva su prueba.
+- Evidencia: `tests/test_acquire.py::test_soda_numeric_year_partition_with_nulls`.
+- Estado: cerrada
+
+## B-053 · 2026-09-23 · Python y dbt no leían el mismo warehouse
+- Qué pasó: dbt, el Makefile y CI siguen `IIF_DUCKDB_PATH` (en CI, `/tmp/iif.duckdb`), pero `export/atlas.py`, `econ/frame.py`, `index/run.py` y `metodologia/indice.qmd` tenían fijo `db/iif.duckdb`.
+- Causa raíz: la ruta del warehouse era un literal copiado en cuatro sitios, no una constante de `iif.config`.
+- Regla: R-04 y R-15. La ruta vive solo en `config.DUCKDB_PATH`.
+- Evidencia: `tests/test_cli.py::test_duckdb_path_follows_the_same_variable_as_dbt`; `grep -rn '"iif.duckdb"' src metodologia` solo devuelve `config.py`.
+- Estado: cerrada
+
+## B-054 · 2026-09-23 · `iif forecast` imprimía "2713" en lugar de la marca de éxito
+- Causa raíz: escape Unicode escrito sin la barra, en un camino sin prueba.
+- Regla: la marca de éxito se escribe literal, como en los demás comandos.
+- Evidencia: `src/iif/cli.py`, comando `forecast`.
+- Estado: cerrada
+
+## B-055 · 2026-09-23 · Una prueba de semilla comparaba el DIVIPOLA con la numeración interna de la SFC
+- Qué pasó: la prueba de `xw_sfc_municipio_overrides` exigía `left(mpio_ccdgo,2) = lpad(unicap,2,'0')`; `unicap` 1 es Antioquia ('05'). Pasaba solo porque la semilla está vacía.
+- Causa raíz: se confundió `unicap` con DIVIPOLA, y una prueba sobre una tabla vacía nunca se ejerció.
+- Regla: el prefijo departamental se prueba contra `xw_sfc_departamento`. Una prueba sobre una semilla vacía no es evidencia.
+- Evidencia: `dbt/tests/assert_overrides_municipio_en_su_departamento.sql`.
+- Estado: cerrada
+
+## B-056 · 2026-09-23 · Los scripts de Snowflake citaban un diseño que no se construyó
+- Qué pasó: `snowflake/04_dynamic_table_example.sql` usaba `pull_id`, `is_current` y una regla `mean` inexistentes, y descartaba stocks de años incompletos; `03_clone_vintage.sql` citaba `FCT_PIB_DEPARTAMENTO_ANUAL` y `pib_cop_millones`.
+- Causa raíz: se escribieron contra ADR-002 y no contra los modelos dbt, y nunca se ejecutaron.
+- Regla: un script fuera de dbt que replica su lógica cita el modelo de origen y se revisa cuando ese modelo cambia.
+- Evidencia: `snowflake/03_clone_vintage.sql`, `snowflake/04_dynamic_table_example.sql`.
+- Estado: cerrada en el texto; sin ejecutar
+
+## B-057 · 2026-09-23 · Una regla dura que solo vivía en una prueba
+- Qué pasó: `build_index` aceptaba PCA con KMO < 0,5 y pesos implícitos negativos, incluidos los congelados en `config/index.yaml`. R-17 solo se comprobaba sobre un panel sintético.
+- Causa raíz: la regla se probó fuera de la ruta de publicación.
+- Regla: una regla dura se hace cumplir donde se publica, y la prueba comprueba que esa ruta falla.
+- Evidencia: `src/iif/index/build.py` (`KMO_MINIMO`, comprobación de signo); `tests/test_index.py::test_pesos_congelados_con_carga_negativa_no_se_publican`. El índice actual no cambia (diferencia máxima 8,9e-16).
+- Estado: cerrada
+
+## B-058 · 2026-09-23 · "Los mismos modelos en BigQuery" sin haberlos compilado
+- Qué pasó: 20 modelos usaban `cast(... as varchar|double)`, las semillas declaraban `varchar(2)` y el panel legado usaba `read_parquet_path`; nada de eso existe en BigQuery.
+- Causa raíz: el SQL se validó solo en DuckDB y la portabilidad se afirmó sin compilar contra el otro dialecto.
+- Regla: tipos y funciones de dialecto van por macro (`dbt/macros/portable_types.sql`); un modelo solo DuckDB se declara con `enabled`.
+- Evidencia: `dbt/macros/portable_types.sql`, `dbt/dbt_project.yml`; `dbt build` en DuckDB 377/377.
+- Estado: abierta hasta la primera compilación real en BigQuery
+
+## B-059 · 2026-09-23 · La capa de proyección degradaba en silencio
+- Qué pasó: `reparto_proporcional` devolvía la base sin anclar con etiqueta de reconciliada; un NaN en un departamento contagiaba a los 33; un horizonte no contiguo o un total nacional desfasado encadenaban años distintos; `pivot_table` promediaba duplicados; un nombre de modelo mal escrito se volvía NaN.
+- Causa raíz: se priorizó que el módulo no lanzara errores sobre que fallara donde está la causa (misma lección que B-047).
+- Regla: un paso publicable falla con nombre y año; nunca devuelve su entrada con otra etiqueta. Consecuencia: cuando el DANE publique 2026, el `HORIZONTE` fijo 2026–2028 hará fallar la corrida en vez de etiquetar mal.
+- Evidencia: `forecast/reconcile.py`, `forecast/run.py::_exigir_*`, `forecast/frame.py`, `forecast/models.py`; `tests/test_forecast.py`.
+- Estado: cerrada
+
+## B-060 · 2026-09-23 · `rolling_origin(h)` medía siempre el primer paso
+- Causa raíz: el parámetro se añadió sin usarse en el índice del pronóstico medido. Con h = 1, que es lo publicado, nada cambia.
+- Regla: todo parámetro público tiene una prueba que lo ejerce con un valor distinto del de por defecto.
+- Evidencia: `tests/test_forecast.py::test_rolling_origin_a_h_pasos_mide_el_anio_objetivo`.
+- Estado: cerrada
+
+## B-061 · 2026-09-23 · La clave de BigQuery se escribía a través de un shell que le quitaba las comillas
+- Qué pasó: interpolar el secreto con `${{ }}` dentro del `run:` inserta el JSON en el texto del script antes de que bash lo lea; sus comillas rompen el entrecomillado y el archivo sale corrupto. Además es una vía de inyección.
+- Causa raíz: un secreto interpolado en el script en vez de pasado como dato.
+- Regla: un secreto o cualquier `github.*` entra a un `run:` solo por `env:`.
+- Evidencia: `.github/workflows/ci.yml`, paso de la clave de servicio.
+- Estado: cerrada
+
+## B-062 · 2026-09-23 · CI y `make check` eran dos copias de los mismos pasos
+- Qué pasó: CI repetía los comandos a mano y ya había derivado (no validaba el YAML de los workflows); conservaba `contents: write` después de retirar el sitio (S-018).
+- Causa raíz: dos listas de los mismos comandos sin un dueño.
+- Regla: CI llama a objetivos de `make`; un comando vive solo en el Makefile. Los permisos se revisan cuando se retira un paso de publicación.
+- Evidencia: `.github/workflows/ci.yml`, `Makefile`.
+- Estado: cerrada; la primera corrida de CI es la prueba
+
+## B-063 · 2026-09-23 · El Makefile y `requirements.txt` suponían un entorno que no es el del autor
+- Qué pasó: `QUARTO_PYTHON` apuntaba a `.venv/bin/python` (en Windows es `.venv/Scripts/python.exe`), `make data` llamaba a `python3` saltándose uv (R-02), `make lint` leía YAML sin `encoding`, `.PHONY` listaba un `atlas` inexistente, y `requirements.txt` no tenía `dbt-bigquery` ni sus dependencias.
+- Causa raíz: el Makefile solo se había corrido en Linux, y nada regenera `requirements.txt` cuando cambia `uv.lock`.
+- Regla: rutas del venv según el sistema; Python siempre por `uv run`; archivos de texto con `encoding='utf-8'`; tras cada `uv lock`, `uv export --frozen --no-hashes --no-dev --no-emit-project -o requirements.txt`.
+- Evidencia: `Makefile`, `requirements.txt`, `.gitattributes` (LF forzado en `*.sh` y `Makefile`).
+- Estado: cerrada
+
+## B-064 · 2026-09-23 · Sarma rellena faltantes con cero
+- Qué pasó: `index/build.py::_sarma` hace `fillna(0.0)`; cuatro filas reales (Guainía 2019; Vaupés 2018, 2019 y 2025) entran a la sensibilidad "índice alternativo: Sarma" con N = 231 cuando la base usa 228. Con R-13 aplicado el coeficiente pasa de −0,105 (p 0,336) a −0,108 (p 0,326). Además el máximo se toma sobre todos los años, no sobre la ventana congelada.
+- Causa raíz: la fórmula de distancia se implementó sin mirar la regla de faltantes.
+- Regla: R-13. Cambia una cifra publicada, así que va primero a un ADR (R-11).
+- Estado: abierta
+
+## B-065 · 2026-09-23 · Diebold-Mariano agrupado trata 264 pares como independientes
+- Qué pasó: los 33 departamentos de un mismo origen comparten el choque. La prueba agrupada da p = 2e-7; con la diferencia media de pérdidas por origen (8 orígenes), p = 0,29. La ventaja de la combinación sobre el ingenuo en ADR-020 descansa sobre todo en 2021 (−14,9 pp). Aparte, `evaluar` aprueba con ganancia > 0 y cobertura ≥ 90 % sin usar el valor p que exige ADR-020.
+- Causa raíz: la inferencia sobre errores de pronóstico no se agrupó en el nivel donde está la dependencia.
+- Regla: en un panel, la prueba sobre errores de pronóstico se agrupa por año de origen o usa HAC sobre la media transversal. Requiere ADR.
+- Estado: abierta
+
+## B-066 · 2026-09-23 · La documentación contaba cifras y un estado que ya no eran
+- Qué pasó: los README atribuían KMO 0,314 a acceso y 0,404 a uso (son uso y profundidad; acceso tiene una sola variable); decían "anclada al consenso" cuando el ancla es el WEO del FMI; el abstract en español negaba resultados; `index.qmd` daba las fases 2 y 3 por pendientes; `modelo-de-datos.qmd` describía `dim_vintage` y hechos que no existen; la hoja de ruta repetía la brecha de 0,07 % sin su ventana (B-049).
+- Causa raíz: las cifras se copian a mano y ningún commit de código revisa las páginas de estado; un arreglo de cifra se hizo solo en el archivo donde se detectó.
+- Regla: R-09 y R-16. Un arreglo de cifra se busca con grep en todo el repositorio; al cerrar sesión se revisan el estado del README, `index.qmd` y la guía.
+- Evidencia: `data/processed/indice_diagnosticos.csv`, `data/processed/forecast/resultados.json`.
+- Estado: cerrada en el texto; abierta la prueba que compare README y JSON/CSV
+
+## S-019 · 2026-09-23 · Las cifras publicadas viven en una sola prueba con su muestra
+- Contexto: B-049 enseñó que una cifra sin ventana no es trazable.
+- Qué funcionó: `dbt/tests/assert_cifras_publicadas.sql` fija 264/231 filas y crecimientos departamentales, 7.861/1.123 municipales, 1.121 polígonos MGN, 96 y 98 variables (70 + 8 + 20), 19/17 canales, 603.232 filas de ptgf y las medianas de 2020 y 2021, cada una con dónde se publica y sobre qué muestra se mide.
+- Dónde se reutiliza: toda cifra nueva del README o de la guía entra a esta prueba o a una prueba pytest antes de publicarse.

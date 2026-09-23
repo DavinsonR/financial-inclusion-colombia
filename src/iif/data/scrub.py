@@ -7,7 +7,6 @@ notebook y el nombre malformado del kernel. Lo que NO se toca: ni un solo valor 
 
 from __future__ import annotations
 
-import hashlib
 import re
 from pathlib import Path
 
@@ -15,16 +14,13 @@ import nbformat
 import openpyxl
 import pandas as pd
 
+# Una sola implementación del hash; `iif.legacy.pipeline` la sigue importando desde aquí.
+from iif.acquire.manifest import sha256_of
+
+__all__ = ["find_private_strings", "scrub_markdown", "scrub_notebook", "scrub_xlsx", "sha256_of", "write_checksums"]
+
 PRIVATE_PATH_PATTERNS = (r"/home/coderdav", r"D:\\davin", r"Economy_Master", r"Economy Master")
 LEGACY_RELATIVE_PATH = "../../data/legacy/panel_fintech_colombia_trimestral.xlsx"
-
-
-def sha256_of(path: Path) -> str:
-    h = hashlib.sha256()
-    with open(path, "rb") as fh:
-        for chunk in iter(lambda: fh.read(1 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()
 
 
 def scrub_xlsx(src: Path, dst: Path) -> dict:
@@ -112,4 +108,5 @@ def find_private_strings(
 
 
 def write_checksums(paths: list[Path], out: Path) -> None:
-    out.write_text("".join(f"{sha256_of(p)}  {p.name}\n" for p in paths), encoding="utf-8")
+    # `newline="\n"`: en Windows `write_text` traduce a CRLF y `sha256sum -c` toma el `\r` como parte del nombre.
+    out.write_text("".join(f"{sha256_of(p)}  {p.name}\n" for p in paths), encoding="utf-8", newline="\n")

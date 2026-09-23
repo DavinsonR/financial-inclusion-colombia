@@ -14,7 +14,6 @@ project:
 website:
   title: "Inclusión financiera y crecimiento regional en Colombia"
   description: "Un warehouse abierto de 19 fuentes públicas, un índice de inclusión financiera por dimensiones, paneles anuales y un atlas interactivo."
-  site-url: https://financial-inclusion-colombia.vercel.app/
   repo-url: https://github.com/DavinsonR/financial-inclusion-colombia
   repo-actions: [source]
   navbar:
@@ -40,7 +39,7 @@ website:
       - text: Decisiones
         href: decisiones.qmd
   page-footer:
-    left: "Datos de la Superintendencia Financiera (CC BY-SA 4.0), DANE, MinTIC y MEN. Código MIT."
+    left: "Datos derivados bajo CC BY-SA 4.0: contienen datos de la Superintendencia Financiera, MinTIC y MEN (datos.gov.co, CC BY-SA 4.0) y datos públicos del DANE. Código MIT."
     right: "Construido en público: cada cifra traza a una prueba."
 
 lang: es

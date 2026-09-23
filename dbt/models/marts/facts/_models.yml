@@ -1,5 +1,8 @@
 version: 2
 
+# Hechos del esquema estrella. Cada hecho declara su grano con una prueba de unicidad, y cada clave foránea
+# prueba su relación con la dimensión (ADR-002). Los hechos anuales llevan `periodo_id` = 'YYYY' y enlazan
+# con dim_periodo; ningún hecho anual repite un valor en trimestres (R-05, ADR-001).
 models:
   - name: fct_inclusion_departamento_trimestre
     description: >
@@ -13,6 +16,84 @@ models:
           arguments:
             combination_of_columns: [dpto_ccdgo, variable_id, periodo_id]
     columns:
+      - name: dpto_ccdgo
+        description: "DIVIPOLA departamental (dim_departamento)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: variable_id
+        description: "Variable canónica de la SFC (dim_variable)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_variable')
+                field: variable_id
+      - name: periodo_id
+        description: "Trimestre 'YYYYQn' (dim_periodo, frecuencia Q)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: anio
+        data_tests: [not_null]
+      - name: trimestre
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+      - name: fecha_corte
+        description: "Fecha de corte del reporte de la SFC (último día del trimestre)."
+      - name: fuente
+        description: "Tabla de la SFC de la que sale el valor: ptgf (legado, hasta 2021Q1) o kx2f (vigente)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ptgf, kx2f]
+      - name: dimension_iif
+        description: "Dimensión del índice a la que pertenece la variable (acceso, uso, profundidad o ninguna)."
+      - name: bloque
+        description: "Bloque de producto de la SFC (`tipo_id` de map_sfc_tipo)."
+      - name: unidad
+        description: "count (número) o cop (pesos)."
+      - name: naturaleza
+        description: "stock o flujo; decide la regla de anualización."
+      - name: valor
+        description: "Suma sobre entidades de la fila 999. Un cero es un cero reportado dentro del bloque; lo no reportado no tiene fila (ADR-008, R-13)."
+        data_tests: [not_null]
+      - name: valor_fuente_anterior
+        description: "Solo en 2021Q1: el valor de ptgf, para medir el salto del empalme (ADR-009)."
+      - name: n_filas_entidad
+        description: "Filas de entidad sumadas; distingue 'cero reportado' de 'nadie reportó'."
+
+  - name: fct_inclusion_municipio_trimestre
+    description: >
+      Inclusión financiera por municipio, trimestre y variable: suma de las entidades que reportan en el
+      municipio. La ausencia de fila es un no observado, nunca un cero (R-13).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, variable_id, periodo_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "left(mpio_ccdgo, 2) = dpto_ccdgo"
+    columns:
+      - name: mpio_ccdgo
+        description: "DIVIPOLA municipal de cinco dígitos (dim_municipio)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
       - name: dpto_ccdgo
         data_tests:
           - not_null
@@ -28,6 +109,7 @@ models:
                 to: ref('dim_variable')
                 field: variable_id
       - name: periodo_id
+        description: "Trimestre 'YYYYQn'."
         data_tests:
           - not_null
           - relationships:
@@ -36,26 +118,17 @@ models:
                 field: periodo_id
       - name: fuente
         data_tests:
+          - not_null
           - accepted_values:
               arguments:
                 values: [ptgf, kx2f]
-
-  - name: fct_inclusion_municipio_trimestre
-    description: >
-      Inclusión financiera por municipio, trimestre y variable: suma de las entidades que reportan en el
-      municipio. La ausencia de fila es un no observado, nunca un cero (R-13).
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: [mpio_ccdgo, variable_id, periodo_id]
-    columns:
-      - name: mpio_ccdgo
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('dim_municipio')
-                field: mpio_ccdgo
+      - name: valor
+        description: "Suma sobre entidades de las filas municipales (renglon <> 999)."
+        data_tests: [not_null]
+      - name: valor_fuente_anterior
+        description: "Solo en 2021Q1: el valor de ptgf (ADR-009)."
+      - name: n_filas_entidad
+        description: "Filas de entidad sumadas."
 
   - name: fct_inclusion_departamento_anual
     description: >
@@ -67,12 +140,51 @@ models:
           arguments:
             combination_of_columns: [dpto_ccdgo, variable_id, anio]
     columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: variable_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_variable')
+                field: variable_id
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        description: "Año 'YYYY' (dim_periodo, frecuencia A)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
       - name: trimestres_observados
+        description: "Trimestres distintos con dato en el año (1 a 4)."
         data_tests:
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 1
                 max_value: 4
+      - name: suma_trimestres
+        description: "Suma de los trimestres observados; solo es el valor anual de un flujo si hay cuatro."
+      - name: valor_q4
+        description: "Valor del cuarto trimestre; es el valor anual de un stock."
+      - name: fuente_mas_reciente
+        description: "max(fuente) del año. Ningún (departamento, variable, año) mezcla fuentes: el empalme elige una por trimestre."
+      - name: valor_anual
+        description: "Valor anual según `regla_anualizacion`; nulo si la regla no se puede aplicar."
+      - name: regla_anualizacion
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["last", "sum"]
 
   - name: fct_inclusion_municipio_anual
     description: "Igual que el anual departamental, por municipio."
@@ -80,6 +192,47 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [mpio_ccdgo, variable_id, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: dpto_ccdgo
+        data_tests: [not_null]
+      - name: variable_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_variable')
+                field: variable_id
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        description: "Año 'YYYY'."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: trimestres_observados
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 4
+      - name: valor_anual
+        description: "Valor anual según `regla_anualizacion`; nulo si la regla no se puede aplicar."
+      - name: regla_anualizacion
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["last", "sum"]
 
   - name: fct_puntos_atencion_municipio_mes
     description: >
@@ -91,9 +244,176 @@ models:
           arguments:
             combination_of_columns: [mpio_ccdgo, codigo_canal, periodo_id]
     columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: codigo_canal
+        description: "Código de canal de la SFC (dim_canal)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_canal')
+                field: codigo_canal
+      - name: periodo_id
+        description: "Mes 'YYYY-MM' (dim_periodo, frecuencia M)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
       - name: puntos_atencion
+        description: "Puntos de atención reportados, sumados sobre entidades y filas repetidas."
         data_tests:
           - not_null
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
+      - name: puntos_atencion_activos
+        description: "Subconjunto de puntos activos."
+      - name: n_entidades
+        description: "Entidades distintas que reportan en el municipio, canal y mes."
+
+  - name: fct_actividad_departamento_anual
+    description: "PIB departamental del DANE (2005 a 2025pr) con población por área (desde 2018) y PIB real per cápita derivado; sin el agregado nacional '00'."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [dpto_ccdgo, anio]
+    columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: estado_dato
+        description: "definitivo, provisional o preliminar, según el DANE en el vintage descargado (ADR-002)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["definitivo", "provisional", "preliminar"]
+      - name: pib_constante_2015_mm
+        description: "PIB a precios constantes de 2015, en miles de millones de pesos."
+        data_tests: [not_null]
+      - name: poblacion_total
+        description: "Proyección de población DANE; nula antes de 2018 (la serie departamental empieza ahí)."
+      - name: pib_real_per_capita
+        description: "pib_constante_2015_mm × 1e9 / poblacion_total; nulo sin población."
+      - name: tasa_urbanizacion
+        description: "Población de cabecera sobre la total."
+
+  - name: fct_actividad_municipio_anual
+    description: "Valor agregado municipal (distribución del PIB departamental, nominal) con población."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "left(mpio_ccdgo, 2) = dpto_ccdgo"
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: estado_dato
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["definitivo", "provisional", "preliminar"]
+      - name: peso_relativo_pct
+        description: "Participación del municipio en el valor agregado de su departamento: es el reparto con que el DANE construye la serie (ADR-001)."
+      - name: va_per_capita_corriente
+        description: "Valor agregado corriente por habitante, en pesos."
+
+  - name: fct_internet_municipio_anual
+    description: "Accesos fijos a internet por municipio y año (stock del cuarto trimestre; MinTIC, 2016 a 2023Q3)."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: trimestres_observados
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 4
+      - name: accesos_q4
+        description: "Accesos al cuarto trimestre: el valor anual del stock. Nulo si falta el cuarto trimestre."
+      - name: accesos_max_trimestre
+        description: "Máximo trimestral del año; diagnóstico, no es el valor anual."
+
+  - name: fct_educacion_municipio_anual
+    description: "Educación por municipio y año (MEN 2011 a 2024); tasas en cero ya son nulas (R-13); quiebre metodológico en 2018."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: anio
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: sedes_conectadas_internet
+        description: "Tal como lo publica el MEN: no pasa por nullif y trae ceros en 2011-2015; vacío desde 2018."
+      - name: despues_del_quiebre_2018
+        description: "Verdadero desde 2018, cuando cambia la metodología del MEN."

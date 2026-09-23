@@ -19,7 +19,7 @@ select
     mpio_ccdgo,
     dpto_ccdgo,
     anio,
-    cast(anio as varchar)                        as periodo_id,
+    cast(anio as {{ dbt.type_string() }})                        as periodo_id,
     count(distinct trimestre)                    as trimestres_observados,
     max(trimestre)                               as ultimo_trimestre,
     max(case when trimestre = 4 then accesos end) as accesos_q4,

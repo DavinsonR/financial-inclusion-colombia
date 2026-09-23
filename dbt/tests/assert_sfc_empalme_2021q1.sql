@@ -22,7 +22,7 @@ pares as (
 por_dpto as (
     select dpto_ccdgo,
            count(*)                                                as pares,
-           median(abs(v_kx2f - v_ptgf) / abs(v_ptgf))              as mediana_rel
+           {{ median_agg("abs(v_kx2f - v_ptgf) / abs(v_ptgf)") }} as mediana_rel
     from pares
     group by 1
 )

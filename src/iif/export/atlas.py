@@ -9,6 +9,7 @@ valores redondeados a los decimales que cada indicador necesita.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -107,8 +108,11 @@ def _limpiar(rasgo: dict, tolerancia: float) -> tuple[dict, int]:
     return {**rasgo, "geometry": mapping(figura)}, descartadas
 
 
-def build_topojson(spec: dict) -> tuple[str, int]:
-    """GeoJSON del MGN a TopoJSON con solo la clave como propiedad. Devuelve (json, número de unidades)."""
+def build_topojson(spec: dict) -> tuple[str, int, int]:
+    """GeoJSON del MGN a TopoJSON con solo la clave como propiedad.
+
+    Devuelve (json, número de unidades, número de islas descartadas).
+    """
     import topojson as tp
 
     fc = json.loads((config.REPO_ROOT / spec["origen"]).read_text(encoding="utf-8"))
@@ -277,7 +281,7 @@ def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict
     out_dir = out_dir or (config.REPO_ROOT / "atlas" / "data")
     out_dir.mkdir(parents=True, exist_ok=True)
     contrato = load_contract()
-    ruta_db = db or (config.REPO_ROOT / "db" / "iif.duckdb")
+    ruta_db = db or config.DUCKDB_PATH
     if not ruta_db.exists():
         raise FileNotFoundError(f"no existe {ruta_db}; corre `make dbt-build` y `make index` antes")
 
@@ -308,7 +312,7 @@ def export_atlas(*, out_dir: Path | None = None, db: Path | None = None) -> dict
 
     meta = {
         "version": contrato["version"],
-        "generado_en": pd.Timestamp.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generado_en": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "indicadores": meta_indicadores,
         "unidades": unidades,
         "islas_descartadas": islas_descartadas,

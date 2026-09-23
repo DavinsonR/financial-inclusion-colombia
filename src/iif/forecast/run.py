@@ -46,6 +46,7 @@ def pronosticar(marco: frame.Marco, anios: list[int] | None = None):
     especificaciones que convergieron, que es lo que hace auditable la combinación.
     """
     anios = anios or HORIZONTE
+    _exigir_horizonte_contiguo(marco, anios)
     h = len(anios)
     media, varianza, vivas = {}, {}, {}
     for cod in marco.departamentos:
@@ -60,6 +61,34 @@ def pronosticar(marco: frame.Marco, anios: list[int] | None = None):
             pd.Series(vivas, name="especificaciones_convergidas"))
 
 
+def _exigir_horizonte_contiguo(marco: frame.Marco, anios: list[int]) -> None:
+    """El horizonte empieza el año siguiente al último observado y no tiene huecos.
+
+    Los modelos pronostican los pasos 1..h desde el último dato y aquí se les pone nombre de
+    año. Si el horizonte no empezara justo después —un parquet que llega hasta 2024 con el
+    horizonte fijo en 2026—, el paso 1 se publicaría como 2026 y `_crecimiento` encadenaría
+    dos años como si fueran uno, sin que nada fallara.
+    """
+    ultimo = int(marco.anios[-1])
+    esperado = list(range(ultimo + 1, ultimo + 1 + len(anios)))
+    if [int(a) for a in anios] != esperado:
+        raise ValueError(f"el horizonte {list(anios)} no sigue al último año observado ({ultimo}); "
+                         f"se esperaba {esperado}")
+
+
+def _exigir_nacional_al_dia(marco: frame.Marco) -> None:
+    """El total nacional termina el mismo año que el panel departamental.
+
+    El ancla encadena su crecimiento desde el último total nacional. Si ese total fuera de un
+    año anterior, `Ancla.niveles` saltaría el año que falta y el objetivo de 2026 quedaría un
+    año de crecimiento por debajo, sin error.
+    """
+    if marco.nacional.empty or int(marco.nacional.index[-1]) != int(marco.anios[-1]):
+        fin = int(marco.nacional.index[-1]) if not marco.nacional.empty else None
+        raise ValueError(f"el total nacional termina en {fin} y el panel departamental en "
+                         f"{int(marco.anios[-1])}; el ancla no se puede encadenar")
+
+
 def _crecimiento(niveles: pd.DataFrame, ultimo_observado: pd.Series) -> pd.DataFrame:
     """De niveles a crecimiento anual en porcentaje, encadenando desde el último dato."""
     completo = pd.concat([ultimo_observado.to_frame().T, niveles])
@@ -71,6 +100,9 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
     """Todo el contenido publicable, como diccionario."""
     marco = marco or frame.load_frame()
     anios = anios or HORIZONTE
+    # Las dos comprobaciones van antes del backtest, que tarda un minuto.
+    _exigir_horizonte_contiguo(marco, anios)
+    _exigir_nacional_al_dia(marco)
 
     # 1. La puerta de calidad. Si esto falla, no hay nada que publicar.
     detalle = backtest.rolling_origin(marco)

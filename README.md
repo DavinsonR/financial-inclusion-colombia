@@ -20,6 +20,7 @@ Project page: <https://davirson.com/en/research/fintech-inclusion>. Author: Davi
 | Sep 2026 | Phase 1: 19 sources downloaded with a manifest, DIVIPOLA keys, staging of the 13 tables, the supervisor's data in long form, the 2021Q1 splice measured |
 | Sep 2026 | Phase 2: facts and annual panels, index by dimension with published weights |
 | Sep 2026 | Phase 3: a three-view atlas and the econometric battery with its results (ADR-016) |
+| Sep 2026 | Forecast layer 2026–2028: engine and atlas export (ADR-019 to ADR-022) |
 | pending | Phase 4: temporal-disaggregation annex and manuscript |
 | Nov 2026 (expected) | Graduation |
 
@@ -27,7 +28,7 @@ The full plan, with a per-phase status light and the decisions of record, is in 
 
 ## What it builds
 
-1. **Warehouse.** A star schema with vintages in dbt over every public source: the financial supervisor (2017Q4 to 2025Q4, plus monthly service points from 2023), the statistics office (departmental GDP 2005 to 2025, municipal value added 2011 to 2024, population 2005 to 2042, the quarterly ITAED indicator), the ICT and education ministries, and the 2024 national geostatistical framework. Engine: DuckDB locally, in CI and for the site. BigQuery as the cloud warehouse, in its free sandbox and without a card (`bigquery/`). Snowflake is kept as a later demonstration (ADR-014).
+1. **Warehouse.** A star schema in dbt over every public source, with each download's vintage recorded in `data/raw/manifest.jsonl` (the `dim_vintage` table of ADR-002 is not built yet): the financial supervisor (2017Q4 to 2025Q4, plus monthly service points from 2023), the statistics office (departmental GDP 2005 to 2025, municipal value added 2011 to 2024, population 2005 to 2042, the quarterly ITAED indicator), the ICT and education ministries, and the 2024 national geostatistical framework. Engine: DuckDB locally, in CI and for the site. BigQuery as the cloud warehouse, in its free sandbox and without a card (`bigquery/`). Snowflake is kept as a later demonstration (ADR-014).
 2. **Index.** A financial-inclusion index by dimension (access, use, depth) over eight normalised variables, with weights frozen over the calibration window and published variable by variable, at department and municipality level (ADR-004, ADR-015).
 3. **Panels.** Annual frequency: department 2018 to 2025 and municipality 2018 to 2024; a real quarterly panel only where the statistics office publishes quarterly activity (ITAED) (ADR-001).
 4. **Atlas.** An interactive map of the index by region, dimension and variable, in three views — flat, raised and municipalities — inside the project page; the data comes from `uv run iif atlas` (ADR-005).
@@ -54,10 +55,10 @@ Nineteen sources, all verified online with URL, row count and licence, downloade
 | Financial supervisor `ptgf-ywrb`, financial inclusion (legacy) | institution × municipality × block | quarterly | 2017Q4–2021Q1 | CC BY-SA 4.0 |
 | Financial supervisor `kx2f-xjdq`, financial inclusion (current) | institution × municipality × block | quarterly | 2021Q1–2025Q4 | CC BY-SA 4.0 |
 | Financial supervisor `vkbt-desu`, service points | institution × municipality × channel | monthly | 2023-01 onwards | CC BY-SA 4.0 |
-| Statistics office, departmental GDP (3 tables), by activity, backcast | department | annual | 2005–2025p | public |
+| Statistics office, departmental GDP (3 tables), by activity, backcast | department | annual | 2005–2025pr | public |
 | Statistics office, municipal value added | municipality | annual | 2011–2024p | public |
 | Statistics office, population `_VP` | municipality, department | annual | 2005–2042 | public |
-| Statistics office, ITAED | 13 departments + Bogotá + rest | quarterly | 2015Q1–2026Q1p | public |
+| Statistics office, ITAED | 13 departments (Bogotá included), rest and national total | quarterly | 2015Q1–2026Q1pr | public |
 | Statistics office, Bogotá quarterly GDP, ISE, territorial EMMET | Bogotá, national, domains | quarterly, monthly | to 2026 | public |
 | ICT ministry `n48w-gutb`, fixed internet | municipality × provider | quarterly | 2016Q1–2023Q3 | CC BY-SA 4.0 |
 | Education ministry `nudc-7mev` | municipality | annual | 2011–2024 | CC BY-SA 4.0 |
@@ -96,11 +97,11 @@ Every figure comes from `data/processed/econ/resultados.json` (`uv run iif econ`
 | Test | Result |
 |---|---|
 | Pesaran's CD on the baseline model's residuals | 2.46 (p = 0.014): weak but present cross-sectional dependence; hence Driscoll-Kraay alongside the cluster |
-| CIPS on the index | −2.28 with T = 8: an indication of stationarity, not a verdict |
+| CIPS on the index | −2.28 with 31 departments and T = 8: an indication of stationarity, not a verdict |
 | Moran's I of growth by year, contiguity from the TopoJSON arcs | significant in 2022 (0.22, p = 0.039) and 2025 (0.23, p = 0.047); the SLX absorbs it |
-| Sampling adequacy of the index by dimension | KMO 0.314 for access and 0.404 for use: below 0.5, which is why there is no PCA (ADR-015) |
+| Sampling adequacy of the index by dimension | KMO 0.314 for use and 0.404 for depth (access has a single variable): below 0.5, which is why there is no PCA (ADR-015) |
 
-Each with its test in `tests/test_econ.py`, `tests/test_index.py` or in `dbt/tests/`.
+Figures from `data/processed/econ/resultados.json` and `data/processed/indice_diagnosticos.csv`; the procedures are tested in `tests/test_econ.py` and `tests/test_index.py`.
 
 ## How to run it
 
@@ -110,6 +111,9 @@ make quarto-install  # Quarto from a tarball (no gh, no apt)
 make data            # raw downloads from the `data-v1` Release, checked against the manifest
 make acquire         # re-downloads the 19 sources from the original public endpoints
 make parse           # statistics-office XLSX and framework GeoJSON into tidy Parquet
+make index           # the financial-inclusion index (ADR-015)
+make forecast        # the 2026-2028 forecast layer (ADR-019 to ADR-022)
+make atlas           # atlas/data/*.json from config/atlas.yaml
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 
@@ -120,16 +124,17 @@ make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 .
 ├── CLAUDE.md, Makefile, pyproject.toml, uv.lock   rules, commands, dependencies
-├── config/            sources.yaml (19 sources); index, atlas
+├── config/            sources.yaml (19 sources); index, atlas, forecast; tesis_documento.yaml
 ├── data/
-│   ├── raw/           downloads by source and year, manifest.jsonl; _large/ ignored
+│   ├── raw/           downloads by source and year (outside git, `make data`); manifest.jsonl versioned
 │   ├── interim/       tidy Parquet from the statistics office, the framework and the supervisor's key reports
+│   ├── processed/     index, econometric and forecast results
 │   └── legacy/        the previous quarterly panel, frozen; it feeds no result
 ├── db/                local iif.duckdb (ignored)
 ├── dbt/               star schema: seeds, staging, intermediate, marts, tests
 ├── bigquery/          datasets, Parquet load, partitioning, cost control, authorised views
 ├── snowflake/         scripts for the later demonstration (ADR-014)
-├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, export, data, legacy
+├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, forecast, export, data, legacy
 ├── tests/             pytest; a `data` mark for tests that read downloads
 ├── docs/              guide, logbook, decisiones/ (ADRs), licences, legacy/
 ├── _quarto.yml, *.qmd project documentation in Quarto (method, data, decisions)
@@ -142,7 +147,8 @@ These are written in Spanish, the language of the thesis.
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): what is being built, a per-phase status light, the repo map, a glossary, the decisions of record, the roadmap and the open questions.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): mistakes (B-001 onwards) and wins (S-001 onwards) with root cause and rule.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016 and ADR-019 to ADR-022 (017 and 018 arrive with another branch).
+- [`docs/HOJA_DE_RUTA_PROYECCION.md`](docs/HOJA_DE_RUTA_PROYECCION.md): the plan for the forecast layer.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licence and attribution per source.
 
 <a id="que-hay-y-que-falta"></a>
@@ -150,17 +156,17 @@ These are written in Spanish, the language of the thesis.
 
 | Piece | Status |
 |---|---|
-| Downloader with a manifest, 19 sources in `data/raw/` (77 MB), statistics-office and framework parsers | Done |
+| Downloader with a manifest, 19 sources in `data/raw/` (outside git, in the `data-v1` Release), statistics-office and framework parsers | Done |
 | dbt: sources, staging of the 13 tables, `dim_departamento`, `dim_municipio`, `dim_periodo`, the supervisor's data in long form by block, total and splice tests | Done |
 | Quarto site and CI (the site builds inside `make check`; it is not published separately, ADR-005) | Done |
-| Governance documents: guide, logbook, ADRs, licences | Done |
+| Governance documents: guide, logbook, 20 ADRs, licences | Done |
 | Dictionary of the supervisor's 98 variables with each annualisation rule | Done |
 | Inclusion facts (quarterly and annual, municipal and departmental), service points, activity, internet and education | Done |
 | Annual panels: department 2018–2025 and municipality 2018–2024 | Done |
 | Index by dimension with frozen, published weights, and its two sensitivity versions | Done |
 | Interactive three-view atlas, inside the project page | Done |
 | Econometrics: `src/iif/econ`, 12 synthetic tests, `metodologia/panel.qmd` with the results | Done |
-| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to the national consensus and reconciled (ADR-019 to ADR-022) | Engine done; map layer pending |
+| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to a national path and reconciled (ADR-019 to ADR-022); the anchor is the IMF WEO until the Banrep survey is transcribed into `config/forecast.yaml` | Engine and atlas export done; rendering on the project page pending |
 | Temporal-disaggregation annex, MIDAS, manuscript | Phase 4, pending |
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |

@@ -13,6 +13,6 @@ select
         when 'ISLA' then 'ISLA'
         else mpio_tipo
     end                                 as mpio_tipo,
-    cast(mpio_narea as double)          as area_km2,
+    cast(mpio_narea as {{ type_double() }})          as area_km2,
     cast(mpio_nano as integer)          as anio_mgn
 from {{ source('mgn', 'municipios') }}

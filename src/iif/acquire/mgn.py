@@ -8,7 +8,15 @@ from pathlib import Path
 import requests
 
 from iif import config
-from iif.acquire.manifest import PullRecord, append_record, latest_record, make_pull_id, now_iso, sha256_of
+from iif.acquire.manifest import (
+    PullRecord,
+    append_record,
+    latest_record,
+    make_pull_id,
+    now_iso,
+    rel_path,
+    sha256_of,
+)
 
 TIMEOUT = 300
 # El MapServer del mismo servicio responde a `query` con geometría nula en todos los rasgos (B-024);
@@ -87,9 +95,7 @@ def fetch_layer(
         row_count=len(features),
         bytes=out_path.stat().st_size,
         sha256=sha256_of(out_path),
-        path=str(out_path.relative_to(config.REPO_ROOT))
-        if out_path.is_relative_to(config.REPO_ROOT)
-        else str(out_path),
+        path=rel_path(out_path),
         license=source.get("license", "DANE (sin licencia explícita; atribución)"),
     )
     append_record(rec, manifest)

@@ -20,6 +20,7 @@ Página del proyecto: <https://davirson.com/es/research/fintech-inclusion>. Auto
 | sep-2026 | Fase 1: las 19 fuentes descargadas con manifiesto, claves DIVIPOLA, staging de las 13 tablas, SFC en largo, empalme 2021Q1 medido |
 | sep-2026 | Fase 2: hechos y paneles anuales, índice por dimensiones con pesos publicados |
 | sep-2026 | Fase 3: atlas de tres vistas y batería econométrica con sus resultados (ADR-016) |
+| sep-2026 | Capa de proyección 2026–2028: motor y exportación al atlas (ADR-019 a ADR-022) |
 | pendiente | Fase 4: anexo de desagregación temporal y manuscrito |
 | nov-2026 (previsto) | Grado |
 
@@ -27,7 +28,7 @@ El plan completo, con semáforo por fase y las decisiones de valor, está en [`d
 
 ## Qué construye
 
-1. **Warehouse.** Esquema estrella con vintages en dbt sobre todas las fuentes públicas: Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local, en CI y para el sitio. BigQuery como warehouse en la nube, en su sandbox gratuito y sin tarjeta (`bigquery/`). Snowflake queda como demo posterior (ADR-014).
+1. **Warehouse.** Esquema estrella en dbt sobre todas las fuentes públicas, con la vintage de cada descarga registrada en `data/raw/manifest.jsonl` (la tabla `dim_vintage` de ADR-002 aún no está construida): Superintendencia Financiera (2017Q4 a 2025Q4, más puntos de atención mensuales desde 2023), DANE (PIB departamental 2005 a 2025, valor agregado municipal 2011 a 2024, población 2005 a 2042, ITAED trimestral), MinTIC, MEN y el Marco Geoestadístico Nacional 2024. Motor: DuckDB en local, en CI y para el sitio. BigQuery como warehouse en la nube, en su sandbox gratuito y sin tarjeta (`bigquery/`). Snowflake queda como demo posterior (ADR-014).
 2. **Índice.** Índice de inclusión financiera por dimensión (acceso, uso, profundidad) sobre ocho variables normalizadas, con pesos congelados en la ventana de calibración y publicados variable a variable, a nivel departamental y municipal (ADR-004, ADR-015).
 3. **Paneles.** Frecuencia anual: departamental 2018 a 2025 y municipal 2018 a 2024; panel trimestral real solo donde el DANE publica actividad trimestral (ITAED) (ADR-001).
 4. **Atlas.** Mapa interactivo del índice por región, dimensión y variable, en tres vistas —plano, relieve y municipios— dentro de la página del proyecto; los datos salen de `uv run iif atlas` (ADR-005).
@@ -36,7 +37,7 @@ El plan completo, con semáforo por fase y las decisiones de valor, está en [`d
 <a id="abstract"></a>
 ## Abstract
 
-Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test. No results are published yet: they appear when phase 3 produces them, together with the code that produced them.
+Does financial inclusion predict regional economic growth in Colombia, once national trends are taken out of the picture? This project rebuilds the question from primary sources instead of reusing a thesis. It assembles an open dimensional warehouse of 19 public sources (financial supervisor, national statistics office, ICT and education ministries, 2005 to 2026), resolves every series to DIVIPOLA municipal codes, builds a two-stage financial-inclusion index by dimension with frozen and published weights, and estimates annual panels at department (2018 to 2025) and municipality (2018 to 2024) level with two-way fixed effects plus a battery of tests for spurious correlation (cross-sectional dependence, common correlated effects, permutation placebos, shift-share exposure, event study, spatial dependence). Every published figure traces to a test.
 
 ## Pregunta de investigación
 
@@ -57,7 +58,7 @@ Diecinueve fuentes, todas verificadas en línea con URL, filas y licencia, desca
 | DANE PIB departamental (3 cuadros), por actividad, retropolación | departamento | anual | 2005–2025pr | pública |
 | DANE valor agregado municipal | municipio | anual | 2011–2024p | pública |
 | DANE población `_VP` | municipio, departamento | anual | 2005–2042 | pública |
-| DANE ITAED | 13 departamentos + Bogotá + resto | trimestral | 2015Q1–2026Q1pr | pública |
+| DANE ITAED | 13 departamentos (Bogotá incluida), resto y total nacional | trimestral | 2015Q1–2026Q1pr | pública |
 | DANE PIB trimestral de Bogotá, ISE, EMMET territorial | Bogotá, nacional, dominios | trimestral, mensual | hasta 2026 | pública |
 | MinTIC `n48w-gutb` internet fijo | municipio × proveedor | trimestral | 2016Q1–2023Q3 | CC BY-SA 4.0 |
 | MEN `nudc-7mev` educación | municipio | anual | 2011–2024 | CC BY-SA 4.0 |
@@ -96,11 +97,11 @@ Todas las cifras salen de `data/processed/econ/resultados.json` (`uv run iif eco
 | Prueba | Resultado |
 |---|---|
 | CD de Pesaran sobre los residuos del modelo base | 2,46 (p = 0,014): dependencia transversal débil pero presente; por eso Driscoll-Kraay acompaña al clúster |
-| CIPS sobre el índice | −2,28 con T = 8: indicio de estacionariedad, no veredicto |
+| CIPS sobre el índice | −2,28 con 31 departamentos y T = 8: indicio de estacionariedad, no veredicto |
 | I de Moran del crecimiento por año, contigüidad de los arcos del TopoJSON | significativa en 2022 (0,22, p = 0,039) y 2025 (0,23, p = 0,047); el SLX la absorbe |
-| Adecuación muestral del índice por dimensión | KMO 0,314 en acceso y 0,404 en uso: por debajo de 0,5, por eso no hay PCA (ADR-015) |
+| Adecuación muestral del índice por dimensión | KMO 0,314 en uso y 0,404 en profundidad (acceso tiene una sola variable): por debajo de 0,5, por eso no hay PCA (ADR-015) |
 
-Cada uno con su prueba en `tests/test_econ.py`, `tests/test_index.py` o en `dbt/tests/`.
+Cifras de `data/processed/econ/resultados.json` y `data/processed/indice_diagnosticos.csv`; los procedimientos se prueban en `tests/test_econ.py` y `tests/test_index.py`.
 
 ## Cómo correrlo
 
@@ -110,6 +111,9 @@ make quarto-install  # Quarto por tarball (sin gh, sin apt)
 make data            # baja data/raw del Release data-v1 y lo verifica contra el manifiesto
 make acquire         # vuelve a descargar las 19 fuentes desde su origen público
 make parse           # XLSX del DANE y GeoJSON del MGN a Parquet tidy
+make index           # índice de inclusión financiera (ADR-015)
+make forecast        # capa de proyección 2026-2028 (ADR-019 a ADR-022)
+make atlas           # atlas/data/*.json desde config/atlas.yaml
 make check           # ruff + pytest + dbt build (DuckDB) + quarto render
 ```
 
@@ -120,16 +124,17 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 ```
 .
 ├── CLAUDE.md, Makefile, pyproject.toml, uv.lock   reglas, comandos, dependencias
-├── config/            sources.yaml (19 fuentes); index, atlas (fase 2)
+├── config/            sources.yaml (19 fuentes); index, atlas, forecast; tesis_documento.yaml
 ├── data/
-│   ├── raw/           descargas por fuente y año, manifest.jsonl; _large/ ignorado
+│   ├── raw/           descargas por fuente y año (fuera de git, `make data`); manifest.jsonl versionado
 │   ├── interim/       Parquet tidy del DANE, MGN e informes de claves de la SFC
+│   ├── processed/     resultados del índice, la econometría y la proyección
 │   └── legacy/        panel trimestral anterior, congelado; no alimenta ningún resultado
 ├── db/                iif.duckdb local (ignorado)
 ├── dbt/               estrella dimensional: seeds, staging, intermediate, marts, tests
 ├── bigquery/          datasets, carga de Parquet, particionado, control de coste, vistas autorizadas
 ├── snowflake/         scripts para el demo posterior (ADR-014)
-├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, export, data, legacy
+├── src/iif/           config, cli, acquire, parse, crosswalk, index, econ, forecast, export, data, legacy
 ├── tests/             pytest; marca `data` para pruebas que leen descargas
 ├── docs/              guía, bitácora, decisiones/ (ADR), licencias, legacy/
 ├── _quarto.yml, *.qmd documentación del proyecto en Quarto (metodología, datos, decisiones)
@@ -140,7 +145,8 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): qué se construye, semáforo por fase, mapa del repo, glosario, decisiones de valor, hoja de ruta, preguntas abiertas.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): errores (B-001 en adelante) y aciertos (S-001 en adelante) con causa raíz y regla.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016.
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016 y ADR-019 a ADR-022 (017 y 018 llegan con otra rama).
+- [`docs/HOJA_DE_RUTA_PROYECCION.md`](docs/HOJA_DE_RUTA_PROYECCION.md): plan de la capa de proyección.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licencia y atribución por fuente.
 
 <a id="que-hay-y-que-falta"></a>
@@ -148,7 +154,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 | Pieza | Estado |
 |---|---|
-| Descargador con manifiesto, 19 fuentes en `data/raw/` (77 MB), parsers DANE y MGN | Hecho |
+| Descargador con manifiesto, 19 fuentes en `data/raw/` (fuera de git, en el Release `data-v1`), parsers DANE y MGN | Hecho |
 | dbt: fuentes, staging de las 13 tablas, `dim_departamento`, `dim_municipio`, `dim_periodo`, SFC en largo por bloque, pruebas de totales y de empalme | Hecho |
 | Sitio Quarto y CI (el sitio compila en `make check`; no se publica aparte, ADR-005) | Hecho |
 | Documentos de gobierno: guía, bitácora, 20 ADR, licencias | Hecho |
@@ -158,7 +164,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
 | Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
 | Econometría: `src/iif/econ`, 12 pruebas sintéticas, `metodologia/panel.qmd` con los resultados | Hecho |
-| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada al consenso nacional y reconciliada (ADR-019 a ADR-022) | Motor hecho; capa del mapa pendiente |
+| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada a una senda nacional y reconciliada (ADR-019 a ADR-022); el ancla es el WEO del FMI mientras la EME de Banrep no se transcriba en `config/forecast.yaml` | Motor y exportación al atlas hechos; render en la página del proyecto pendiente |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |

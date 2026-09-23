@@ -96,5 +96,5 @@ select
     mes,
     fecha_inicio,
     fecha_fin,
-    cast(anio as varchar) as periodo_anio_id
+    cast(anio as {{ dbt.type_string() }}) as periodo_anio_id
 from unido

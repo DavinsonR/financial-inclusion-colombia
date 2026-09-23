@@ -11,6 +11,11 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [dpto_ccdgo, anio]
+      # El ITAED es trimestral: su promedio anual solo se publica con el año completo, nunca con un año
+      # parcial que pasaría por anual (R-05).
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "itaed_trimestres is null or itaed_trimestres = 4"
     columns:
       - name: dpto_ccdgo
         data_tests:
@@ -31,6 +36,18 @@ models:
           - not_null
       - name: crecimiento_pib_real_pc
         description: "Nulo solo en el primer año de cada departamento (2018), que no tiene rezago."
+      - name: periodo_id
+        description: "Año 'YYYY' (dim_periodo, frecuencia A): el grano del panel es anual (ADR-001)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: itaed_promedio_anual
+        description: "Promedio de los trimestres del ITAED en el año; solo 13 departamentos y Bogotá lo tienen."
+      - name: itaed_trimestres
+        description: "Trimestres de ITAED promediados; la prueba del modelo exige 4 cuando hay ITAED."
 
   - name: mart_panel_municipio_anual
     description: >
@@ -56,31 +73,18 @@ models:
               arguments:
                 min_value: 2018
                 max_value: 2024
+      - name: periodo_id
+        description: "Año 'YYYY' (dim_periodo, frecuencia A)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: crecimiento_va_pc_nominal
+        description: "Log-diferencia anual del valor agregado per cápita corriente; nula en el primer año o sin rezago positivo."
 
-  - name: fct_actividad_departamento_anual
-    description: "PIB departamental del DANE con población por área y PIB real per cápita derivado."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: [dpto_ccdgo, anio]
-  - name: fct_actividad_municipio_anual
-    description: "Valor agregado municipal (distribución del PIB departamental) con población."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: [mpio_ccdgo, anio]
-  - name: fct_internet_municipio_anual
-    description: "Accesos fijos a internet por municipio y año (stock del cuarto trimestre)."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: [mpio_ccdgo, anio]
-  - name: fct_educacion_municipio_anual
-    description: "Educación por municipio y año; quiebre metodológico en 2018."
-    data_tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns: [mpio_ccdgo, anio]
+  # Los hechos fct_actividad_*, fct_internet_* y fct_educacion_* se documentan en marts/facts/_models.yml.
 
   - name: mart_indice_departamento_anual
     description: >
@@ -91,6 +95,20 @@ models:
           arguments:
             combination_of_columns: [dpto_ccdgo, anio]
     columns:
+      - name: dpto_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_departamento')
+                field: dpto_ccdgo
+      - name: anio
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2018
+                max_value: 2025
       - name: iif_compuesto
         description: "Nulo cuando falta alguna de las tres dimensiones; `dimensiones_observadas` dice cuántas hay."
       - name: dimensiones_observadas
@@ -106,3 +124,26 @@ models:
       - dbt_utils.unique_combination_of_columns:
           arguments:
             combination_of_columns: [mpio_ccdgo, anio]
+    columns:
+      - name: mpio_ccdgo
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_municipio')
+                field: mpio_ccdgo
+      - name: anio
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 2018
+                max_value: 2024
+      - name: iif_compuesto
+        description: "Nulo cuando falta alguna de las tres dimensiones; `dimensiones_observadas` dice cuántas hay."
+      - name: dimensiones_observadas
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 3

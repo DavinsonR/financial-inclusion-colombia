@@ -7,28 +7,41 @@ on:
   # Relanzar la cadena a mano, sin un commit de codigo.
   workflow_dispatch:
 
+# Permisos minimos para todo el workflow. El sitio ya no se publica desde aqui (ADR-005, adenda 5),
+# asi que ningun job necesita escribir en el repositorio: el artefacto del sitio no pide `contents: write`.
+permissions:
+  contents: read
+
+# Un push nuevo a la misma rama cancela la corrida anterior, salvo en `main`, donde cada commit se verifica.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 env:
   IIF_ROOT: ${{ github.workspace }}
   IIF_DUCKDB_PATH: /tmp/iif.duckdb
 
 jobs:
   check:
+    # Cada paso llama al mismo target de `make` que se corre en local, para que CI y `make check` no se
+    # separen en silencio. `make check` = lint + test + dbt-build + render; aqui se intercalan los datos
+    # crudos (antes de dbt) y las pruebas con datos (despues de dbt).
     name: Lint, pruebas, dbt (DuckDB) y sitio
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - uses: astral-sh/setup-uv@v6
+      # Acciones de terceros fijadas por SHA; el comentario dice a que etiqueta corresponde.
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0
         with:
           python-version: "3.11"
           enable-cache: true
           cache-dependency-glob: uv.lock
 
+      # `--locked` falla si pyproject.toml y uv.lock no cuadran, en vez de resolver de nuevo en silencio.
       - name: Dependencias
-        run: uv sync --all-groups --all-extras
+        run: uv sync --locked --all-groups --all-extras
 
       # data/raw salio del historial (pesaba 121 MB de los 124 del repositorio) y
       # vuelve aqui. Va ANTES de dbt a proposito: los modelos de staging hacen
@@ -45,47 +58,46 @@ jobs:
 
       - name: Datos crudos desde el Release
         if: steps.cache-raw.outputs.cache-hit != 'true'
-        run: python3 scripts/fetch_data.py
+        run: make data
 
-      - name: Ruff
-        run: uv run ruff check .
+      - name: Ruff y YAML de los workflows
+        run: make lint
 
       - name: Pruebas (sin datos crudos)
-        run: uv run pytest -q -m "not data"
+        run: make test
 
       - name: dbt en DuckDB
-        run: |
-          uv run dbt deps --profiles-dir dbt --project-dir dbt
-          uv run dbt seed --profiles-dir dbt --project-dir dbt
-          uv run dbt build --profiles-dir dbt --project-dir dbt
+        run: make dbt-build
 
       # `-rs` imprime el motivo de cada prueba saltada. Con los datos ya presentes
       # no deberia saltarse ninguna por falta de data/raw, y si se salta, se lee.
       - name: Pruebas con datos crudos
-        run: uv run pytest -q -m data -rs
+        run: make test-data
 
-      - uses: quarto-dev/quarto-actions/setup@v2
+      - uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
         with:
           version: "1.7.32"
 
       - name: Kernel de Jupyter
         run: uv run python -m ipykernel install --user --name python3 --display-name "Python (iif)"
 
+      # El Makefile fija QUARTO_PYTHON al Python de .venv.
       - name: Render del sitio
-        env:
-          QUARTO_PYTHON: ${{ github.workspace }}/.venv/bin/python
-        run: quarto render
+        run: make render
 
       # El sitio ya no se publica: queda como artefacto, que es donde se mira cuando hace falta.
       - uses: actions/upload-artifact@v4
         with:
           name: sitio
           path: _site
+          if-no-files-found: error
+          retention-days: 14
 
 
   bigquery:
     name: dbt en BigQuery (solo con credenciales)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: check
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
@@ -93,15 +105,20 @@ jobs:
       - name: ¿Hay credenciales?
         id: creds
         run: echo "ok=${{ secrets.BIGQUERY_PROJECT != '' }}" >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0
         if: steps.creds.outputs.ok == 'true'
         with:
           python-version: "3.11"
           enable-cache: true
+      # La clave entra por variable de entorno y no interpolada en el script: un JSON de cuenta de servicio
+      # lleva comillas dobles y saltos de linea, y `"${{ ... }}"` dentro del shell los rompia.
       - name: Clave de servicio
         if: steps.creds.outputs.ok == 'true'
+        env:
+          BIGQUERY_KEYFILE_JSON: ${{ secrets.BIGQUERY_KEYFILE_JSON }}
         run: |
-          printf '%s' "${{ secrets.BIGQUERY_KEYFILE_JSON }}" > "$RUNNER_TEMP/bq.json"
+          umask 077
+          printf '%s' "$BIGQUERY_KEYFILE_JSON" > "$RUNNER_TEMP/bq.json"
           echo "BIGQUERY_KEYFILE=$RUNNER_TEMP/bq.json" >> "$GITHUB_ENV"
       - name: dbt build --target bigquery
         if: steps.creds.outputs.ok == 'true'
@@ -109,7 +126,7 @@ jobs:
           BIGQUERY_PROJECT: ${{ secrets.BIGQUERY_PROJECT }}
           BIGQUERY_LOCATION: ${{ secrets.BIGQUERY_LOCATION }}
         run: |
-          uv sync --all-groups
+          uv sync --locked --all-groups
           uv run dbt deps --profiles-dir dbt --project-dir dbt
           uv run dbt build --profiles-dir dbt --project-dir dbt --target bigquery
       - name: Sin credenciales

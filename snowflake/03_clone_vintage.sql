@@ -3,10 +3,10 @@
 -- oficial (p. ej. la revisión anual del DANE de julio). Idempotente por el IF NOT EXISTS.
 -- Sin probar contra una cuenta real hasta que existan credenciales (ver README.md).
 --
--- Motivo: el DANE revisa toda la serie de PIB cada julio. Los hechos son bitemporales (pull_id, is_current),
--- pero un clon del esquema completo congela además las dimensiones y los marts de análisis exactamente
--- como se usaron en un documento. El clon no copia micro-particiones: cuesta almacenamiento solo cuando
--- el original cambia.
+-- Motivo: el DANE revisa toda la serie de PIB cada julio. ADR-002 prevé hechos bitemporales (pull_id,
+-- is_current), que los marts aún no llevan; un clon del esquema completo congela, además, las dimensiones y
+-- los marts de análisis exactamente como se usaron en un documento. El clon no copia micro-particiones:
+-- cuesta almacenamiento solo cuando el original cambia.
 
 USE ROLE TRANSFORMER;
 USE WAREHOUSE WH_IIF_XS;
@@ -20,8 +20,8 @@ CREATE SCHEMA IF NOT EXISTS IIF.MARTS_V2026_07 CLONE IIF.MARTS
 --     AT (TIMESTAMP => '2026-07-15 00:00:00'::TIMESTAMP_LTZ);
 
 -- 2) Time Travel sobre una tabla viva (dentro de DATA_RETENTION_TIME_IN_DAYS: 1 día en Standard).
-SELECT dpto_ccdgo, anio, pib_cop_millones, estado_dato
-FROM IIF.MARTS.FCT_PIB_DEPARTAMENTO_ANUAL
+SELECT dpto_ccdgo, anio, pib_corriente_mm, estado_dato
+FROM IIF.MARTS.FCT_ACTIVIDAD_DEPARTAMENTO_ANUAL
     AT (TIMESTAMP => '2026-07-15 00:00:00'::TIMESTAMP_LTZ)
 WHERE dpto_ccdgo = '11'
 ORDER BY anio;
@@ -33,13 +33,13 @@ ORDER BY anio;
 -- 3) Diferencia entre vintages: qué cambió la revisión.
 SELECT COALESCE(n.dpto_ccdgo, v.dpto_ccdgo) AS dpto_ccdgo,
        COALESCE(n.anio, v.anio)             AS anio,
-       v.pib_cop_millones                   AS pib_vintage_2026_07,
-       n.pib_cop_millones                   AS pib_actual,
-       n.pib_cop_millones - v.pib_cop_millones AS diferencia
-FROM IIF.MARTS.FCT_PIB_DEPARTAMENTO_ANUAL n
-FULL OUTER JOIN IIF.MARTS_V2026_07.FCT_PIB_DEPARTAMENTO_ANUAL v
+       v.pib_corriente_mm                   AS pib_vintage_2026_07,
+       n.pib_corriente_mm                   AS pib_actual,
+       n.pib_corriente_mm - v.pib_corriente_mm AS diferencia
+FROM IIF.MARTS.FCT_ACTIVIDAD_DEPARTAMENTO_ANUAL n
+FULL OUTER JOIN IIF.MARTS_V2026_07.FCT_ACTIVIDAD_DEPARTAMENTO_ANUAL v
     ON n.dpto_ccdgo = v.dpto_ccdgo AND n.anio = v.anio
-WHERE n.pib_cop_millones IS DISTINCT FROM v.pib_cop_millones
+WHERE n.pib_corriente_mm IS DISTINCT FROM v.pib_corriente_mm
 ORDER BY 1, 2;
 
 -- 4) Los clones se listan y se sueltan como cualquier esquema; el READER puede leerlos si se le da USAGE + SELECT.

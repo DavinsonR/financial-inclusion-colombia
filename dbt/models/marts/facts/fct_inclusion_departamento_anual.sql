@@ -20,7 +20,7 @@ anual as (
         unidad,
         naturaleza,
         anio,
-        cast(anio as varchar)                                             as periodo_id,
+        cast(anio as {{ dbt.type_string() }})                                             as periodo_id,
         count(distinct trimestre)                                         as trimestres_observados,
         sum(valor)                                                        as suma_trimestres,
         max(case when trimestre = 4 then valor end)                       as valor_q4,

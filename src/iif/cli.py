@@ -22,7 +22,7 @@ app = typer.Typer(help="Inclusión financiera y crecimiento regional en Colombia
 @app.command()
 def reproduce(
     xlsx: Path = typer.Option(config.LEGACY_XLSX, help="Panel legado (xlsx o parquet)"),
-    out: Path = typer.Option(Path("docs/legacy/reproduccion.md"), help="Informe markdown"),
+    out: Path = typer.Option(config.DOCS_DIR / "legacy" / "reproduccion.md", help="Informe markdown"),
     mode: str = typer.Option("notebook", help="notebook | corrected"),
 ) -> None:
     """Corre el pipeline legado y escribe el informe con la tabla de discrepancias."""
@@ -48,7 +48,7 @@ def scrub(
     r2 = sc.scrub_notebook(notebook, config.REPO_ROOT / "notebooks" / "legacy" / "TESIS_CONSOLIDADO.ipynb")
     r3 = sc.scrub_markdown(markdown, config.DOCS_DIR / "legacy" / "RESULTADOS_CONSOLIDADO_2.md")
     dic = build_dictionary(config.LEGACY_PARQUET)
-    dic.to_csv(config.DATA_LEGACY / "diccionario_panel_legacy.csv", index=False)
+    dic.to_csv(config.DATA_LEGACY / "diccionario_panel_legacy.csv", index=False, lineterminator="\n")
     sc.write_checksums([config.LEGACY_XLSX, config.LEGACY_PARQUET], config.DATA_LEGACY / "SHA256SUMS")
     hits = (
         sc.find_private_strings(config.DATA_LEGACY)
@@ -69,7 +69,7 @@ def dictionary(out: Path = typer.Option(config.DATA_LEGACY / "diccionario_panel_
     from iif.data.dictionary import build_dictionary
 
     dic = build_dictionary(config.LEGACY_PARQUET)
-    dic.to_csv(out, index=False)
+    dic.to_csv(out, index=False, lineterminator="\n")
     typer.echo(f"✓ {out} ({len(dic)} filas)")
 
 
@@ -91,6 +91,9 @@ def acquire(
         if source == "all"
         else ([s for s in sources if s not in big] if source == "small" else [source])
     )
+    desconocidas = [s for s in ids if s not in sources]
+    if desconocidas:
+        raise typer.BadParameter(f"fuente desconocida: {desconocidas[0]}. Conocidas: {sorted(sources)}")
     for sid in ids:
         src = {"id": sid, **sources[sid]}
         try:
@@ -115,6 +118,8 @@ def acquire(
                     if rec
                     else f"= {sid}: sin cambios"
                 )
+            else:
+                raise typer.BadParameter(f"{sid}: `kind` desconocido {src['kind']!r} en config/sources.yaml")
         except soda.SizeGateError as exc:
             typer.echo(f"! {sid}: {exc}")
 
@@ -146,6 +151,8 @@ def crosswalk(
     from iif import crosswalk as cw
 
     fuentes = list(cw.FUENTES) if fuente == "all" else [fuente]
+    if any(f not in cw.FUENTES for f in fuentes):
+        raise typer.BadParameter(f"fuente {fuente!r}: usa {' | '.join([*cw.FUENTES, 'all'])}")
     if action == "derive-blocks":
         res = cw.write_blocks(fuentes)
         for f in fuentes:
@@ -194,7 +201,7 @@ def forecast(
     except PuertaDeCalidad as exc:
         typer.echo(f"! puerta de calidad: {exc}")
         raise typer.Exit(code=1) from exc
-    typer.echo(f"2713 {destino.relative_to(config.REPO_ROOT)}")
+    typer.echo(f"✓ {destino.relative_to(config.REPO_ROOT)}")
 
 
 @app.command()

@@ -69,7 +69,7 @@ base as (
         d.departamento,
         d.region,
         a.anio,
-        cast(a.anio as varchar)                     as periodo_id,
+        cast(a.anio as {{ dbt.type_string() }})                     as periodo_id,
         a.estado_dato,
         a.pib_corriente_mm,
         a.pib_constante_2015_mm,

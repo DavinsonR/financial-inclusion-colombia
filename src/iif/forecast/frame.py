@@ -73,6 +73,18 @@ class Marco:
         return list(self.log_pib.columns)
 
 
+def _sin_duplicados(bruto: pd.DataFrame, ruta: Path) -> None:
+    """Una fila por departamento y año, o nada.
+
+    `pivot_table` promedia en silencio las filas repetidas: un parquet con dos versiones del
+    mismo año daría un PIB que el DANE nunca publicó, y el modelo lo usaría sin quejarse.
+    """
+    repetidas = bruto.duplicated(["dpto_ccdgo", "anio"], keep=False)
+    if repetidas.any():
+        ejemplos = bruto.loc[repetidas, ["dpto_ccdgo", "anio"]].drop_duplicates().head(5)
+        raise ValueError(f"{ruta.name} repite departamento y año: {ejemplos.values.tolist()}")
+
+
 def load_frame(ruta: Path | None = None) -> Marco:
     """Lee el PIB departamental real y lo deja listo para modelar.
 
@@ -86,6 +98,7 @@ def load_frame(ruta: Path | None = None) -> Marco:
         raise FileNotFoundError(f"falta {ruta}; corre `uv run iif parse dane`")
 
     bruto = pd.read_parquet(ruta)
+    _sin_duplicados(bruto, ruta)
     dep = bruto[bruto.dpto_ccdgo != CODIGO_NACIONAL]
     nac = (bruto[bruto.dpto_ccdgo == CODIGO_NACIONAL]
            .set_index("anio")["pib_constante_2015_mm"].sort_index())
@@ -126,6 +139,7 @@ def poblacion(ruta: Path | None = None) -> pd.DataFrame:
         raise FileNotFoundError(f"falta {ruta}; corre `uv run iif parse dane`")
     bruto = pd.read_parquet(ruta)
     total = bruto[bruto.area == "total"]
+    _sin_duplicados(total, ruta)
     return total.pivot_table(index="anio", columns="dpto_ccdgo", values="poblacion").sort_index()
 
 

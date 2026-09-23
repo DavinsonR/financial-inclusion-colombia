@@ -1,6 +1,6 @@
 # Licencias de los datos
 
-Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que este repositorio deriva de ella. La licencia de cada descarga concreta queda además en `data/raw/manifest.jsonl` y en `dim_vintage.licencia`. Decisión de fondo: ADR-012.
+Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que este repositorio deriva de ella. La licencia de cada descarga concreta queda además en `data/raw/manifest.jsonl` (la columna `dim_vintage.licencia` que prevé ADR-002 todavía no existe). Decisión de fondo: ADR-012.
 
 ## Fuentes
 
@@ -20,7 +20,7 @@ Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que es
 
 ### Ministerio de Tecnologías de la Información y las Comunicaciones (MinTIC), datos.gov.co
 
-- Conjunto: `n48w-gutb` (accesos a internet fijo por municipio, trimestral, 2017Q2 a 2023Q3; abandonado en 2024).
+- Conjunto: `n48w-gutb` (accesos a internet fijo por municipio, trimestral, 2016Q1 a 2023Q3, con cobertura sustantiva desde 2017Q2: 2016 trae 56 filas; abandonado en 2024).
 - Licencia: CC BY-SA 4.0.
 - Atribución que se usa: "Contiene datos de MinTIC publicados en datos.gov.co bajo CC BY-SA 4.0, conjunto n48w-gutb, descargado el <fecha>, transformado por el proyecto."
 - Nota: decimales con coma; la ausencia de fila es no observado.
@@ -37,6 +37,11 @@ Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que es
 - Acceso: servicio ArcGIS REST del DANE (`f=geojson`), capas de departamentos (33) y municipios (1.121) con códigos DIVIPOLA. La página de descarga oficial responde 404; el servicio no.
 - Licencia: sin licencia explícita; información pública del DANE. Se atribuye.
 - Atribución que se usa: "Límites: DANE, Marco Geoestadístico Nacional 2024, obtenido del servicio REST el <fecha>, simplificado para el atlas."
+
+### Ancla nacional del pronóstico: FMI, World Economic Outlook (vía DBnomics)
+
+- Uso: `src/iif/forecast/anchor.py` baja la senda de crecimiento del PIB de Colombia cuando `config/forecast.yaml` no trae una transcripción de la EME de Banrep; los tres valores quedan en `data/processed/forecast/resultados.json` (`ancla`) y en el atlas.
+- Licencia: **pendiente de verificar**. No está registrada en `config/sources.yaml` ni pasa por `iif acquire` (R-07), así que no tiene fila en el manifiesto.
 
 ### Fuentes descartadas
 

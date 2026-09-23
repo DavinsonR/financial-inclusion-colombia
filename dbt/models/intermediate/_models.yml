@@ -2,8 +2,23 @@ version: 2
 
 models:
   - name: int_sfc_geo_long
-    description: "SFC geográfica en largo por bloque y columna (ptgf). Totales departamentales marcados, nunca sumados con municipios."
+    description: "SFC geográfica en largo por bloque y columna (ptgf y kx2f). Solo se emite la columna si pertenece al bloque de la fila (ADR-008). Totales departamentales marcados, nunca sumados con municipios."
     columns:
+      - name: fuente
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ptgf, kx2f]
+      - name: periodo_id
+        data_tests: [not_null]
+      - name: es_total_departamental
+        description: "Verdadero en la fila renglon = 999, que ya es la suma de las municipales (B-031)."
+        data_tests: [not_null]
+      - name: mpio_ccdgo
+        description: "Nulo exactamente en las filas de total departamental."
+      - name: tipo_id
+        data_tests: [not_null]
       - name: valor
         data_tests: [not_null]
       - name: columna
@@ -19,3 +34,55 @@ models:
               arguments:
                 to: ref('dim_departamento')
                 field: dpto_ccdgo
+
+  - name: int_sfc_variable_trimestre
+    description: >
+      SFC canónica por (variable, nivel, departamento, municipio, trimestre), con ptgf y kx2f empalmadas: en
+      2021Q1 se conserva kx2f y `valor_fuente_anterior` guarda ptgf (ADR-009). Nivel `departamento` = fila 999;
+      nivel `municipio` = suma de filas municipales; nunca se mezclan (B-031).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [variable_id, nivel, dpto_ccdgo, mpio_ccdgo, periodo_id]
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(nivel = 'departamento') = (mpio_ccdgo is null)"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "valor_fuente_anterior is null or periodo_id = '2021Q1'"
+    columns:
+      - name: variable_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_variable')
+                field: variable_id
+      - name: nivel
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [departamento, municipio]
+      - name: dpto_ccdgo
+        data_tests: [not_null]
+      - name: periodo_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
+      - name: fuente
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ptgf, kx2f]
+      - name: valor
+        description: "Suma sobre entidades."
+        data_tests: [not_null]
+      - name: n_filas_entidad
+        description: "Filas de entidad sumadas en el agregado."
+      - name: valor_fuente_anterior
+        description: "Solo en 2021Q1: el agregado de ptgf para medir el salto del empalme."

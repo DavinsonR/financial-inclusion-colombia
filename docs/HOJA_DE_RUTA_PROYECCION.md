@@ -1,12 +1,20 @@
 # Hoja de ruta - proyeccion del crecimiento departamental y capa de mapa
 
-> Rescatado de la sesion del 18-sep-2026 y renumerado: los ADR pasan a 019-022,
-> porque 017 (denominador del indice) y 018 (potencia y equivalencia) ya existen aqui.
-> Es una propuesta. Nada implementado todavia.
+> Rescatado de la sesión del 18-sep-2026 y renumerado: los ADR pasan a 019-022,
+> porque 017 (denominador del índice) y 018 (potencia y equivalencia) están reservados para la
+> rama `auditoria-potencia-y-denominador`, pendiente de fusión.
+>
+> **Estado al 23-sep-2026.** Hechas: fase 0 (ADR-019 a ADR-022), el motor (`src/iif/forecast/`:
+> `frame.py`, `models.py`, `backtest.py`, `anchor.py`, `reconcile.py`, `run.py`; comando
+> `uv run iif forecast`, salida en `data/processed/forecast/resultados.json`) y la exportación al
+> atlas (grupo `proyeccion` de `config/atlas.yaml`). Pendientes: el *nowcast* con ITAED y
+> shift-share, la página de `metodologia/` con la tabla de backtest y el render en el sitio.
+> Los nombres de archivo de la §6 son los del plan; los reales son los de arriba. El texto que
+> sigue es el plan original y se conserva como registro.
 
 **Autor del plan:** sesión de trabajo del 18-sep-2026
 **Repos afectados:** `financial-inclusion-colombia` (motor) · `proyecto-davirson` (sitio)
-**Estado:** propuesta. Nada implementado todavía.
+**Estado:** propuesta del 18-sep-2026; ver el estado actual en la nota de cabecera.
 
 ---
 
@@ -74,7 +82,10 @@ Comprobé si los 33 departamentos suman el total nacional del DANE:
 | 2024 | +0,024 % |
 | 2025 | +0,072 % |
 
-Brecha máxima **0,07 %**. La jerarquía es coherente en la práctica. Esto no es un detalle: es
+Brecha máxima **0,07 %** en la ventana 2018–2025. Sobre 2005–2025 la brecha máxima es **1,28 %
+(2009)** y los años 2005–2012 van de 0,23 % a 1,28 %, por la retropolación del DANE (B-049;
+`coherencia_jerarquica_pct` en `data/processed/forecast/resultados.json`). La jerarquía es
+coherente en la práctica en la ventana donde se reconcilia. Esto no es un detalle: es
 lo que hace legítima la reconciliación jerárquica de la §3. Si la brecha fuera del 3 % habría
 que resolver primero un problema de conciliación contable.
 
@@ -193,7 +204,7 @@ departamento-contra-departamento: no existe el contrafactual. El cruce tiene que
 ```
 
 La reconciliación de Hyndman (MinT, *minimum trace*) es el método estándar y es
-técnicamente correcto aquí porque la jerarquía cierra al 0,07 % (§1.2). Reparte la diferencia
+técnicamente correcto aquí porque la jerarquía cierra al 0,07 % en 2018–2025 (§1.2). Reparte la diferencia
 entre la suma abajo-arriba y el ancla en proporción a la incertidumbre de cada serie: los
 departamentos con ARIMA más errático absorben más ajuste, los estables menos. Es superior al
 reparto proporcional simple y es defendible ante cualquiera.
@@ -362,7 +373,7 @@ Las reglas del repo obligan a que las decisiones de valor pasen por un ADR antes
 | 1 | **20 observaciones anuales por departamento es poco.** No hay forma de esquivarlo | Órdenes bajos (p,q ≤ 2), combinación en vez de selección, intervalos honestos, y decirlo en el sitio |
 | 2 | **2024p y 2025pr se van a revisar.** El backtest se contamina retroactivamente | Guardar la *vintage* de cada corrida desde el día uno. Sin esto, en un año el histórico de desempeño no vale nada |
 | 3 | **El ancla importa el error de otro.** Si Banrep se equivoca, el mapa se equivoca con él | Etiquetar el ancla y su fecha en la pieza. Publicar también la versión sin anclar, para que se vea el efecto del ancla |
-| 4 | **La tentación de meter el IIF como regresor** para "conectar" con la tesis | Prohibido por ADR-020. Contradice tu propio resultado publicado |
+| 4 | **La tentación de meter el IIF como regresor** para "conectar" con la tesis | Prohibido por ADR-019 (decisión 5). Contradice tu propio resultado publicado |
 | 5 | **Los 15 departamentos pequeños son 7 % del PIB y el 100 % de la incertidumbre** | Es precisamente lo que la capa de confianza debe mostrar |
 | 6 | **Un mapa de calor persuade más de lo que el modelo sostiene** | La regla del §4.3. Sin capa de incertidumbre, no se publica |
 | 7 | Deuda: `pmdarima`, `arch` y `sktime` no están instalados | `statsmodels 0.15` alcanza para todo lo anterior. No añadas dependencias que no necesitas (R-02: solo `uv add`) |

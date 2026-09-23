@@ -75,7 +75,7 @@ def write_blocks(fuentes: list[str], path: Path | None = None) -> pd.DataFrame:
     parts = [prev[~prev.fuente.isin(fuentes)]] if len(prev) else []
     parts += [derive_blocks(f) for f in fuentes]
     res = pd.concat(parts, ignore_index=True).sort_values(["fuente", "tipo_id", "columna"])
-    res.to_csv(path, index=False)
+    res.to_csv(path, index=False, lineterminator="\n")  # semilla versionada: LF en cualquier sistema
     return res
 
 

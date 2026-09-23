@@ -6,8 +6,8 @@
 select
     cast(fecha_corte as date)                           as fecha_corte,
     {{ periodo_id('cast(fecha_corte as date)', 'M') }}  as periodo_id,
-    lpad(cast(codigo_departamento as varchar), 2, '0')  as dpto_ccdgo,
-    lpad(cast(codigo_municipio as varchar), 5, '0')     as mpio_ccdgo,
+    lpad(cast(codigo_departamento as {{ dbt.type_string() }}), 2, '0')  as dpto_ccdgo,
+    lpad(cast(codigo_municipio as {{ dbt.type_string() }}), 5, '0')     as mpio_ccdgo,
     cast(codigo_canal as integer)                       as codigo_canal,
     cast(unidad_captura as integer)                     as unidad_captura,
     nombre_unidad_captura,

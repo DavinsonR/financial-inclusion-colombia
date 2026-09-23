@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import copy
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -153,3 +155,49 @@ def test_dimension_fit_es_serializable():
     fit = DimensionFit("uso", "pesos_iguales", ["a"], {"a": 1.0}, {"a": 2.0}, {"a": 0.5})
     texto = yaml.safe_dump(fit.__dict__)
     assert yaml.safe_load(texto)["cargas"] == {"a": 0.5}
+
+
+def test_el_pca_se_niega_con_kmo_bajo(contrato):
+    """R-17: el supuesto se mide antes del método.
+
+    Tres variables independientes y una cuarta que es su combinación lineal: las correlaciones
+    parciales dominan a las simples y el KMO cae muy por debajo de 0,5 (se mide ~0,13).
+    """
+    rng = np.random.default_rng(3)
+    u = rng.normal(size=(200, 3))
+    cuarta = u[:, 0] + u[:, 1] - u[:, 2] + 0.1 * rng.normal(size=200)
+    calib = pd.DataFrame(np.column_stack([u, cuarta]), columns=["a", "b", "c", "d"])
+    spec = {"metodo": "pca", "variables": [{"variable_id": v} for v in "abcd"]}
+    sin_umbral = fit_dimension(calib, "prueba", spec)
+    assert sin_umbral.kmo < 0.5
+    with pytest.raises(ValueError, match="KMO"):
+        fit_dimension(calib, "prueba", spec, kmo_minimo=0.5)
+    # con un factor común fuerte el mismo umbral deja pasar
+    f = rng.normal(size=(200, 1))
+    comun = pd.DataFrame(f + 0.3 * rng.normal(size=(200, 4)), columns=["a", "b", "c", "d"])
+    assert fit_dimension(comun, "prueba", spec, kmo_minimo=0.5).kmo >= 0.5
+
+
+def test_el_contrato_no_puede_pedir_pca_sobre_datos_sin_factor(contrato):
+    """La ruta principal aplica el umbral; la sensibilidad no, porque enseña lo que el PCA daría."""
+    panel = _panel_sintetico()
+    rng = np.random.default_rng(5)
+    for v in ("nro_total", "monto_total", "nro_total_cta_ahorros", "saldo_total_cta_ahorros"):
+        panel[v] = panel[v] * np.exp(rng.normal(0, 1.5, len(panel)))
+    contrato_pca = copy.deepcopy(contrato)
+    contrato_pca["dimensiones"]["uso"]["metodo"] = "pca"
+    with pytest.raises(ValueError, match="KMO"):
+        build_index(panel, UNIDADES, contract=contrato_pca)
+    # con el método del contrato real el mismo panel se construye, y el KMO bajo se publica
+    res = build_index(panel, UNIDADES, contract=contrato)
+    assert res.fits["uso"].kmo < 0.5
+
+
+def test_pesos_congelados_con_carga_negativa_no_se_publican(contrato):
+    """R-17 también vale para los pesos que llegan del YAML, que se puede editar a mano."""
+    panel = _panel_sintetico()
+    primero = build_index(panel, UNIDADES, contract=contrato)
+    congelados = copy.deepcopy({d: f.__dict__ for d, f in primero.fits.items()})
+    congelados["uso"]["cargas"]["monto_total"] = -0.25
+    with pytest.raises(ValueError, match="negativos"):
+        build_index(panel, UNIDADES, contract=contrato, pesos_congelados=congelados)

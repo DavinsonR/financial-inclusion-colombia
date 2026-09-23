@@ -25,3 +25,18 @@ def test_corrected_mode_changes_the_deflator_and_internet():
     assert co.groupby("anio")["ipc_index"].nunique().max() > 1
     assert (nb["internet_pct"] == 0).sum() == 50
     assert co["internet_pct"].isna().sum() == 50
+
+
+def test_region_map_agrees_with_the_seed():
+    """R-15: el mapa de regiones del port legado no puede separarse de dbt/seeds/xw_departamento_region.csv."""
+    import pandas as pd
+
+    from iif.legacy.constants import REGION_MAP
+
+    seed = pd.read_csv(config.SEEDS_DIR / "xw_departamento_region.csv", dtype=str)
+    distintos = {
+        r.nombre_legacy: (REGION_MAP.get(r.nombre_legacy.strip().lower()), int(r.region_id))
+        for r in seed.itertuples()
+        if REGION_MAP.get(r.nombre_legacy.strip().lower()) != int(r.region_id)
+    }
+    assert distintos == {}

@@ -55,6 +55,14 @@ models:
   - name: stg_sfc__vkbt
     description: "Puntos de atención por canal y municipio, mensual. La fuente repite (corte, entidad, municipio, canal) en 1.199 claves con valores distintos y sin columna que las distinga: se suman al agregar, nunca se deduplican."
     columns:
+      - name: periodo_id
+        description: "Mes 'YYYY-MM'."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_periodo')
+                field: periodo_id
       - name: mpio_ccdgo
         data_tests:
           - not_null
