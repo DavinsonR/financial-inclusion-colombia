@@ -97,3 +97,11 @@ trimestral del FMI. Nada de lo que sigue se presenta como una ley general.
 Las dummies son un argumento `exog` del ajuste. Quitarlas es un cambio de una línea y devuelve la
 especificación sin declarar atípicos, cuyo desempeño está medido arriba (+19,5 % en vez de +34,6 %). La
 decisión 3 —combinar en vez de elegir— es independiente y se revierte por separado.
+
+## Adenda 1 (2026-09-23): los valores p de la tabla no son válidos
+
+La columna «p (DM pareado)» trata los 264 pares como independientes, y los 33 departamentos de un mismo
+origen comparten el choque (correlación intraorigen 0,60). Agrupada por origen, la combinación pasa de
+p = 2,0 × 10⁻⁷ a p = 0,29 y le gana al ingenuo en 3 de 8 orígenes. Las ganancias en MAE de la tabla siguen
+siendo correctas. La corrección de la prueba y la nueva puerta de calidad están en ADR-023; B-065 en la
+bitácora.

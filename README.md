@@ -147,7 +147,7 @@ These are written in Spanish, the language of the thesis.
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): what is being built, a per-phase status light, the repo map, a glossary, the decisions of record, the roadmap and the open questions.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): mistakes (B-001 onwards) and wins (S-001 onwards) with root cause and rule.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016 and ADR-019 to ADR-022 (017 and 018 arrive with another branch).
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 to ADR-016 and ADR-019 to ADR-023 (017 and 018 arrive with another branch).
 - [`docs/HOJA_DE_RUTA_PROYECCION.md`](docs/HOJA_DE_RUTA_PROYECCION.md): the plan for the forecast layer.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licence and attribution per source.
 
@@ -166,7 +166,7 @@ These are written in Spanish, the language of the thesis.
 | Index by dimension with frozen, published weights, and its two sensitivity versions | Done |
 | Interactive three-view atlas, inside the project page | Done |
 | Econometrics: `src/iif/econ`, 12 synthetic tests, `metodologia/panel.qmd` with the results | Done |
-| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to a national path and reconciled (ADR-019 to ADR-022); the anchor is the IMF WEO until the Banrep survey is transcribed into `config/forecast.yaml` | Engine and atlas export done; rendering on the project page pending |
+| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to a national path and reconciled (ADR-019 to ADR-023); the anchor is the IMF WEO until the Banrep survey is transcribed into `config/forecast.yaml`. In the 2018–2025 backtest it cuts the naive forecast's mean error by 38.6 %, but it wins in 3 of 8 years, the gain without 2021 is +8.3 %, and grouped by year the difference is not statistically distinguishable (p = 0.29): a scenario with uncertainty, not a model with proven superiority (`data/processed/forecast/resultados.json`) | Engine and atlas export done; rendering on the project page pending |
 | Temporal-disaggregation annex, MIDAS, manuscript | Phase 4, pending |
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |

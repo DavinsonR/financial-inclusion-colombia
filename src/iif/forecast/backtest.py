@@ -1,7 +1,8 @@
 """Origen móvil, Diebold-Mariano y la puerta de calidad.
 
-ADR-020 decisión 5: ninguna especificación se publica si no le gana al ingenuo en el
-backtest, y la comparación lleva prueba de significancia, no solo diferencia de MAE. Este
+ADR-020 decisión 5, corregida por ADR-023: ninguna especificación se publica si no le gana
+al ingenuo en el backtest, también sin el origen que más aporta; la prueba de Diebold-Mariano
+se agrupa por origen y se publica como información, no como criterio. Este
 módulo es el equivalente de `qa_deposito.py` para la capa de pronóstico: si falla, no se
 publica.
 """
@@ -20,6 +21,8 @@ from iif.forecast.models import ESPECIFICACIONES, combinar, predecir
 REFERENCIA = "ingenuo"
 MIN_ENTRENAMIENTO = 12
 MIN_COBERTURA = 0.90
+# Por debajo de tres orígenes la t por origen tiene un grado de libertad o ninguno.
+MIN_ORIGENES = 3
 
 
 def rolling_origin(marco: Marco, primer_origen: int = 2018, h: int = 1,
@@ -92,41 +95,93 @@ class Veredicto:
     dm_p: float | None
     n: int
     aprobado: bool
+    origenes_ganados: int | None = None
+    n_origenes: int | None = None
+    mejor_origen: int | None = None
+    ganancia_sin_mejor_origen_pct: float | None = None
 
     def as_dict(self) -> dict:
         return {
             "modelo": self.modelo, "mae": self.mae, "cobertura": self.cobertura,
             "ganancia_pct": self.ganancia_pct, "dm_p": self.dm_p,
+            "origenes_ganados": self.origenes_ganados, "n_origenes": self.n_origenes,
+            "mejor_origen": self.mejor_origen,
+            "ganancia_sin_mejor_origen_pct": self.ganancia_sin_mejor_origen_pct,
             "n": self.n, "aprobado": self.aprobado,
         }
+
+
+@dataclass(frozen=True)
+class PorOrigen:
+    """Lo que la comparación dice cuando se lee año por año (ADR-023, decisión 2)."""
+    ganados: int
+    total: int
+    mejor_origen: int
+    ganancia_sin_mejor_pct: float | None
+
+
+def _pares(errores: pd.Series, referencia: pd.Series) -> pd.DataFrame:
+    return pd.concat([errores.rename("m"), referencia.rename("r")], axis=1).dropna()
+
+
+def _ganancia(par: pd.DataFrame) -> float | None:
+    mae_ref = par.r.abs().mean()
+    if len(par) == 0 or mae_ref == 0:
+        return None
+    return float((1 - par.m.abs().mean() / mae_ref) * 100)
 
 
 def diebold_mariano(errores: pd.Series, referencia: pd.Series) -> tuple[float | None, float | None]:
     """Compara dos series de error pareadas por (departamento, origen).
 
-    Prueba sobre la diferencia de errores absolutos. Devuelve la ganancia relativa en MAE
-    y el valor p; `None` cuando no hay pares suficientes para decir nada.
+    Devuelve la ganancia relativa en MAE y el valor p de Diebold-Mariano **agrupado por
+    origen** (ADR-023): los departamentos de un mismo año comparten el choque, así que la
+    prueba t se hace sobre la media por origen de la diferencia de errores absolutos, con
+    n − 1 grados de libertad. Tratar los pares como independientes subestimaba el error
+    estándar unas 4,5 veces en el panel real (B-065). `None` cuando no hay pares u orígenes
+    suficientes para decir nada.
     """
-    par = pd.concat([errores.rename("m"), referencia.rename("r")], axis=1).dropna()
+    par = _pares(errores, referencia)
     if len(par) <= 5:
         return None, None
-    mae_ref = par.r.abs().mean()
-    if mae_ref == 0:
+    ganancia = _ganancia(par)
+    if ganancia is None:
         return None, None
-    ganancia = (1 - par.m.abs().mean() / mae_ref) * 100
-    diferencia = par.m.abs() - par.r.abs()
-    if diferencia.std(ddof=1) == 0:
-        return float(ganancia), None
-    return float(ganancia), float(stats.ttest_1samp(diferencia, 0.0).pvalue)
+    diferencia = (par.m.abs() - par.r.abs()).groupby(level="origen").mean()
+    if len(diferencia) < MIN_ORIGENES or diferencia.std(ddof=1) == 0:
+        return ganancia, None
+    return ganancia, float(stats.ttest_1samp(diferencia, 0.0).pvalue)
+
+
+def por_origen(errores: pd.Series, referencia: pd.Series) -> PorOrigen | None:
+    """Orígenes ganados y la ganancia que queda al quitar el origen que más aporta.
+
+    El «mejor origen» es el de diferencia media más negativa: el año en que el modelo le
+    saca más ventaja al ingenuo. Si la ganancia desaparece sin él, no había una ventaja
+    del modelo sino un año afortunado.
+    """
+    par = _pares(errores, referencia)
+    if par.empty:
+        return None
+    diferencia = (par.m.abs() - par.r.abs()).groupby(level="origen").mean()
+    mejor = int(diferencia.idxmin())
+    resto = par[par.index.get_level_values("origen") != mejor]
+    return PorOrigen(ganados=int((diferencia < 0).sum()), total=len(diferencia),
+                     mejor_origen=mejor, ganancia_sin_mejor_pct=_ganancia(resto))
 
 
 def evaluar(detalle: pd.DataFrame, referencia: str = REFERENCIA) -> list[Veredicto]:
-    """MAE, cobertura, ganancia y Diebold-Mariano por modelo, con el veredicto.
+    """MAE, cobertura, ganancia y Diebold-Mariano por origen, con el veredicto.
 
-    Un modelo queda aprobado si entregó pronóstico en al menos el 90 % de los orígenes y
-    le gana al ingenuo. La cobertura no es un detalle: un modelo que revienta en los
-    orígenes difíciles y solo responde en los fáciles muestra un MAE bajísimo que no
-    significa nada, porque no compitió en las observaciones que importaban.
+    Un modelo queda aprobado (ADR-023, decisión 3) si entregó pronóstico en al menos el
+    90 % de los orígenes, le gana al ingenuo en MAE y sigue sin perder al quitar el origen
+    que más aporta. El valor p se publica pero no decide: con ocho orígenes la prueba no
+    tiene potencia para detectar ni una mejora del 100 %, y una puerta de superioridad
+    sería una prohibición permanente.
+
+    La cobertura no es un detalle: un modelo que revienta en los orígenes difíciles y solo
+    responde en los fáciles muestra un MAE bajísimo que no significa nada, porque no
+    compitió en las observaciones que importaban.
     """
     ref = detalle[detalle.modelo == referencia].set_index(["dpto_ccdgo", "origen"]).error
     veredictos = []
@@ -137,10 +192,20 @@ def evaluar(detalle: pd.DataFrame, referencia: str = REFERENCIA) -> list[Veredic
             veredictos.append(Veredicto(nombre, float(e.abs().mean()), cobertura,
                                         None, None, len(e), True))
             continue
-        ganancia, p = diebold_mariano(g.set_index(["dpto_ccdgo", "origen"]).error, ref)
-        aprobado = bool(cobertura >= MIN_COBERTURA and ganancia is not None and ganancia > 0)
-        veredictos.append(Veredicto(nombre, float(e.abs().mean()) if len(e) else float("nan"),
-                                    cobertura, ganancia, p, len(e), aprobado))
+        errores = g.set_index(["dpto_ccdgo", "origen"]).error
+        ganancia, p = diebold_mariano(errores, ref)
+        orig = por_origen(errores, ref)
+        sin_mejor = orig.ganancia_sin_mejor_pct if orig else None
+        aprobado = bool(cobertura >= MIN_COBERTURA
+                        and ganancia is not None and ganancia > 0
+                        and sin_mejor is not None and sin_mejor >= 0)
+        veredictos.append(Veredicto(
+            nombre, float(e.abs().mean()) if len(e) else float("nan"), cobertura, ganancia, p,
+            len(e), aprobado,
+            origenes_ganados=orig.ganados if orig else None,
+            n_origenes=orig.total if orig else None,
+            mejor_origen=orig.mejor_origen if orig else None,
+            ganancia_sin_mejor_origen_pct=sin_mejor))
     return sorted(veredictos, key=lambda v: (not v.aprobado, v.mae))
 
 
@@ -164,12 +229,13 @@ class PuertaDeCalidad(RuntimeError):
 
 
 def exigir_aprobacion(veredictos: list[Veredicto], modelo: str = "combinacion") -> Veredicto:
-    """Levanta si el modelo que se va a publicar no pasó la puerta (ADR-020 decisión 5)."""
+    """Levanta si el modelo que se va a publicar no pasó la puerta (ADR-020 decisión 5, ADR-023)."""
     encontrado = next((v for v in veredictos if v.modelo == modelo), None)
     if encontrado is None:
         raise PuertaDeCalidad(f"{modelo} no aparece en el backtest")
     if not encontrado.aprobado:
         raise PuertaDeCalidad(
-            f"{modelo} no supera al ingenuo: ganancia={encontrado.ganancia_pct}, "
+            f"{modelo} no pasa la puerta: ganancia={encontrado.ganancia_pct}, "
+            f"sin el origen {encontrado.mejor_origen}={encontrado.ganancia_sin_mejor_origen_pct}, "
             f"cobertura={encontrado.cobertura:.2f}. No se publica.")
     return encontrado

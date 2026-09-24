@@ -1,7 +1,7 @@
 """Corre la capa de proyección y deja un solo JSON con todo lo que el atlas publica.
 
 El orden es el de las decisiones: primero el backtest, que es la puerta —si la combinación
-no le gana al ingenuo, nada se publica (ADR-020)—, después el pronóstico 2026–2028 sin
+no le gana al ingenuo, nada se publica (ADR-020, ADR-023)—, después el pronóstico 2026–2028 sin
 anclar, después el anclado y reconciliado (ADR-021), y al final los intervalos, que viajan
 siempre (ADR-022). Cada cifra publicada sale de este archivo (R-09).
 """
@@ -89,6 +89,28 @@ def _exigir_nacional_al_dia(marco: frame.Marco) -> None:
                          f"{int(marco.anios[-1])}; el ancla no se puede encadenar")
 
 
+def lectura_de_la_puerta(v: backtest.Veredicto) -> str:
+    """La frase que acompaña a la ganancia donde se publique (ADR-023, decisiones 2 y 4).
+
+    Ninguna cifra de ganancia viaja sola: va con los orígenes ganados, con la ganancia sin
+    el mejor año y con lo que la prueba por origen permite decir.
+    """
+    def pct(x: float) -> str:
+        return f"{x:+.1f} %".replace(".", ",")
+
+    texto = (f"Frente al pronóstico ingenuo, la combinación reduce el error medio un "
+             f"{pct(v.ganancia_pct)[1:]}; le gana en {v.origenes_ganados} de {v.n_origenes} años, "
+             f"y sin {v.mejor_origen} la ganancia es de {pct(v.ganancia_sin_mejor_origen_pct)}.")
+    if v.dm_p is None or v.dm_p >= 0.05:
+        p = "sin valor p" if v.dm_p is None else f"p = {v.dm_p:.2f}".replace(".", ",")
+        texto += (f" Con {v.n_origenes} años la diferencia no es estadísticamente distinguible "
+                  f"({p}, agrupado por año): la proyección es un escenario con incertidumbre, "
+                  f"no un modelo que haya demostrado superioridad.")
+    else:
+        texto += f" La diferencia es significativa agrupando por año (p = {v.dm_p:.3f})."
+    return texto
+
+
 def _crecimiento(niveles: pd.DataFrame, ultimo_observado: pd.Series) -> pd.DataFrame:
     """De niveles a crecimiento anual en porcentaje, encadenando desde el último dato."""
     completo = pd.concat([ultimo_observado.to_frame().T, niveles])
@@ -151,6 +173,12 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
             "mae": aprobado.mae,
             "ganancia_sobre_ingenuo_pct": aprobado.ganancia_pct,
             "dm_p": aprobado.dm_p,
+            "dm_agrupacion": "origen",
+            "origenes_ganados": aprobado.origenes_ganados,
+            "n_origenes": aprobado.n_origenes,
+            "mejor_origen": aprobado.mejor_origen,
+            "ganancia_sin_mejor_origen_pct": aprobado.ganancia_sin_mejor_origen_pct,
+            "lectura": lectura_de_la_puerta(aprobado),
             "cobertura": aprobado.cobertura,
             "n_pares": aprobado.n,
         },

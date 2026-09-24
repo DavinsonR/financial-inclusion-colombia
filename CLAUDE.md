@@ -32,5 +32,5 @@ Proyecto de investigación reproducible sobre inclusión financiera y crecimient
 - `src/iif/`             paquete: config, cli, acquire, parse, crosswalk, index, econ, forecast, export, data, legacy
 - `dbt/`                 estrella dimensional: seeds, staging, intermediate, marts, tests; objetivos duckdb y snowflake
 - `config/`              `tesis_documento.yaml` (cifras del documento), `sources.yaml`, `index.yaml`, `atlas.yaml`, `forecast.yaml`
-- `docs/decisiones/`     ADR-001 … ADR-016 y ADR-019 … ADR-022, índice en su README.md
+- `docs/decisiones/`     ADR-001 … ADR-016 y ADR-019 … ADR-023, índice en su README.md
 - `docs/BITACORA_AGENTE.md` errores B-NNN y aciertos S-NNN · `docs/GUIA_DEL_PROYECTO.md` control del autor
