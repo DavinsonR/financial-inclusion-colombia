@@ -1,4 +1,5 @@
 version: 1
+denominador: rezagado
 calibracion:
   anio_desde: 2018
   anio_hasta: 2019
@@ -66,7 +67,7 @@ pesos_congelados:
     variables:
     - nro_corresp_activos
     media:
-      nro_corresp_activos: 18.072869751841626
+      nro_corresp_activos: 18.07286975184163
     desviacion:
       nro_corresp_activos: 9.058070237566344
     cargas:
@@ -85,23 +86,23 @@ pesos_congelados:
     - saldo_total_cta_ahorros
     media:
       nro_total: 52585.62086191203
-      monto_total: 14.970974644413179
-      nro_total_cta_ahorros: 9883.06946877577
-      saldo_total_cta_ahorros: 13.050061472700474
+      monto_total: 15.936472855478904
+      nro_total_cta_ahorros: 9883.069468775771
+      saldo_total_cta_ahorros: 13.94745465341348
     desviacion:
       nro_total: 29702.325867853822
-      monto_total: 7.618689567655815
+      monto_total: 8.018650822793223
       nro_total_cta_ahorros: 4820.524016467745
-      saldo_total_cta_ahorros: 7.871092871327574
+      saldo_total_cta_ahorros: 8.439227965250739
     cargas:
       nro_total: 0.25
       monto_total: 0.25
       nro_total_cta_ahorros: 0.25
       saldo_total_cta_ahorros: 0.25
     varianza_explicada: null
-    kmo: 0.3141834248405618
-    bartlett_chi2: 52.47340562649277
-    bartlett_p: 1.4976448921480028e-09
+    kmo: 0.31732353806888497
+    bartlett_chi2: 52.66080490065262
+    bartlett_p: 1.3730760811891167e-09
   profundidad:
     dimension: profundidad
     metodo: pesos_iguales
@@ -110,18 +111,18 @@ pesos_congelados:
     - monto_total_cred_vivienda
     - monto_total_micro
     media:
-      monto_total_cred_consumo: 2.507275768656007
-      monto_total_cred_vivienda: 0.3573451379503323
-      monto_total_micro: 0.3198229531776648
+      monto_total_cred_consumo: 2.675633462344923
+      monto_total_cred_vivienda: 0.38169284782564633
+      monto_total_micro: 0.3405307085531696
     desviacion:
-      monto_total_cred_consumo: 1.1024797320728141
-      monto_total_cred_vivienda: 0.23298661790798306
-      monto_total_micro: 0.23204566532692025
+      monto_total_cred_consumo: 1.1770387168124063
+      monto_total_cred_vivienda: 0.2486794198203865
+      monto_total_micro: 0.24510036909290953
     cargas:
       monto_total_cred_consumo: 0.3333333333333333
       monto_total_cred_vivienda: 0.3333333333333333
       monto_total_micro: 0.3333333333333333
     varianza_explicada: null
-    kmo: 0.4042434056414627
-    bartlett_chi2: 41.36374499105547
-    bartlett_p: 5.47481672843153e-09
+    kmo: 0.40697220767921116
+    bartlett_chi2: 41.573508786431766
+    bartlett_p: 4.941614649992001e-09

@@ -69,10 +69,24 @@ jobs:
       - name: dbt en DuckDB
         run: make dbt-build
 
-      # `-rs` imprime el motivo de cada prueba saltada. Con los datos ya presentes
-      # no deberia saltarse ninguna por falta de data/raw, y si se salta, se lee.
-      - name: Pruebas con datos crudos
+      # La cadena entera del CLI sobre el almacen recien construido. Corre antes que las pruebas con datos
+      # porque un fallo aqui es de comando (rutas, codificacion, dependencias) y se lee mejor solo.
+      - name: El indice y la bateria corren de punta a punta
+        env:
+          PYTHONIOENCODING: utf-8
+        run: make index econ curva
+
+      # `make test-data` incluye tests/test_resultados_publicados.py, que regenera la bateria y la compara
+      # cifra a cifra contra data/processed/econ/resultados.json (R-09, ADR-018). `-rs` imprime el motivo de
+      # cada prueba saltada: con los datos ya presentes no deberia saltarse ninguna.
+      - name: Pruebas con datos crudos y reproduccion de las cifras publicadas
         run: make test-data
+
+      # Si la corrida anterior cambio una cifra publicada, el arbol queda sucio y hay que regenerar y
+      # commitear a proposito. Compara contenido, no bytes: los JSON llevan `generado_en` y los parquet
+      # salen con otro orden de filas y ruido de ultimo bit segun la maquina (scripts/check_processed.py).
+      - name: El arbol no cambia al regenerar
+        run: uv run python scripts/check_processed.py
 
       - uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b  # v2.2.0
         with:
