@@ -10,12 +10,20 @@ plazo del Fondo, no un pronóstico año a año. A horizonte 1 el ancla es inform
 horizontes 2 y 3 es, en la práctica, una constante. ADR-021 fija el punto de equilibrio del
 anclaje en unos 3,5 puntos de error del consenso, y una constante de mediano plazo puede
 alejarse de eso sin avisar.
+
+**Un ancla también caduca.** Si su fecha de corte tiene más de `ANTIGUEDAD_MAXIMA_MESES`,
+`cargar` emite un aviso visible y `vigencia` lo deja escrito en `resultados.json`
+(`ancla.antiguedad_meses`, `ancla.vencida`, `ancla.aviso`). No falla: un ancla vieja con su
+edad a la vista es preferible a no publicar, pero nadie debe poder leer el mapa sin saberlo.
+La solución no es tocar este módulo, es transcribir la EME vigente en `config/forecast.yaml`.
 """
 
 from __future__ import annotations
 
 import json
 import urllib.request
+import warnings
+from datetime import date
 from pathlib import Path
 
 from iif import config
@@ -24,6 +32,44 @@ from iif.forecast.reconcile import Ancla
 SERIE_WEO = "IMF/WEO:latest/COL.NGDP_RPCH"
 URL_DBNOMICS = "https://api.db.nomics.world/v22/series/{sid}?observations=1"
 CONFIG_FORECAST = config.CONFIG_DIR / "forecast.yaml"
+# Más de seis meses es más de dos ediciones del Informe de Política Monetaria y seis de la EME:
+# el consenso ya se ha revisado y el ancla no lo dice.
+ANTIGUEDAD_MAXIMA_MESES = 6
+DIAS_POR_MES = 365.25 / 12
+
+
+class AnclaVencida(UserWarning):
+    """La fecha de corte del ancla supera la antigüedad máxima."""
+
+
+def antiguedad_meses(fecha_corte: str, hoy: date | None = None) -> float | None:
+    """Meses entre la fecha de corte del ancla y hoy; `None` si la fecha no se puede leer."""
+    try:
+        corte = date.fromisoformat(str(fecha_corte)[:10])
+    except ValueError:
+        return None
+    return ((hoy or date.today()) - corte).days / DIAS_POR_MES
+
+
+def vigencia(ancla: Ancla, hoy: date | None = None) -> dict:
+    """Edad del ancla y, si pasa del máximo, el aviso que viaja con ella a `resultados.json`."""
+    meses = antiguedad_meses(ancla.fecha_corte, hoy)
+    vencida = meses is None or meses > ANTIGUEDAD_MAXIMA_MESES
+    aviso = None
+    if vencida:
+        edad = "de fecha ilegible" if meses is None else f"con {meses:.0f} meses de antigüedad"
+        aviso = (f"El ancla ({ancla.fuente}, corte {ancla.fecha_corte}) está {edad}; el máximo es "
+                 f"{ANTIGUEDAD_MAXIMA_MESES}. Transcribe la EME vigente en config/forecast.yaml.")
+    return {"antiguedad_meses": None if meses is None else round(meses, 1),
+            "antiguedad_maxima_meses": ANTIGUEDAD_MAXIMA_MESES,
+            "vencida": vencida, "aviso": aviso}
+
+
+def _avisar_si_vencida(ancla: Ancla) -> Ancla:
+    estado = vigencia(ancla)
+    if estado["vencida"]:
+        warnings.warn(estado["aviso"], AnclaVencida, stacklevel=3)
+    return ancla
 
 
 def desde_weo(anios: list[int], timeout: int = 40) -> Ancla:
@@ -82,10 +128,10 @@ def cargar(anios: list[int], escenario: str = "central", *, sin_red: bool = Fals
     """
     if CONFIG_FORECAST.exists():
         try:
-            return desde_config(anios, escenario)
+            return _avisar_si_vencida(desde_config(anios, escenario))
         except (KeyError, ValueError):
             if escenario != "central":
                 raise
     if sin_red:
         raise RuntimeError("no hay ancla en config/forecast.yaml y se pidió no usar la red")
-    return desde_weo(anios)
+    return _avisar_si_vencida(desde_weo(anios))

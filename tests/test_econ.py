@@ -369,3 +369,198 @@ def test_la_estimacion_guarda_todos_los_coeficientes_no_solo_el_de_interes():
     assert est.coeficientes["x"]["coef"] == pytest.approx(est.coef, rel=1e-12)
     assert est.coeficientes["x"]["p"] == pytest.approx(est.p, rel=1e-12)
 
+
+
+# --- ADR-024: inferencia agrupada, tendencias previas y los contrastes del referee ---------------------
+
+
+def _panel_heterocedastico(*, n=33, t=7, semilla=0, beta=0.0):
+    """Nula con errores cuya varianza cambia por departamento y crece con el regresor de ese departamento.
+
+    Es el caso en que un error homocedástico se equivoca y el agrupado no: la prueba de tamaño de abajo
+    distingue las dos studentizaciones justo aquí.
+    """
+    rng = np.random.default_rng(semilla)
+    escala_x = rng.lognormal(0, 0.8, n)
+    filas = []
+    for i in range(n):
+        choque = rng.normal(0, 0.02)
+        for k in range(t):
+            x = rng.normal(0, escala_x[i])
+            filas.append(
+                {
+                    "dpto_ccdgo": f"{i:02d}",
+                    "departamento": f"u{i}",
+                    "region": "R",
+                    "anio": 2019 + k,
+                    "x": x,
+                    "c": rng.normal(),
+                    "y": beta * x + choque + rng.normal(0, 0.01) * escala_x[i] * (1 + abs(x)),
+                }
+            )
+    return pd.DataFrame(filas)
+
+
+def test_el_crve_del_bootstrap_es_el_agrupado_con_su_correccion():
+    """El error del bootstrap es el CRVE: el mismo que statsmodels, salvo la corrección de muestra pequeña.
+
+    statsmodels cuenta las ficticias de unidad en K; el CR1 de aquí no (están anidadas en los clústeres,
+    como en Stata). La razón de las dos varianzas tiene que ser exactamente la de esas dos correcciones.
+    """
+    import statsmodels.api as sm
+
+    from iif.econ import inference
+
+    df = _panel_heterocedastico(semilla=3)
+    d = inference.diseno(df, "y", ["x", "c"])
+    mio = inference.crve(d, [0])
+    sm_res = sm.OLS(d.y, d.X).fit(cov_type="cluster", cov_kwds={"groups": d.grupos})
+    k_total = np.linalg.matrix_rank(d.X)
+    razon = ((d.n - 1) / (d.n - (k_total - d.anidadas))) / ((d.n - 1) / (d.n - k_total))
+    assert mio["coef"][0] == pytest.approx(sm_res.params[0], rel=1e-10)
+    assert mio["se"][0] ** 2 == pytest.approx(sm_res.bse[0] ** 2 * razon, rel=1e-8)
+
+
+def test_los_pesos_de_webb_tienen_media_cero_y_varianza_uno():
+    from iif.econ import inference
+
+    w = inference.PESOS["webb"]
+    assert w.size == 6 and len(set(np.round(np.abs(w), 12))) == 3
+    assert w.mean() == pytest.approx(0.0, abs=1e-12)
+    assert (w**2).mean() == pytest.approx(1.0, abs=1e-12)
+
+
+def test_el_bootstrap_agrupado_tiene_el_tamano_nominal_con_heterocedasticidad():
+    """Bajo la nula y con varianzas distintas por departamento, rechaza cerca del 5 % con los dos pesos."""
+    paneles = 60
+    rechazos = {"rademacher": 0, "webb": 0}
+    for semilla in range(paneles):
+        df = _panel_heterocedastico(semilla=200 + semilla)
+        for pesos in rechazos:
+            w = robustness.wild_cluster_bootstrap(df, "y", "x", ["c"], replicas=199, semilla=semilla, pesos=pesos)
+            rechazos[pesos] += w["p_bootstrap"] < 0.05
+    for pesos, r in rechazos.items():
+        assert r / paneles <= 0.15, f"{pesos}: rechaza {r} de {paneles} bajo la nula"
+
+
+def test_el_intervalo_invertido_contiene_al_coeficiente_y_su_borde_es_el_umbral():
+    """El IC por inversión es el conjunto de beta0 con p > 0,05: en sus bordes el p cruza 0,05."""
+    from iif.econ import inference
+
+    df = panel_sintetico(beta=0.02, n=33, t=7, semilla=21)
+    w = robustness.wild_cluster_bootstrap(df, "y", "x", ["c"], replicas=499, invertir=True)
+    lo, hi = w["ic95_bootstrap"]
+    assert lo < w["coef"] < hi
+    est, _ = two_way_fe(df, "y", "x", ["c"])
+    assert lo == pytest.approx(est.ic_bajo, abs=2 * est.se)
+    assert hi == pytest.approx(est.ic_alto, abs=2 * est.se)
+    d = inference.diseno(df, "y", ["x", "c"])
+    boot = inference.BootstrapUnCoeficiente(d, 0, replicas=499, semilla=20260907, pesos="rademacher")
+    ancho = hi - lo
+    assert boot.p_simetrico(hi + 0.02 * ancho) <= 0.05 < boot.p_simetrico(hi - 0.02 * ancho)
+    assert boot.p_simetrico(lo - 0.02 * ancho) <= 0.05 < boot.p_simetrico(lo + 0.02 * ancho)
+
+
+def test_el_tost_bootstrap_y_su_margen_minimo_son_coherentes():
+    """Por encima del margen mínimo el TOST declara equivalencia; por debajo, no."""
+    from iif.econ import inference
+
+    df = panel_sintetico(beta=0.0, n=33, t=7, semilla=8)
+    d = inference.diseno(df, "y", ["x", "c"])
+    boot = inference.BootstrapUnCoeficiente(d, 0, replicas=499, semilla=1, pesos="webb")
+    m = boot.margen_minimo()
+    assert m > abs(boot.coef)
+    assert boot.tost(1.05 * m)["equivale"]
+    assert not boot.tost(0.95 * m)["equivale"]
+    assert not boot.tost(abs(boot.coef) / 2)["equivale"], "un margen menor que el coeficiente no puede pasar"
+
+
+def test_el_wald_bootstrap_con_una_restriccion_es_la_prueba_simetrica():
+    """Con q = 1 el Wald es t al cuadrado: con los mismos pesos, el p bootstrap es el de dos colas."""
+    from iif.econ import inference
+
+    df = panel_sintetico(beta=0.01, n=33, t=7, semilla=4)
+    d = inference.diseno(df, "y", ["x", "c"])
+    wald = inference.wald_bootstrap(d, [0], replicas=299, semilla=5)
+    uno = inference.BootstrapUnCoeficiente(d, 0, replicas=299, semilla=5, pesos="rademacher")
+    assert wald["p_bootstrap"] == pytest.approx(uno.p_simetrico(0.0), abs=1e-12)
+    assert wald["F"] == pytest.approx(uno.t_observado(0.0) ** 2, rel=1e-9)
+
+
+def _serie_larga(*, tendencia_previa: float, n=33, semilla=2):
+    """Crecimiento 2006-2025 con una exposición fija y, a elección, una tendencia previa en los expuestos."""
+    rng = np.random.default_rng(semilla)
+    exposicion = pd.Series(rng.normal(size=n), index=[f"{i:02d}" for i in range(n)])
+    filas = []
+    for i, u in enumerate(exposicion.index):
+        for a in range(2006, 2026):
+            previo = tendencia_previa * exposicion[u] * (a - 2012) / 10 if a < 2019 else 0.0
+            filas.append({"dpto_ccdgo": u, "anio": a, "g": previo + rng.normal(0, 0.02) + 0.001 * i})
+    return pd.DataFrame(filas), exposicion
+
+
+def test_las_tendencias_previas_se_detectan_cuando_existen_y_no_cuando_no():
+    sin, exp_sin = _serie_larga(tendencia_previa=0.0)
+    con, exp_con = _serie_larga(tendencia_previa=0.03)
+    r_sin = designs.tendencias_previas(sin, "g", exp_sin, replicas=199)
+    r_con = designs.tendencias_previas(con, "g", exp_con, replicas=199)
+    assert r_sin["previos"]["q"] == 13 and r_sin["posteriores"]["q"] == 6
+    assert r_sin["previos"]["p_bootstrap"] > 0.05
+    assert r_con["previos"]["p_bootstrap"] < 0.05 and r_con["previos"]["p_F"] < 0.05
+    ref = [f for f in r_sin["coeficientes"] if f["referencia"]]
+    assert len(ref) == 1 and ref[0]["anio"] == 2019
+
+
+def test_una_condicion_inicial_absorbe_la_tendencia_que_ella_misma_produce():
+    """Si la pendiente previa es de la urbanización y no de la exposición, meterla dentro la quita."""
+    datos, exposicion = _serie_larga(tendencia_previa=0.0, semilla=9)
+    rng = np.random.default_rng(1)
+    urbana = exposicion * 0.9 + rng.normal(0, 0.3, exposicion.size)
+    datos["g"] = datos["g"] + datos["dpto_ccdgo"].map(urbana) * (datos["anio"] - 2015) * 0.004
+    sin = designs.tendencias_previas(datos, "g", exposicion, replicas=199)
+    con = designs.tendencias_previas(datos, "g", exposicion, controles_iniciales={"urb": urbana}, replicas=199)
+    assert sin["previos"]["p_bootstrap"] < 0.05
+    assert con["previos"]["p_bootstrap"] > sin["previos"]["p_bootstrap"]
+
+
+def test_los_pesos_de_aronow_samii_suman_uno_y_premian_la_variacion_dentro():
+    from iif.econ.power import pesos_aronow_samii
+
+    df = panel_sintetico(beta=0.0, n=20, t=7, semilla=6)
+    df.loc[df["dpto_ccdgo"] == "03", "x"] *= 6  # la unidad con más variación dentro
+    w = pesos_aronow_samii(df, "x", ["c"])
+    assert w.sum() == pytest.approx(1.0, abs=1e-12)
+    assert w.idxmax() == "03"
+
+
+def test_holm_coincide_con_statsmodels():
+    from statsmodels.stats.multitest import multipletests
+
+    from iif.econ.inference import holm
+
+    p = [0.001, 0.04, 0.03, 0.2, 0.012, 0.5]
+    assert np.allclose(holm(p), multipletests(p, method="holm")[1])
+
+
+def test_congelar_numeradores_deja_solo_el_denominador():
+    from iif.econ.denominador import congelar_numeradores
+
+    panel = pd.DataFrame(
+        {
+            "dpto_ccdgo": ["01", "01", "02", "02"],
+            "anio": [2018, 2019, 2018, 2019],
+            "monto": [10.0, 30.0, 5.0, 7.0],
+            "pib": [100.0, 90.0, 50.0, 60.0],
+        }
+    )
+    congelado = congelar_numeradores(panel, ["monto"], 2018)
+    assert congelado["monto"].tolist() == [10.0, 10.0, 5.0, 5.0]
+    assert congelado["pib"].tolist() == panel["pib"].tolist()
+
+
+def test_el_diseno_de_exposicion_inicial_conserva_el_alias_viejo():
+    assert designs.shift_share is designs.exposicion_por_adopcion
+    df = panel_sintetico(beta=0.02, n=33, t=8)
+    exposicion = designs.exposicion_inicial(df, "x", 2018)
+    est, _ = designs.exposicion_por_adopcion(df[df["anio"] > 2018], "y", "x", exposicion, ["c"])
+    assert "exposición inicial" in est.nombre and "shift" not in est.nombre

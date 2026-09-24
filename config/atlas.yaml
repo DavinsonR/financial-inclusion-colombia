@@ -109,7 +109,18 @@ indicadores:
     # Proyección 2026-2028 (ADR-019 a ADR-022). Los años proyectados van marcados en
     # `anios_proyectados` dentro de `series_departamento.json`, y el ancho del intervalo
     # viaja como indicador propio: el tamaño del departamento no predice su incertidumbre
-    # (Spearman -0,358), así que ninguna heurística del navegador puede sustituirlo.
+    # (Spearman -0,358 en ADR-022; -0,42 con los anchos vigentes, adenda), así que ninguna
+    # heurística del navegador puede sustituirlo.
+    #
+    # Es un escenario condicional al ancla nacional, no un pronóstico con ventaja demostrada
+    # (ADR-023): la reconciliación desplaza a todos los departamentos casi lo mismo, así que el
+    # patrón del mapa es el de los modelos sin anclar. No se publican tablas de posiciones.
+    #
+    # `intervalo_ancho_proy` es el ancho al 80 % del CRECIMIENTO ANUAL de cada año, que es lo
+    # que colorean las capas de crecimiento; sale de `intervalo_ancho_crecimiento_pp` en
+    # resultados.json. El ancho del NIVEL acumulado desde 2025 viaja en el JSON como
+    # `intervalo_ancho_nivel_pp` y no es la capa del mapa: a un año coinciden, pero a 2028 el del
+    # nivel dobla al del crecimiento (mediana 14,8 frente a 7,7 pp; ADR-022, adenda).
     - id: crecimiento_pib_real_proy
       etiqueta: "Crecimiento proyectado del PIB real"
       grupo: proyeccion
@@ -126,7 +137,7 @@ indicadores:
       escala: divergente
       decimales: 2
     - id: intervalo_ancho_proy
-      etiqueta: "Ancho del intervalo al 80 %"
+      etiqueta: "Ancho del intervalo al 80 % del crecimiento anual"
       grupo: proyeccion
       escala: secuencial
       decimales: 1

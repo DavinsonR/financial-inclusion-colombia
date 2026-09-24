@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import glob
+import json
 import re
 
+import pytest
 import yaml
 
 from iif import config
@@ -13,10 +15,37 @@ ROOT = config.REPO_ROOT
 ANCLAS = ["status", "abstract", "data", "method", "main-result", "diagnostics", "que-hay-y-que-falta"]
 
 
-def test_readme_keeps_the_seven_anchors():
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+@pytest.mark.parametrize("archivo", ["README.md", "README.es.md"])
+def test_readme_keeps_the_seven_anchors(archivo):
+    """R-12 exige las mismas anclas en los dos README, no solo en el inglés."""
+    readme = (ROOT / archivo).read_text(encoding="utf-8")
     ids = set(re.findall(r'<a id="([^"]+)"', readme))
-    assert set(ANCLAS) <= ids, sorted(set(ANCLAS) - ids)
+    assert set(ANCLAS) <= ids, (archivo, sorted(set(ANCLAS) - ids))
+
+
+@pytest.mark.parametrize(
+    ("archivo", "conector"),
+    [
+        ("README.md", "of"),
+        ("CASE_STUDY.md", "of"),
+        ("README.es.md", "de"),
+        ("docs/CASO_DE_ESTUDIO.md", "de"),
+    ],
+)
+def test_la_curva_publicada_coincide_con_su_json(archivo, conector):
+    """R-09: "49 of 80" y "5 of 80" se leen de la curva de especificación, no de la memoria de quien escribe.
+
+    Las cifras esperadas salen del JSON que produce `uv run iif curva`; si la curva cambia, la prueba exige
+    que el texto cambie con ella en lugar de fijar literales.
+    """
+    curva = json.loads(
+        (ROOT / "data" / "processed" / "econ" / "curva_especificacion.json").read_text(encoding="utf-8")
+    )
+    texto = (ROOT / archivo).read_text(encoding="utf-8")
+    for grupo in ("solo entidad", "entidad y tiempo"):
+        r = curva["resumen"][grupo]
+        cifra = f"{r['significativas']} {conector} {r['especificaciones']}"
+        assert cifra in texto, f"{archivo} no publica '{cifra}' ({grupo}) de curva_especificacion.json"
 
 
 def test_claude_md_fits_in_forty_lines():

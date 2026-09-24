@@ -12,6 +12,24 @@
 # Advertencia sobre esa red de seguridad: la senda del WEO para Colombia repite el mismo
 # número de 2027 en adelante (2,76 % hasta 2030), porque es su valor de convergencia de
 # mediano plazo y no un pronóstico año a año.
+#
+# Un ancla caduca. Si `fecha_corte` tiene más de 6 meses (`anchor.ANTIGUEDAD_MAXIMA_MESES`),
+# `uv run iif forecast` emite el aviso `AnclaVencida` y `resultados.json` lo deja escrito en
+# `ancla.antiguedad_meses`, `ancla.vencida` y `ancla.aviso`, que el atlas recibe con el ancla.
+# El 2026-09-23 el WEO descargado tiene corte 2025-05-15: 16 meses.
+#
+# Cómo transcribir la EME (tarea del autor; un agente no inventa estas cifras):
+#   1. Banrep, "Encuesta mensual de expectativas de analistas económicos", la última
+#      publicada. Tomar el crecimiento real del PIB esperado para cada año del horizonte
+#      (2026, 2027, 2028; si la encuesta no llega a 2028, usar su último año y decirlo en
+#      `fuente`).
+#   2. `central` es la mediana (o media, según el cuadro) de los analistas; `pesimista` y
+#      `optimista` el mínimo y el máximo (ADR-021 decisión 6).
+#   3. `fecha_corte` es la fecha de la encuesta, no la de la transcripción, en formato
+#      AAAA-MM-DD. `fuente` nombra el documento y el cuadro.
+#   4. Correr `uv run iif forecast` y comprobar que `ancla.fuente` en resultados.json ya no es
+#      el WEO y que `ancla.vencida` es false. Las cifras publicadas cambian: bitácora y, si
+#      alguna prueba fija cifras del ancla, actualizarla en el mismo commit (R-09, R-10).
 
 anclas: {}
 

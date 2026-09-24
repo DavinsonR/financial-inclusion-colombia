@@ -161,7 +161,7 @@ def _forecast_json(tmp_path, con_intervalo=True, anios=(2026, 2027)):
                 "reconciliado": {"crecimiento_pct": [2.0, 2.5],
                                  "per_capita_crecimiento_pct": [1.4, 1.9]},
                 "sin_anclar": {"crecimiento_pct": [1.2, 1.7]},
-                "intervalo_ancho_pp": ([6.0, 9.0] if con_intervalo else None),
+                "intervalo_ancho_crecimiento_pp": ([6.0, 9.0] if con_intervalo else None),
             } for cod in ("05", "11")
         },
     }

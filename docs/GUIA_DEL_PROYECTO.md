@@ -14,14 +14,16 @@ La expectativa honesta sobre el resultado nuevo: puede volver a ser un nulo. Se 
 
 ## 2. Estado hoy y semáforo por fase
 
-| Fase | Contenido | Estado al 2026-09-06 | Semáforo |
+| Fase | Contenido | Estado al 2026-09-23 | Semáforo |
 |---|---|---|---|
 | 0 | Reestructura del repo, limpieza y subida de los tres artefactos legados, paquete `iif`, documentos de gobierno, dbt, Quarto, CI | Hecha: S1 a S8 completos | verde |
 | 1 | Adquisición de todas las fuentes con manifiesto, crosswalk a DIVIPOLA, staging en largo, empalme 2021Q1 | Hecha: 19 fuentes descargadas con manifiesto (fuera de git, Release `data-v1`), parsers DANE/MGN, staging de todas las fuentes en dbt, `dim_municipio`, SFC en largo con mapa bloque-columna, empalme 2021Q1 medido, reconstrucción del panel legado (B-031) | verde |
 | 2 | `dim_variable` completa, hechos SFC y DANE, paneles anuales, índice | Hecha: diccionario de 98 variables, nueve hechos, los dos paneles y el índice con sus pesos publicados (ADR-015) | verde |
 | 3 | Exportación y atlas OJS; econometría: two-way FE anual, CIPS, cambios del IIF, CCE, placebo, shift-share, eventos, espacial | Hecha: atlas de tres vistas y batería completa en `src/iif/econ` con 12 pruebas sintéticas (ADR-016) | verde |
 | 3.5 | Auditoría adversarial: potencia y equivalencia (ADR-018), denominador del índice (ADR-017), Moran sobre residuos, curva de especificación, CI que reproduce las cifras | Hecha: B-068 a B-076, S-020 | verde |
-| 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Pendiente | rojo |
+| 3.6 | Capa de proyección 2026–2028 (ADR-019 a ADR-023) | Hecha: combinación de ARIMA con atípicos declarados, ancla y reconciliación, puerta de calidad con DM agrupado por origen, cobertura del intervalo publicada; se publica como escenario condicional al ancla | verde |
+| 3.7 | Auditoría de cierre: cuatro revisiones externas (identificación, macro y política, marketing, reclutamiento) | Hecha: ADR-024 y ADR-025, B-077 a B-090, S-021; README, caso de estudio y página del portafolio con cifras vigentes | verde |
+| 4 | Anexo de desagregación temporal, MIDAS como sensibilidad, manuscrito | Diferida como trabajo futuro al cerrar el proyecto (2026-09-23); ver §6 | gris |
 
 Lo que hay hoy en el repo: las 19 fuentes descargadas en `data/raw/` con `manifest.jsonl`, los Parquet tidy del DANE y del MGN en `data/interim/`, el proyecto dbt completo hasta `int_sfc_geo_long`, el paquete `src/iif/` (`config`, `cli`, `acquire`, `parse`, `crosswalk`, `data`, `legacy`), el sitio Quarto (que compila en `make check` y no se publica aparte), CI y los documentos de gobierno. En `data/legacy/`, `notebooks/legacy/` y `docs/legacy/` están los tres artefactos del trabajo de grado, limpios y congelados como insumo histórico y como evidencia de la bitácora; no alimentan ningún resultado.
 
@@ -159,8 +161,22 @@ Salida: `ruff`, `pytest` y `dbt build` en verde; entradas B-051 a B-066 y S-019 
 - [x] Documentación: KMO bien atribuido, estado real de la proyección, `site-url` retirado, atribución CC BY-SA completa
 - [x] ADR-023 aceptado e implementado: Diebold-Mariano agrupado por origen y puerta sin el mejor año (B-065)
 - [x] Fusionar `auditoria-potencia-y-denominador` (sus entradas pasan a B-068 a B-076 y S-020) y regenerar el atlas desde el código fusionado (B-067)
-- [ ] Decidir en un ADR el tratamiento de faltantes en Sarma (B-064)
-- [ ] Primera compilación real en BigQuery (B-058) y primer `quarto render` tras los cambios
+- [x] Decidir en un ADR el tratamiento de faltantes en Sarma (B-064): ADR-025
+- [x] `quarto render` tras los cambios: lo corre CI en cada PR
+
+### Cierre del proyecto (2026-09-23)
+Salida: `ruff`, `pytest` (242, con y sin datos), `dbt build` (377) y CI en verde; entradas B-077 a B-090 y S-021.
+- [x] ADR-024: inferencia corregida (bootstrap studentizado con CRVE, TOST y MDE sobre t(G − 1)) y robustez del referee (tendencias previas, base sin Nickell, dependiente sin B y K, adelanto, placebo del denominador, Holm, Aronow-Samii, unidades naturales, convergencia). La cota del titular pasa de ±0,50 a unos 0,55 pp por DE identificante
+- [x] ADR-025: distancia tipo Sarma con faltantes y techo congelado
+- [x] Proyección: cobertura del intervalo, ancho del crecimiento anual, aviso de ancla vencida, escenario condicional
+- [x] Cara pública: badges, TL;DR, qué demuestra, arquitectura, cómo se construyó, `CASE_STUDY.md` y `docs/CASO_DE_ESTUDIO.md`
+- [x] Página del portafolio con cifras centralizadas en un módulo y copy nuevo (repositorio del portafolio)
+
+**Trabajo futuro, fuera del alcance de este proyecto** (no son pendientes; quedan documentados para quien lo retome):
+- Transcribir la EME de Banrep en `config/forecast.yaml` y volver a correr `iif forecast` (el ancla actual tiene 16 meses y la salida lo avisa, B-089).
+- Correr el objetivo BigQuery contra un proyecto real con credenciales del autor (B-058).
+- Extensiones de investigación de los informes de cierre: Bartik de red bancaria, DiD escalonado con corresponsales móviles a nivel municipal, índice v2 con canales digitales y validación contra Banca de las Oportunidades, resiliencia con proyecciones locales, pronóstico con factor común sectorial y nowcast con ITAED.
+- Fase 4: anexo de desagregación temporal, MIDAS y manuscrito.
 
 ### Fase 4: anexo y manuscrito
 Entrada: fase 3. Salida: anexo de desagregación temporal con advertencias, MIDAS como sensibilidad, manuscrito en Quarto con PDF por tectonic.

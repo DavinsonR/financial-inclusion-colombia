@@ -197,6 +197,9 @@ CAMPOS_PROYECCION = {
     "crecimiento_pib_real_proy_sin_anclar": ("sin_anclar", "crecimiento_pct"),
 }
 INDICADOR_INCERTIDUMBRE = "intervalo_ancho_proy"
+# La capa de incertidumbre es el ancho del CRECIMIENTO de cada año, que es lo que colorea el mapa, no
+# el del nivel acumulado, que a 2 y 3 años es mucho mayor (ADR-022, adenda; informe 02, A4).
+CAMPO_INCERTIDUMBRE = "intervalo_ancho_crecimiento_pp"
 
 
 class ProyeccionIncompleta(ValueError):
@@ -245,6 +248,8 @@ def adjuntar_proyeccion(datos: dict, indicadores: list[dict], ruta: Path) -> dic
         "nivel_intervalo": contenido["nivel_intervalo"],
         "vintage": contenido["vintage"]["sha256"][:12],
         "backtest": contenido["puerta_de_calidad"],
+        # Qué es la proyección: un escenario condicional al ancla (informe 02, A10).
+        "escenario": contenido.get("escenario"),
     }
 
     for ind in indicadores:
@@ -260,7 +265,7 @@ def adjuntar_proyeccion(datos: dict, indicadores: list[dict], ruta: Path) -> dic
                 if bloque_dep is None:
                     continue
                 if ind["id"] == INDICADOR_INCERTIDUMBRE:
-                    valores = bloque_dep.get("intervalo_ancho_pp")
+                    valores = bloque_dep.get(CAMPO_INCERTIDUMBRE)
                 else:
                     rama, campo = CAMPOS_PROYECCION[ind["id"]]
                     valores = bloque_dep.get(rama, {}).get(campo)

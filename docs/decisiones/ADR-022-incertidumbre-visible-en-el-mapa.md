@@ -94,3 +94,57 @@ Tres cosas de esta tabla deciden el diseño:
 Quitar el grupo `proyeccion` de `config/atlas.yaml` devuelve el atlas a lo que publica hoy; la
 comprobación de la decisión 6 se desactiva con él. Los cambios de `render.ts` en el sitio son
 independientes y se revierten por separado.
+
+## Adenda 1 (2026-09-23): anchos vigentes, cobertura medida y el ancho que colorea el mapa
+
+El informe de lectura macroeconómica del 2026-09-23 (informe 02, puntos 2.1 a 2.3; recomendaciones A1, A2,
+A4 y A10) encontró tres cosas en esta decisión y su salida.
+
+**1. La tabla del contexto ya no cuadra con `resultados.json`.** Se midió con una versión anterior de la
+capa. Los anchos vigentes al 80 %, leídos de `data/processed/forecast/resultados.json`:
+
+| Departamento | Crecimiento 2026 | Crecimiento 2028 | Nivel acumulado 2028 |
+|---|---|---|---|
+| Amazonas | **4,3 pp** | 4,5 pp | 8,5 pp |
+| Bogotá D.C. | 4,9 pp | 5,1 pp | 9,9 pp |
+| Valle del Cauca | 5,2 pp | 5,9 pp | 11,8 pp |
+| *mediana* | *7,4 pp* | *7,7 pp* | *14,8 pp* |
+| Arauca | 11,6 pp | 11,9 pp | 23,0 pp |
+| Chocó | 13,9 pp | 16,2 pp | 33,7 pp |
+| Meta | 17,0 pp | 19,2 pp | **40,2 pp** |
+| Putumayo | **18,7 pp** | 20,0 pp | 40,5 pp |
+
+Las cifras las fija `tests/test_forecast.py::test_las_cifras_de_adr_022_cuadran_con_resultados_json`
+(marcada `data`): si la salida cambia, la prueba falla y esta tabla se actualiza en el mismo commit
+(R-09). La tabla original del contexto queda como registro de lo que se midió entonces.
+
+Lo que decidía el diseño se sostiene con matices: el ancho a un año varía **4,4 veces** (no siete) entre
+Amazonas y Putumayo, y la correlación de Spearman entre el peso en el PIB y el ancho de 2026 es **−0,42**
+(no −0,358): el tamaño sigue sin servir como sustituto de la confianza.
+
+**2. El ancho a 2 y 3 años era el del nivel acumulado, no el del crecimiento anual.** `intervalo_ancho_pp`
+salía de la varianza del log-PIB en T + h, que suma todos los choques desde 2025. El mapa colorea el
+crecimiento de cada año, y su incertidumbre es la de ese año: la varianza del crecimiento de T + k en un
+ARIMA(p, 1, q) es σ² Σ_{j<k} ψ_j², no σ² Σ_{j<k} (ψ_0 + … + ψ_j)². La combinación suma, igual que en el
+nivel, el desacuerdo entre los crecimientos centrales de las especificaciones. Desde esta adenda:
+
+- `intervalo_ancho_crecimiento_pp` es la capa de incertidumbre del mapa (`intervalo_ancho_proy` en el
+  atlas, que la lee de ahí; `src/iif/export/atlas.py`, `CAMPO_INCERTIDUMBRE`).
+- `intervalo_ancho_nivel_pp` conserva el ancho del nivel acumulado, con su nombre explícito.
+- A un año los dos coinciden por construcción. A 2028 el del nivel dobla al del crecimiento (mediana
+  14,8 frente a 7,7 pp): la frase del contexto «a tres años la mediana del intervalo se duplica» era
+  cierta para el nivel y no para el crecimiento que el mapa pinta, que apenas sube de 7,4 a 7,7.
+
+**3. La cobertura del intervalo existía en código y no se publicaba.** `resultados.json` publica ahora
+`backtest.cobertura_intervalo` (por modelo) y `puerta_de_calidad.cobertura_intervalo_empirica`: en el
+backtest a un año (264 pares, 2018-2025), el intervalo al 80 % de la combinación cubrió el **81 %** de los
+valores observados. Las especificaciones sueltas cubren entre el 64 % y el 77 %, y el ingenuo el 67 %: el
+desacuerdo entre modelos que `combinar` suma a la varianza es lo que lleva la combinación a su nivel
+nominal. La cobertura se mide a un paso; a 2 y 3 años no hay orígenes suficientes para medirla con
+sentido, y el ancho de esos años es de modelo, no validado.
+
+**Lectura.** La capa es un **escenario condicional al ancla**, no un pronóstico con ventaja demostrada
+(ADR-023): la reconciliación proporcional desplaza el crecimiento de 2026 de los 33 departamentos entre
+−0,86 (Meta) y −0,82 puntos (Casanare), un rango de 0,04, así que el patrón del mapa es el de los modelos
+sin anclar. Se publica en `resultados.json` (`reconciliacion`, `escenario.lectura`). Con intervalos que
+se solapan casi por completo, el sitio no publica tablas de posiciones del crecimiento proyectado.

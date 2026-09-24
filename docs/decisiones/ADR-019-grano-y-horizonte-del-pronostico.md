@@ -96,3 +96,23 @@ Dos hechos más del panel condicionan el diseño:
 El horizonte es un parámetro del módulo de pronóstico y de `config/atlas.yaml`. Ampliarlo es cambiar un
 número y volver a correr; lo que no se puede revertir sin rehacer la pieza es la promesa publicada en el
 sitio, así que el cambio pasa por una adenda a este ADR y no por una edición silenciosa.
+
+## Adenda 1 (2026-09-23): la ventaja a 2 y 3 años se midió frente a la deriva y con inferencia inválida
+
+La tabla del contexto justifica el horizonte de tres años con la ventaja del ARIMA a 2 y 3 años (+23,6 % y
++13,3 %). Dos precisiones, del informe de lectura macroeconómica del 2026-09-23 (punto 2.5):
+
+1. **La referencia es la deriva, no el ingenuo.** La puerta de calidad de la capa (ADR-020 decisión 5,
+   ADR-023) se mide contra el ingenuo y **solo a un año**. A 2 y 3 años ninguna prueba del repositorio
+   compara la combinación publicada con el ingenuo, así que la ventaja de esos horizontes es frente a
+   una extrapolación lineal, no frente a la referencia que decide la publicación.
+2. **Los 132 pares se trataron como independientes.** Es la misma inferencia que ADR-023 invalidó para
+   un año: los departamentos de un mismo origen comparten el choque (correlación intraorigen 0,60) y la
+   información efectiva es la de unos pocos orígenes. Las ganancias en MAE de la tabla siguen siendo las
+   medidas; su precisión no está establecida, y a 2 y 3 años hay aún menos orígenes que a uno.
+
+La decisión 1 se mantiene, porque la alternativa de un solo año deja el mapa sin trayectoria, pero su
+justificación queda en esto: **a 2 y 3 años la capa es un escenario condicional al ancla con un intervalo
+de modelo cuya cobertura no se ha podido validar**, no un pronóstico que haya demostrado ventaja. Así lo
+dicen `resultados.json` (`escenario.lectura`) y la adenda de ADR-022, que publica además el ancho del
+crecimiento de cada año en lugar del del nivel acumulado.

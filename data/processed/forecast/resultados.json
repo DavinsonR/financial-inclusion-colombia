@@ -1,5 +1,5 @@
 {
- "generado_en": "2026-09-24T02:05:26+00:00",
+ "generado_en": "2026-09-24T04:34:17+00:00",
  "vintage": {
   "archivo": "data\\interim\\dane\\pib_departamento_anual.parquet",
   "sha256": "a2cee8dc548b639e1f49e11a8e0307ac1b8ba18d66f0e36f33d6cc50a59008b6",
@@ -44,7 +44,15 @@
    "2026": 2.625,
    "2027": 2.76,
    "2028": 2.76
-  }
+  },
+  "antiguedad_meses": 16.3,
+  "antiguedad_maxima_meses": 6,
+  "vencida": true,
+  "aviso": "El ancla (FMI, World Economic Outlook (via DBnomics), corte 2025-05-15) está con 16 meses de antigüedad; el máximo es 6. Transcribe la EME vigente en config/forecast.yaml."
+ },
+ "escenario": {
+  "tipo": "condicional al ancla",
+  "lectura": "Escenario condicional al ancla: si Colombia crece lo que espera FMI, World Economic Outlook (via DBnomics) (corte 2025-05-15, con 16 meses de antigüedad), así se reparte según la inercia de cada departamento. No es un pronóstico oficial ni uno que haya superado al ingenuo con significancia. La reconciliación desplaza a todos casi lo mismo: en 2026, entre -0,86 y -0,82 puntos (rango de 0,04), así que el patrón del mapa es el de los modelos sin anclar. No se publican tablas de posiciones: los intervalos se solapan casi por completo."
  },
  "puerta_de_calidad": {
   "modelo_publicado": "combinacion",
@@ -56,8 +64,10 @@
   "n_origenes": 8,
   "mejor_origen": 2021,
   "ganancia_sin_mejor_origen_pct": 8.291136,
-  "lectura": "Frente al pronóstico ingenuo, la combinación reduce el error medio un 38,6 %; le gana en 3 de 8 años, y sin 2021 la ganancia es de +8,3 %. Con 8 años la diferencia no es estadísticamente distinguible (p = 0,29, agrupado por año): la proyección es un escenario con incertidumbre, no un modelo que haya demostrado superioridad.",
+  "lectura": "Frente al pronóstico ingenuo, la combinación reduce el error medio un 38,6 %; le gana en 3 de 8 años, y sin 2021 la ganancia es de +8,3 %. Con 8 años la diferencia no es estadísticamente distinguible (p = 0,29, agrupado por año): la proyección es un escenario condicional al ancla, no un modelo que haya demostrado superioridad. En ese backtest a un año, el intervalo al 80 % cubrió el 81 % de los valores observados.",
   "cobertura": 1.0,
+  "cobertura_intervalo_empirica": 0.814394,
+  "cobertura_intervalo_nominal": 0.8,
   "n_pares": 264
  },
  "backtest": {
@@ -341,6 +351,79 @@
      "aprobado": false
     }
    ]
+  },
+  "cobertura_intervalo": [
+   {
+    "modelo": "ingenuo",
+    "cobertura_empirica": 0.674242,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "arima_110_atipicos",
+    "cobertura_empirica": 0.708333,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "arima_111_atipicos",
+    "cobertura_empirica": 0.659091,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "arima_011_atipicos",
+    "cobertura_empirica": 0.670455,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "arima_210_atipicos",
+    "cobertura_empirica": 0.640152,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "deriva",
+    "cobertura_empirica": 0.765152,
+    "n": 264,
+    "nivel_nominal": 0.8
+   },
+   {
+    "modelo": "combinacion",
+    "cobertura_empirica": 0.814394,
+    "n": 264,
+    "nivel_nominal": 0.8
+   }
+  ]
+ },
+ "reconciliacion": {
+  "metodo": "proporcional",
+  "desplazamiento_crecimiento_pp": {
+   "2026": {
+    "minimo_pp": -0.862529,
+    "maximo_pp": -0.82142,
+    "mediana_pp": -0.85156,
+    "rango_pp": 0.041109,
+    "departamento_minimo": "Meta",
+    "departamento_maximo": "Casanare"
+   },
+   "2027": {
+    "minimo_pp": -0.813324,
+    "maximo_pp": -0.772914,
+    "mediana_pp": -0.800935,
+    "rango_pp": 0.040409,
+    "departamento_minimo": "Meta",
+    "departamento_maximo": "Arauca"
+   },
+   "2028": {
+    "minimo_pp": -0.712333,
+    "maximo_pp": -0.675457,
+    "mediana_pp": -0.699351,
+    "rango_pp": 0.036876,
+    "departamento_minimo": "Meta",
+    "departamento_maximo": "Arauca"
+   }
   }
  },
  "coherencia_jerarquica_pct": {
@@ -404,7 +487,12 @@
      2.573988
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.064891,
+    6.579217,
+    6.597418
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.064891,
     10.012765,
     12.564765
@@ -447,7 +535,12 @@
      2.488848
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.698652,
+    7.457534,
+    7.332886
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.698652,
     11.53117,
     14.948289
@@ -490,7 +583,12 @@
      2.987503
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    4.886782,
+    5.1677,
+    5.111163
+   ],
+   "intervalo_ancho_nivel_pp": [
     4.886782,
     7.881035,
     9.865236
@@ -533,7 +631,12 @@
      2.367585
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    8.900249,
+    8.909435,
+    8.937203
+   ],
+   "intervalo_ancho_nivel_pp": [
     8.900249,
     12.33957,
     14.835201
@@ -576,7 +679,12 @@
      2.321689
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.957927,
+    8.459713,
+    8.461263
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.957927,
     13.050763,
     16.610617
@@ -619,7 +727,12 @@
      1.924202
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.812071,
+    7.115112,
+    7.131553
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.812071,
     10.915532,
     13.813405
@@ -662,7 +775,12 @@
      2.055959
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.648905,
+    6.98089,
+    7.008051
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.648905,
     10.742046,
     13.957985
@@ -705,7 +823,12 @@
      2.117992
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.610581,
+    7.831011,
+    7.881825
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.610581,
     12.011245,
     15.724371
@@ -748,7 +871,12 @@
      -0.063462
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    10.232663,
+    10.547451,
+    10.609138
+   ],
+   "intervalo_ancho_nivel_pp": [
     10.232663,
     16.290924,
     21.446667
@@ -791,7 +919,12 @@
      0.924827
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.871857,
+    8.62713,
+    8.64965
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.871857,
     9.954167,
     11.624841
@@ -834,7 +967,12 @@
      1.224415
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.078804,
+    6.577497,
+    6.574304
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.078804,
     9.988283,
     12.574816
@@ -877,7 +1015,12 @@
      0.426195
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    13.89099,
+    16.088206,
+    16.200833
+   ],
+   "intervalo_ancho_nivel_pp": [
     13.89099,
     25.172967,
     33.7395
@@ -920,7 +1063,12 @@
      0.644653
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.159057,
+    6.67416,
+    6.697664
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.159057,
     10.329144,
     13.256588
@@ -963,7 +1111,12 @@
      -1.183799
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    11.567459,
+    11.868394,
+    11.952474
+   ],
+   "intervalo_ancho_nivel_pp": [
     11.567459,
     17.62964,
     22.792258
@@ -1006,7 +1159,12 @@
      1.790996
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.022238,
+    6.223228,
+    6.245862
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.022238,
     9.41282,
     11.739811
@@ -1049,7 +1207,12 @@
      3.727228
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    17.033139,
+    18.490934,
+    19.174098
+   ],
+   "intervalo_ancho_nivel_pp": [
     17.033139,
     29.014473,
     40.168736
@@ -1092,7 +1255,12 @@
      2.22142
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.053778,
+    7.385672,
+    7.423694
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.053778,
     11.369868,
     14.318912
@@ -1135,7 +1303,12 @@
      2.628389
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.818262,
+    7.219086,
+    7.363728
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.818262,
     11.111103,
     14.772176
@@ -1178,7 +1351,12 @@
      2.984159
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.393572,
+    8.01518,
+    8.051896
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.393572,
     12.378933,
     15.936912
@@ -1221,7 +1399,12 @@
      2.241177
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.004903,
+    6.196563,
+    6.204917
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.004903,
     9.412452,
     11.824483
@@ -1264,7 +1447,12 @@
      2.128227
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.319424,
+    7.320153,
+    7.321225
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.319424,
     10.463685,
     12.871434
@@ -1307,7 +1495,12 @@
      1.726537
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    6.403196,
+    6.497975,
+    6.580813
+   ],
+   "intervalo_ancho_nivel_pp": [
     6.403196,
     9.834726,
     12.839291
@@ -1350,7 +1543,12 @@
      1.58038
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    5.853136,
+    6.266074,
+    6.344467
+   ],
+   "intervalo_ancho_nivel_pp": [
     5.853136,
     9.571343,
     12.237224
@@ -1393,7 +1591,12 @@
      2.765782
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    5.232676,
+    5.902996,
+    5.878248
+   ],
+   "intervalo_ancho_nivel_pp": [
     5.232676,
     9.038067,
     11.817564
@@ -1436,7 +1639,12 @@
      -1.06236
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    11.607636,
+    11.816743,
+    11.865647
+   ],
+   "intervalo_ancho_nivel_pp": [
     11.607636,
     17.909841,
     23.016656
@@ -1479,7 +1687,12 @@
      -0.902415
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    10.296107,
+    11.901857,
+    12.055213
+   ],
+   "intervalo_ancho_nivel_pp": [
     10.296107,
     18.769542,
     25.614126
@@ -1522,7 +1735,12 @@
      2.244524
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    18.715455,
+    19.897962,
+    19.955199
+   ],
+   "intervalo_ancho_nivel_pp": [
     18.715455,
     31.089733,
     40.544197
@@ -1565,7 +1783,12 @@
      2.673382
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    10.233148,
+    10.289103,
+    10.290574
+   ],
+   "intervalo_ancho_nivel_pp": [
     10.233148,
     14.887296,
     18.449515
@@ -1608,7 +1831,12 @@
      1.518815
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    4.283228,
+    4.439187,
+    4.476854
+   ],
+   "intervalo_ancho_nivel_pp": [
     4.283228,
     6.58963,
     8.502885
@@ -1651,7 +1879,12 @@
      -0.159619
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    9.181338,
+    10.017257,
+    10.435988
+   ],
+   "intervalo_ancho_nivel_pp": [
     9.181338,
     11.372719,
     13.978133
@@ -1694,7 +1927,12 @@
      1.514584
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.534866,
+    7.727532,
+    7.745345
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.534866,
     11.762086,
     14.764046
@@ -1737,7 +1975,12 @@
      2.247954
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    7.993071,
+    8.132393,
+    8.222416
+   ],
+   "intervalo_ancho_nivel_pp": [
     7.993071,
     12.297225,
     16.003092
@@ -1780,7 +2023,12 @@
      -1.500863
     ]
    },
-   "intervalo_ancho_pp": [
+   "intervalo_ancho_crecimiento_pp": [
+    9.746615,
+    9.883707,
+    9.938347
+   ],
+   "intervalo_ancho_nivel_pp": [
     9.746615,
     13.389347,
     15.995999

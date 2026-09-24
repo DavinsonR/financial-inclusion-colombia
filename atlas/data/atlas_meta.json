@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generado_en": "2026-09-24T03:39:56Z",
+ "generado_en": "2026-09-24T04:34:26Z",
  "indicadores": {
   "departamento": [
    {
@@ -131,7 +131,7 @@
    },
    {
     "id": "intervalo_ancho_proy",
-    "etiqueta": "Ancho del intervalo al 80 %",
+    "etiqueta": "Ancho del intervalo al 80 % del crecimiento anual",
     "grupo": "proyeccion",
     "escala": "secuencial",
     "decimales": 1

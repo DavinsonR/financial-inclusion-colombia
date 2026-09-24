@@ -98,6 +98,7 @@ def two_way_fe(
     errores: str = "cluster",
     nombre: str = "two-way FE",
     time_effects: bool = True,
+    pesos: str | None = None,
 ):
     """Efectos fijos de entidad y tiempo, con la familia de errores que se pida.
 
@@ -109,7 +110,12 @@ def two_way_fe(
     controls = list(controls or [])
     panel = as_panel(df)
     exog = panel[[x, *controls]].assign(const=1.0)
-    modelo = PanelOLS(panel[y], exog, entity_effects=True, time_effects=time_effects)
+    # `pesos` es mínimos cuadrados ponderados (por ejemplo, por población): cambia la pregunta de "el
+    # departamento típico" a "el habitante típico" y se publica como tal (ADR-024, A8).
+    modelo = PanelOLS(
+        panel[y], exog, entity_effects=True, time_effects=time_effects,
+        weights=panel[pesos] if pesos else None,
+    )
     if errores == "cluster":
         res = modelo.fit(cov_type="clustered", cluster_entity=True)
     elif errores == "driscoll-kraay":

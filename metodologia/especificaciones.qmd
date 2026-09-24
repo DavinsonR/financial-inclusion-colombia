@@ -41,7 +41,7 @@ Markdown(f"""
 
 ```{python}
 #| echo: false
-#| fig-cap: "Efecto e intervalo de confianza al 95 % de cada especificación, en puntos porcentuales de crecimiento anual por desviación típica identificante de su propio regresor, que es la unidad que los hace comparables. Ordenadas de menor a mayor dentro de cada régimen; en color oscuro las que dan p < 0,05."
+#| fig-cap: "Efecto e intervalo de confianza al 95 % de cada especificación, en puntos porcentuales de crecimiento anual por desviación típica identificante de su propio regresor en su propio régimen de efectos (sin efectos de tiempo, la que queda tras los de entidad; ADR-024), que es la unidad que los hace comparables. Ordenadas de menor a mayor dentro de cada régimen; en color oscuro las que dan p < 0,05."
 fig, ejes = plt.subplots(1, 2, figsize=(8.2, 3.6), sharey=True)
 for ax, regimen in zip(ejes, ["solo entidad", "entidad y tiempo"], strict=True):
     sub = D[D["efectos"] == regimen].sort_values("coef_pp").reset_index(drop=True)
