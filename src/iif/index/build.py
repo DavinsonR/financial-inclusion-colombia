@@ -38,6 +38,9 @@ class IndexResult:
     implicitos: pd.DataFrame
     sensibilidad: pd.DataFrame
     correlacion_rangos: pd.DataFrame
+    correlacion_rangos_detalle: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
+    varianza_intra: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
+    techo_sarma: dict[str, float] = field(default_factory=dict)
     normalizado: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
 
 
@@ -259,13 +262,135 @@ def pesos_implicitos(fits: dict[str, DimensionFit], pesos_dim: dict[str, float])
     return pd.DataFrame(filas).sort_values(["dimension", "variable_id"]).reset_index(drop=True)
 
 
-def _sarma(z: pd.DataFrame) -> pd.Series:
-    """Índice de distancia de Sarma: 1 menos la distancia euclídea normalizada al vector ideal."""
-    x = z.clip(lower=0)
-    x = x.div(x.max().replace(0, np.nan), axis=1).fillna(0.0)
+def techo_sarma(z: pd.DataFrame, en_calibracion: pd.Series) -> pd.Series:
+    """El techo de la distancia tipo Sarma: máximo de las z recortadas en 0, en la ventana de calibración."""
+    techo = z.clip(lower=0).loc[np.asarray(en_calibracion, dtype=bool)].max().replace(0, np.nan)
+    if techo.isna().any():
+        raise ValueError(
+            f"distancia tipo Sarma: sin techo en la calibración para {list(techo[techo.isna()].index)}"
+        )
+    return techo
+
+
+def _sarma(z: pd.DataFrame, techo: pd.Series) -> pd.Series:
+    """Distancia tipo Sarma: 1 menos la distancia euclídea normalizada al vector ideal (ADR-025).
+
+    No es el índice de Sarma (2008) tal cual, y por eso se rotula «tipo Sarma»:
+
+    - El suelo de cada variable es la media de la calibración (z = 0): lo que queda por debajo se recorta
+      a 0, así que la distancia no distingue entre dos unidades que están, ambas, bajo la media.
+    - El techo es el máximo de las z recortadas **en la ventana de calibración**, congelado como las
+      medias y las desviaciones: añadir un año no mueve el techo ni, por tanto, los años anteriores. Lo
+      que supera ese techo cuenta como haber llegado al ideal (se recorta a 1).
+    - Un faltante sigue faltante (R-13): la fila sin alguna de las variables se queda sin valor, igual
+      que el compuesto. Rellenar con cero la ponía a la máxima distancia del ideal en esa variable.
+    """
+    x = z.clip(lower=0).div(techo.reindex(z.columns), axis=1).clip(upper=1)
     k = x.shape[1]
-    d_peor = np.sqrt(k)
-    return 1 - np.sqrt(((1 - x) ** 2).sum(axis=1)) / d_peor
+    distancia = np.sqrt(((1 - x) ** 2).sum(axis=1, min_count=k)) / np.sqrt(k)
+    # `min_count` ya deja NaN la suma de una fila incompleta; la máscara lo hace explícito.
+    return (1 - distancia).where(x.notna().all(axis=1))
+
+
+def correlacion_rangos_detalle(
+    comp: pd.DataFrame, columnas: list[str], id_cols: tuple[str, ...]
+) -> pd.DataFrame:
+    """Spearman entre versiones del índice: agrupada, dentro de cada año y en cambios.
+
+    La agrupada mezcla años y unidades, y la tendencia común la infla: si todas las versiones suben con
+    el tiempo, ordenan igual los años aunque no ordenen igual a las unidades. Lo que importa para un panel
+    con efectos de año es la correlación **dentro de cada año** (se publica la media y el mínimo, con el
+    año del mínimo) y la de los **cambios** anuales de cada unidad, que es la variación que deja un efecto
+    fijo de unidad.
+    """
+    unidad, tiempo = id_cols[0], id_cols[1]
+    ordenado = comp.sort_values([unidad, tiempo]).reset_index(drop=True)
+    cambios = ordenado.groupby(unidad)[columnas].diff()
+    # Un cambio solo es tal entre años consecutivos: un hueco de dos años no es un cambio anual.
+    cambios = cambios[ordenado.groupby(unidad)[tiempo].diff() == 1]
+    filas = []
+    for i, a in enumerate(columnas):
+        for b in columnas[i + 1 :]:
+            por_anio = {
+                int(anio): g[a].corr(g[b], method="spearman")
+                for anio, g in ordenado.dropna(subset=[a, b]).groupby(tiempo)
+                if len(g) > 2
+            }
+            por_anio = pd.Series(por_anio, dtype=float).dropna()
+            par_cambios = cambios[[a, b]].dropna()
+            filas.append(
+                dict(
+                    version_a=a,
+                    version_b=b,
+                    agrupada=float(ordenado[a].corr(ordenado[b], method="spearman")),
+                    por_anio_media=float(por_anio.mean()) if len(por_anio) else np.nan,
+                    por_anio_minimo=float(por_anio.min()) if len(por_anio) else np.nan,
+                    anio_del_minimo=int(por_anio.idxmin()) if len(por_anio) else None,
+                    n_anios=int(len(por_anio)),
+                    cambios=float(par_cambios[a].corr(par_cambios[b], method="spearman")),
+                    n_cambios=int(len(par_cambios)),
+                )
+            )
+    return pd.DataFrame(filas)
+
+
+def _quitar_dos_vias(
+    df: pd.DataFrame, columnas: list[str], unidad: str, tiempo: str, tol: float = 1e-12, max_iter: int = 1000
+) -> pd.DataFrame:
+    """Residuo de efectos fijos de unidad y de año, por proyecciones alternadas.
+
+    En un panel balanceado basta una pasada (x − media de unidad − media de año + media global); con
+    huecos, como los de Vaupés y Guainía, la pasada única no es la proyección y hay que iterar hasta que
+    las medias por unidad y por año sean cero a la vez.
+    """
+    r = df[columnas].astype(float).copy()
+    for _ in range(max_iter):
+        r = r - r.groupby(df[unidad]).transform("mean")
+        r = r - r.groupby(df[tiempo]).transform("mean")
+        if float(r.groupby(df[unidad]).mean().abs().to_numpy().max()) < tol:
+            break
+    return r
+
+
+def participacion_varianza_intra(
+    scores: pd.DataFrame, pesos_dim: dict[str, float], id_cols: tuple[str, ...]
+) -> pd.DataFrame:
+    """Qué parte de la varianza intra (efectos fijos de unidad y de año) del compuesto aporta cada dimensión.
+
+    Tras los efectos fijos, el compuesto residual es la suma ponderada de las dimensiones residuales, así
+    que su varianza se reparte exactamente: participación_d = w_d · Cov(D̃_d, C̃) / Var(C̃), y las tres
+    suman uno. Es la cifra detrás de la frase de la guía (§9) según la cual, tras los efectos fijos, el
+    índice mide en la práctica corresponsales por habitante. `participacion_propia` es solo el término de
+    varianza, w_d² · Var(D̃_d) / Var(C̃); la diferencia con la anterior son las covarianzas.
+    """
+    unidad, tiempo = id_cols[0], id_cols[1]
+    dims = [f"iif_{d}" for d in pesos_dim]
+    muestra = scores.dropna(subset=["iif_compuesto", *dims]).reset_index(drop=True)
+    resid = _quitar_dos_vias(muestra, ["iif_compuesto", *dims], unidad, tiempo)
+    c = resid["iif_compuesto"] - resid["iif_compuesto"].mean()
+    var_total = float(muestra["iif_compuesto"].var(ddof=0))
+    var_c = float((c**2).mean())
+    if var_c <= 1e-12 * max(var_total, 1.0):
+        # Sin variación intra no hay nada que repartir, y dividir por un residuo numérico inventaría
+        # participaciones.
+        var_c = 0.0
+    filas = []
+    for d, w in pesos_dim.items():
+        x = resid[f"iif_{d}"] - resid[f"iif_{d}"].mean()
+        var_d = float((x**2).mean())
+        filas.append(
+            dict(
+                dimension=d,
+                peso=float(w),
+                varianza_intra_dimension=var_d,
+                participacion=float(w * (x * c).mean() / var_c) if var_c > 0 else np.nan,
+                participacion_propia=float(w**2 * var_d / var_c) if var_c > 0 else np.nan,
+                varianza_intra_compuesto=var_c,
+                fraccion_intra_de_la_total=var_c / var_total if var_total > 0 else np.nan,
+                n_obs=int(len(muestra)),
+            )
+        )
+    return pd.DataFrame(filas)
 
 
 def build_index(
@@ -277,8 +402,13 @@ def build_index(
     col_poblacion: str = "poblacion_total",
     col_producto: str = "pib_corriente_mm",
     pesos_congelados: dict | None = None,
+    techo_congelado: dict[str, float] | None = None,
 ) -> IndexResult:
-    """Calcula subíndices y compuesto. Con `pesos_congelados` reproduce exactamente una corrida anterior."""
+    """Calcula subíndices y compuesto. Con `pesos_congelados` reproduce exactamente una corrida anterior.
+
+    `techo_congelado` es el techo de la distancia tipo Sarma calibrado en otro panel: el municipal usa el
+    del departamental, igual que usa sus medias y desviaciones (ADR-025).
+    """
     contract = contract or load_contract()
     norm = normalize_panel(
         panel,
@@ -319,7 +449,7 @@ def build_index(
     scores["iif_compuesto"] = sum(scores[f"iif_{d}"] * w for d, w in pesos_dim.items())
 
     # Sensibilidad: el primer componente principal por dimensión, que es el método que los datos no
-    # sostienen (KMO por debajo de 0,5; ADR-015 adenda), y el índice de distancia de Sarma.
+    # sostienen (KMO por debajo de 0,5; ADR-015 adenda), y la distancia tipo Sarma (ADR-025).
     cal = contract["calibracion"]
     calib_sens = norm[(norm["anio"] >= cal["anio_desde"]) & (norm["anio"] <= cal["anio_hasta"])]
     sens = norm[list(id_cols)].copy()
@@ -342,17 +472,26 @@ def build_index(
             for v in todas
         }
     )
-    sens["iif_sarma"] = _sarma(z_todas)
+    if techo_congelado is None:
+        en_calibracion = (norm["anio"] >= cal["anio_desde"]) & (norm["anio"] <= cal["anio_hasta"])
+        techo = techo_sarma(z_todas, en_calibracion)
+    else:
+        techo = pd.Series(techo_congelado, dtype=float)
+    sens["iif_sarma"] = _sarma(z_todas, techo)
 
     comp = scores[[*id_cols, "iif_compuesto"]].merge(
         sens[[*id_cols, "iif_pca", "iif_sarma"]], on=list(id_cols)
     )
-    corr = comp[["iif_compuesto", "iif_pca", "iif_sarma"]].corr(method="spearman")
+    versiones = ["iif_compuesto", "iif_pca", "iif_sarma"]
+    corr = comp[versiones].corr(method="spearman")
     return IndexResult(
         scores=scores,
         fits=fits,
         implicitos=implicitos,
         sensibilidad=sens,
         correlacion_rangos=corr,
+        correlacion_rangos_detalle=correlacion_rangos_detalle(comp, versiones, id_cols),
+        varianza_intra=participacion_varianza_intra(scores, pesos_dim, id_cols),
+        techo_sarma=techo.to_dict(),
         normalizado=norm,
     )

@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 from scipy import stats
 
+from iif import config
 from iif.forecast import backtest, frame, models, reconcile
 
 
@@ -393,3 +394,169 @@ def test_la_combinacion_supera_al_ingenuo_en_el_panel_real(marco):
     assert aprobado.mejor_origen == 2021
     assert 5 < aprobado.ganancia_sin_mejor_origen_pct < 12
     assert 0.2 < aprobado.dm_p < 0.4
+
+
+# ------------------------------------------------------------------ ancho del crecimiento anual (A4)
+
+def test_en_un_paseo_aleatorio_el_crecimiento_no_acumula_varianza():
+    """La del nivel suma los choques; la del crecimiento de cada año es la de un choque."""
+    serie = pd.Series(np.log(np.linspace(100, 150, 20)) + np.random.default_rng(3).normal(0, 0.02, 20),
+                      index=range(2005, 2025))
+    for fn in (models.naive, models.drift):
+        p = fn(serie, 3)
+        assert np.allclose(p.varianza_crecimiento, p.varianza[0])
+        assert np.allclose(p.varianza, np.cumsum(p.varianza_crecimiento))
+
+
+def test_la_varianza_del_crecimiento_arima_cuadra_con_la_del_nivel_de_statsmodels():
+    """Los pesos ψ reconstruyen la varianza del nivel que da statsmodels, y la del crecimiento es menor.
+
+    Es la comprobación de que las dos varianzas salen del mismo ajuste: σ² Σ (ψ_0 + … + ψ_j)² es la del
+    nivel; σ² Σ ψ_j², la del crecimiento de cada año.
+    """
+    rng = np.random.default_rng(5)
+    e = rng.normal(0, 0.02, 40)
+    d = np.empty(40)
+    d[0] = 0.03
+    for t in range(1, 40):
+        d[t] = 0.03 + 0.5 * (d[t - 1] - 0.03) + e[t]
+    serie = pd.Series(np.log(100.0) + np.cumsum(d), index=range(1986, 2026))
+    p = models.predecir("arima_110_atipicos", serie, 3)
+    assert np.all(np.isfinite(p.varianza_crecimiento))
+    assert p.varianza_crecimiento[0] == pytest.approx(p.varianza[0])
+    from statsmodels.tsa.arima.model import ARIMA
+
+    ajuste = ARIMA(serie.to_numpy(float), order=(1, 1, 0), trend="t",
+                   exog=frame.dummies_atipicos(serie.index)).fit()
+    psi = models.pesos_psi(ajuste.arparams, ajuste.maparams, 3)
+    nivel = p.varianza[0] * np.cumsum(np.cumsum(psi) ** 2)
+    assert np.allclose(nivel, p.varianza, rtol=1e-3)
+    # con φ > 0 el nivel acumula más que el crecimiento de un año a partir del segundo paso
+    assert p.varianza[1] > 2 * p.varianza_crecimiento[1]
+
+
+def test_combinar_suma_el_desacuerdo_en_el_crecimiento_de_cada_anio():
+    """Dos modelos que coinciden en el nivel de 2026 y discrepan en 2027 discrepan en el crecimiento de 2027."""
+    a = models.Pronostico(np.array([1.0, 1.1]), np.array([0.01, 0.02]), np.array([0.01, 0.01]))
+    b = models.Pronostico(np.array([1.0, 1.3]), np.array([0.01, 0.02]), np.array([0.01, 0.01]))
+    c = models.combinar({"a": a, "b": b})
+    assert c.varianza_crecimiento[0] == pytest.approx(0.01)
+    assert c.varianza_crecimiento[1] == pytest.approx(0.01 + 0.1 ** 2)
+    sin = models.Pronostico(np.array([1.0, 1.2]), np.array([0.01, 0.02]))
+    assert models.combinar({"a": a, "sin": sin}).varianza_crecimiento is None
+    assert np.isnan(sin.ancho_crecimiento()).all(), "sin varianza del crecimiento no hay ancho que inventar"
+
+
+# ------------------------------------------------------------------ vigencia del ancla (A3)
+
+def test_el_ancla_vieja_avisa_y_lo_deja_escrito(tmp_path, monkeypatch):
+    from datetime import date
+
+    from iif.forecast import anchor
+
+    viejo = reconcile.Ancla("prueba", "2025-05-15", {2026: 2.6})
+    estado = anchor.vigencia(viejo, hoy=date(2026, 9, 23))
+    assert estado["vencida"] and 16 < estado["antiguedad_meses"] < 16.5
+    assert "config/forecast.yaml" in estado["aviso"]
+    nuevo = anchor.vigencia(reconcile.Ancla("prueba", "2026-08-31", {2026: 2.6}), hoy=date(2026, 9, 23))
+    assert not nuevo["vencida"] and nuevo["aviso"] is None
+    assert anchor.vigencia(reconcile.Ancla("prueba", "desconocida", {}))["vencida"]
+
+    ruta = tmp_path / "forecast.yaml"
+    ruta.write_text("anclas:\n  central:\n    fuente: prueba\n    fecha_corte: '2020-01-31'\n"
+                    "    crecimiento: {2026: 2.0, 2027: 2.0, 2028: 2.0}\n", encoding="utf-8")
+    monkeypatch.setattr(anchor, "CONFIG_FORECAST", ruta)
+    with pytest.warns(anchor.AnclaVencida, match="meses de antigüedad"):
+        ancla = anchor.cargar([2026, 2027, 2028], sin_red=True)
+    assert ancla.fuente == "prueba"
+
+
+# ------------------------------------------------------------------ escenario y reconciliación (A10)
+
+def test_el_desplazamiento_de_la_reconciliacion_se_publica_con_su_rango():
+    from iif.forecast import run
+
+    sin = pd.DataFrame({"01": [3.0, 3.1], "02": [1.0, 0.5]}, index=pd.Index([2026, 2027], name="anio"))
+    rec = sin - pd.DataFrame({"01": [0.80, 0.70], "02": [0.86, 0.72]}, index=sin.index)
+    d = run.desplazamiento_de_la_reconciliacion(sin, rec, {"01": "Uno", "02": "Dos"})
+    assert d["2026"]["minimo_pp"] == pytest.approx(-0.86)
+    assert d["2026"]["rango_pp"] == pytest.approx(0.06)
+    assert d["2026"]["departamento_minimo"] == "Dos"
+    texto = run.lectura_del_escenario({"fuente": "FMI", "fecha_corte": "2025-05-15",
+                                       "antiguedad_meses": 16.3, "vencida": True}, d)
+    assert texto.startswith("Escenario condicional al ancla")
+    assert "16 meses" in texto and "casi lo mismo" in texto and "tablas de posiciones" in texto
+
+
+def test_la_lectura_lleva_la_cobertura_del_intervalo():
+    from iif.forecast.run import lectura_de_la_puerta
+
+    v = backtest.Veredicto("combinacion", 3.4, 1.0, 38.5539, 0.287, 264, True,
+                           origenes_ganados=3, n_origenes=8, mejor_origen=2021,
+                           ganancia_sin_mejor_origen_pct=8.29)
+    assert "cubrió el 81 %" in lectura_de_la_puerta(v, 0.8144)
+    assert "cubrió" not in lectura_de_la_puerta(v)
+
+
+# ------------------------------------------------------------------ cifras publicadas (R-09)
+
+RESULTADOS = config.DATA_PROCESSED / "forecast" / "resultados.json"
+
+# Las cifras que cita la adenda de 2026-09-23 de ADR-022, en pp al 80 %: (crecimiento 2026,
+# crecimiento 2028, nivel 2028). A un año el ancho del nivel y el del crecimiento coinciden.
+ANCHOS_ADR_022 = {
+    "91": (4.3, 4.5, 8.5),     # Amazonas
+    "11": (4.9, 5.1, 9.9),     # Bogotá
+    "76": (5.2, 5.9, 11.8),    # Valle del Cauca
+    "81": (11.6, 11.9, 23.0),  # Arauca
+    "27": (13.9, 16.2, 33.7),  # Chocó
+    "50": (17.0, 19.2, 40.2),  # Meta
+    "86": (18.7, 20.0, 40.5),  # Putumayo
+}
+MEDIANAS_ADR_022 = (7.4, 7.7, 14.8)
+
+
+@pytest.mark.data
+@pytest.mark.skipif(not RESULTADOS.exists(), reason="sin resultados.json; corre `uv run iif forecast`")
+def test_las_cifras_de_adr_022_cuadran_con_resultados_json():
+    """La tabla de ADR-022 dejó de cuadrar con la salida sin que nada fallara (informe 02, A2)."""
+    import json
+
+    r = json.loads(RESULTADOS.read_text(encoding="utf-8"))
+    deps = r["departamentos"]
+    for cod, (c26, c28, n28) in ANCHOS_ADR_022.items():
+        crec, nivel = deps[cod]["intervalo_ancho_crecimiento_pp"], deps[cod]["intervalo_ancho_nivel_pp"]
+        assert round(crec[0], 1) == c26, (cod, crec)
+        assert round(crec[2], 1) == c28, (cod, crec)
+        assert round(nivel[2], 1) == n28, (cod, nivel)
+        assert nivel[0] == pytest.approx(crec[0], abs=1e-6)
+    med = [float(np.median([d[k][i] for d in deps.values()]))
+           for k, i in (("intervalo_ancho_crecimiento_pp", 0), ("intervalo_ancho_crecimiento_pp", 2),
+                        ("intervalo_ancho_nivel_pp", 2))]
+    assert tuple(round(m, 1) for m in med) == MEDIANAS_ADR_022
+    # La cobertura, el ancla y el desplazamiento que citan la adenda y el informe final.
+    puerta = r["puerta_de_calidad"]
+    assert round(puerta["cobertura_intervalo_empirica"], 2) == 0.81
+    comb = next(c for c in r["backtest"]["cobertura_intervalo"] if c["modelo"] == "combinacion")
+    assert comb["cobertura_empirica"] == puerta["cobertura_intervalo_empirica"]
+    assert "antiguedad_meses" in r["ancla"]
+    d26 = r["reconciliacion"]["desplazamiento_crecimiento_pp"]["2026"]
+    assert round(d26["minimo_pp"], 2) == -0.86 and round(d26["maximo_pp"], 2) == -0.82
+    assert d26["rango_pp"] < 0.1, "el ancla desplaza a todos casi lo mismo"
+    assert r["escenario"]["lectura"].startswith("Escenario condicional al ancla")
+    sueltas = [c["cobertura_empirica"] for c in r["backtest"]["cobertura_intervalo"]
+               if c["modelo"] not in {"combinacion", "ingenuo"}]
+    assert (round(min(sueltas), 2), round(max(sueltas), 2)) == (0.64, 0.77)
+
+
+@pytest.mark.data
+@pytest.mark.skipif(not RESULTADOS.exists(), reason="sin resultados.json; corre `uv run iif forecast`")
+def test_el_tamano_no_predice_el_ancho_vigente(marco):
+    """ADR-022, adenda: el ancho a un año varía 4,4 veces y el peso en el PIB no lo predice (ρ = −0,42)."""
+    import json
+
+    deps = json.loads(RESULTADOS.read_text(encoding="utf-8"))["departamentos"]
+    ancho = pd.Series({c: v["intervalo_ancho_crecimiento_pp"][0] for c, v in deps.items()})
+    peso = marco.pib_nivel.iloc[-1] / marco.pib_nivel.iloc[-1].sum()
+    assert round(ancho.max() / ancho.min(), 1) == 4.4
+    assert round(peso.corr(ancho.reindex(peso.index), method="spearman"), 2) == -0.42

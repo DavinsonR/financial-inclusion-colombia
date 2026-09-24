@@ -129,3 +129,18 @@ def test_el_resumen_no_esconde_las_no_estimables(monkeypatch):
     salida = curve.run()
     assert salida["no_estimables"] > 0
     assert salida["total"] == len(salida["especificaciones"]) + salida["no_estimables"]
+
+
+def test_solo_entidad_se_escala_con_su_propia_desviacion(rejilla_espuria):
+    """ADR-024 (A10): los pp de "solo entidad" usan la desviación tras los efectos de entidad, no la de dos vías.
+
+    Con una tendencia común fuerte casi toda la varianza del regresor es de año: la desviación de entidad
+    tiene que ser mucho mayor que la de dos vías de la misma especificación.
+    """
+    vivas = rejilla_espuria[rejilla_espuria["estimable"]]
+    clave = ["regresor", "controles", "muestra"]
+    junto = vivas[vivas["efectos"] == "solo entidad"].merge(
+        vivas[vivas["efectos"] == "entidad y tiempo"], on=clave, suffixes=("_ent", "_dos")
+    )
+    compuesto = junto[junto["regresor"] == "índice compuesto"]
+    assert (compuesto["de_identificante_ent"] > 1.3 * compuesto["de_identificante_dos"]).all()

@@ -72,8 +72,20 @@ Ninguno es negativo. Esa es la comprobación que decidió el método y la que vi
 
 ## Sensibilidad
 
-Tres versiones del mismo índice: la publicada, la del componente principal y la de distancia de Sarma.
-Correlación de rangos entre ellas:
+Tres versiones del mismo índice: la publicada, la del componente principal y una **distancia tipo
+Sarma**. Esta última no es el índice de Sarma (2008) tal cual, y por eso lleva el apellido «tipo»
+([ADR-025](../decisiones.qmd)):
+
+- el suelo de cada variable es la media de la calibración: las estandarizadas se **recortan en 0**, así
+  que la distancia no distingue entre dos departamentos que están, ambos, por debajo de la media;
+- el techo es el máximo de la ventana de calibración (2018-2019), **congelado** como las medias y las
+  desviaciones: añadir un año no cambia los anteriores, y lo que supera el techo cuenta como haber
+  llegado al ideal;
+- un dato que falta **sigue faltando** (R-13): la fila sin alguna variable no tiene distancia, igual
+  que no tiene compuesto;
+- las ocho variables pesan lo mismo, así que el uso, con cuatro, pesa la mitad.
+
+Correlación de rangos entre las tres, agrupando todos los años:
 
 ```{python}
 import pandas as pd
@@ -81,8 +93,57 @@ from iif import config
 pd.read_csv(config.DATA_PROCESSED / "indice_correlacion_rangos.csv", index_col=0).round(3)
 ```
 
-Las tres ordenan a los departamentos casi igual. Por eso conviene quedarse con la que no tiene pesos
-negativos: se pierde poco y se gana una propiedad que sí importa.
+La correlación agrupada mezcla años y departamentos, y la tendencia común la infla: si todas las
+versiones suben con el tiempo, ordenan igual los años aunque no ordenen igual a los departamentos. Lo que
+importa para un panel con efectos de año es la correlación **dentro de cada año** y la de los **cambios**
+anuales de cada departamento, que es la variación que usa un efecto fijo de unidad:
+
+```{python}
+d = pd.read_csv(config.DATA_PROCESSED / "indice_correlacion_rangos_detalle.csv")
+d[["version_a", "version_b", "agrupada", "por_anio_media", "por_anio_minimo", "anio_del_minimo",
+   "cambios"]].round(3)
+```
+
+```{python}
+#| output: asis
+par = d.set_index(["version_a", "version_b"])
+pca = par.loc[("iif_compuesto", "iif_pca")]
+sar = par.loc[("iif_compuesto", "iif_sarma")]
+f = lambda x: f"{x:.2f}".replace(".", ",")
+print(f"Frente al componente principal el orden aguanta: {f(pca.por_anio_media)} de media dentro del "
+      f"año, {f(pca.por_anio_minimo)} en el peor ({int(pca.anio_del_minimo)}) y {f(pca.cambios)} en "
+      f"cambios. Frente a la distancia tipo Sarma no tanto: {f(sar.por_anio_media)} de media, "
+      f"{f(sar.por_anio_minimo)} en {int(sar.anio_del_minimo)} y solo {f(sar.cambios)} en cambios. La "
+      f"elección entre pesos iguales y componente principal casi no mueve a los departamentos; la "
+      f"distancia tipo Sarma sí los reordena, sobre todo en sus cambios, porque recorta a todos los que "
+      f"están bajo la media y satura a los que pasan el techo de la calibración.")
+```
+
+## Qué mueve el compuesto una vez quitados los efectos fijos
+
+El panel econométrico usa efectos fijos de departamento y de año, así que lo que identifica el
+coeficiente es la variación del compuesto que queda tras quitar el nivel de cada departamento y la
+tendencia común. Como el compuesto es la suma ponderada de las tres dimensiones, esa varianza intra se
+reparte exactamente entre ellas: la participación de cada una es su peso por su covarianza intra con el
+compuesto, dividido por la varianza intra del compuesto, y las tres suman uno.
+
+```{python}
+v = pd.read_csv(config.DATA_PROCESSED / "indice_varianza_intra.csv")
+v[["dimension", "peso", "varianza_intra_dimension", "participacion", "participacion_propia"]].round(3)
+```
+
+```{python}
+#| output: asis
+vi = v.set_index("dimension")
+pct = lambda x: f"{100 * x:.0f} %"
+print(f"El acceso, que es una sola variable (corresponsales activos por 10.000 habitantes), aporta el "
+      f"{pct(vi.loc['acceso', 'participacion'])} de la varianza intra del compuesto; el uso, el "
+      f"{pct(vi.loc['uso', 'participacion'])}, y la profundidad, el "
+      f"{pct(vi.loc['profundidad', 'participacion'])}. La varianza intra es el "
+      f"{pct(vi['fraccion_intra_de_la_total'].iloc[0])} de la varianza total del compuesto "
+      f"({int(vi['n_obs'].iloc[0])} observaciones). Dicho en palabras: con efectos fijos de dos vías, "
+      f"el resultado del panel es, en la práctica, un resultado sobre la densidad de corresponsales.")
+```
 
 ## Pesos congelados
 

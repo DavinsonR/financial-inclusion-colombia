@@ -4,6 +4,13 @@ El orden es el de las decisiones: primero el backtest, que es la puerta —si la
 no le gana al ingenuo, nada se publica (ADR-020, ADR-023)—, después el pronóstico 2026–2028 sin
 anclar, después el anclado y reconciliado (ADR-021), y al final los intervalos, que viajan
 siempre (ADR-022). Cada cifra publicada sale de este archivo (R-09).
+
+Lo que se publica es un **escenario condicional al ancla**, no un pronóstico con ventaja
+demostrada: si Colombia crece lo que espera el ancla a su fecha de corte, así se reparte según
+la inercia de cada departamento. La reconciliación proporcional desplaza a todos casi lo mismo
+(el rango del desplazamiento sale en `reconciliacion`), así que el patrón del mapa es el de los
+modelos sin anclar. No se publican tablas de posiciones: los intervalos se solapan casi por
+completo.
 """
 
 from __future__ import annotations
@@ -42,22 +49,26 @@ def _limpia(objeto):
 def pronosticar(marco: frame.Marco, anios: list[int] | None = None):
     """Pronóstico combinado por departamento, en logaritmos.
 
-    Devuelve tres matrices año × departamento: media, varianza y el conteo de
-    especificaciones que convergieron, que es lo que hace auditable la combinación.
+    Devuelve tres matrices año × departamento —media, varianza del nivel acumulado y
+    varianza del crecimiento de cada año— y el conteo de especificaciones que convergieron,
+    que es lo que hace auditable la combinación.
     """
     anios = anios or HORIZONTE
     _exigir_horizonte_contiguo(marco, anios)
     h = len(anios)
-    media, varianza, vivas = {}, {}, {}
+    media, varianza, var_crec, vivas = {}, {}, {}, {}
     for cod in marco.departamentos:
         serie = marco.log_pib[cod]
         partes = {n: models.predecir(n, serie, h) for n in models.ESPECIFICACIONES}
         combinado = models.combinar(partes)
         media[cod] = combinado.media
         varianza[cod] = combinado.varianza
+        var_crec[cod] = (combinado.varianza_crecimiento if combinado.varianza_crecimiento is not None
+                         else np.full(h, np.nan))
         vivas[cod] = sum(1 for p in partes.values() if np.all(np.isfinite(p.media)))
     idx = pd.Index(anios, name="anio")
     return (pd.DataFrame(media, index=idx), pd.DataFrame(varianza, index=idx),
+            pd.DataFrame(var_crec, index=idx),
             pd.Series(vivas, name="especificaciones_convergidas"))
 
 
@@ -89,11 +100,14 @@ def _exigir_nacional_al_dia(marco: frame.Marco) -> None:
                          f"{int(marco.anios[-1])}; el ancla no se puede encadenar")
 
 
-def lectura_de_la_puerta(v: backtest.Veredicto) -> str:
+def lectura_de_la_puerta(v: backtest.Veredicto, cobertura_intervalo: float | None = None,
+                        nivel: float = NIVEL_INTERVALO) -> str:
     """La frase que acompaña a la ganancia donde se publique (ADR-023, decisiones 2 y 4).
 
     Ninguna cifra de ganancia viaja sola: va con los orígenes ganados, con la ganancia sin
-    el mejor año y con lo que la prueba por origen permite decir.
+    el mejor año y con lo que la prueba por origen permite decir. Con `cobertura_intervalo`
+    va también cuánto cubrió el intervalo en el mismo backtest: un ancho sin cobertura es un
+    número sin contraste (informe 02, A1).
     """
     def pct(x: float) -> str:
         return f"{x:+.1f} %".replace(".", ",")
@@ -104,10 +118,56 @@ def lectura_de_la_puerta(v: backtest.Veredicto) -> str:
     if v.dm_p is None or v.dm_p >= 0.05:
         p = "sin valor p" if v.dm_p is None else f"p = {v.dm_p:.2f}".replace(".", ",")
         texto += (f" Con {v.n_origenes} años la diferencia no es estadísticamente distinguible "
-                  f"({p}, agrupado por año): la proyección es un escenario con incertidumbre, "
+                  f"({p}, agrupado por año): la proyección es un escenario condicional al ancla, "
                   f"no un modelo que haya demostrado superioridad.")
     else:
         texto += f" La diferencia es significativa agrupando por año (p = {v.dm_p:.3f})."
+    if cobertura_intervalo is not None and np.isfinite(cobertura_intervalo):
+        texto += (f" En ese backtest a un año, el intervalo al {round(nivel * 100)} % cubrió el "
+                  f"{round(cobertura_intervalo * 100)} % de los valores observados.")
+    return texto
+
+
+def desplazamiento_de_la_reconciliacion(sin_anclar: pd.DataFrame, reconciliado: pd.DataFrame,
+                                        nombres: dict[str, str]) -> dict[str, dict]:
+    """Cuánto mueve el ancla el crecimiento de cada departamento, por año, en puntos.
+
+    Con el reparto proporcional todos se multiplican por el mismo escalar, así que el
+    desplazamiento es casi común: lo que se publica es su rango, que dice cuán poco
+    redistribuye el ancla (ADR-021; informe 02, A10).
+    """
+    salida = {}
+    for anio in sin_anclar.index:
+        d = (reconciliado.loc[anio] - sin_anclar.loc[anio]).astype(float)
+        salida[str(int(anio))] = {
+            "minimo_pp": float(d.min()), "maximo_pp": float(d.max()),
+            "mediana_pp": float(d.median()), "rango_pp": float(d.max() - d.min()),
+            "departamento_minimo": nombres.get(str(d.idxmin()), str(d.idxmin())),
+            "departamento_maximo": nombres.get(str(d.idxmax()), str(d.idxmax())),
+        }
+    return salida
+
+
+def lectura_del_escenario(ancla: dict, desplazamiento: dict[str, dict]) -> str:
+    """La frase que dice qué es la proyección: un escenario condicional al ancla (A10)."""
+    def pp(x: float) -> str:
+        return f"{x:+.2f}".replace(".", ",")
+
+    antiguedad = ancla.get("antiguedad_meses")
+    edad = (f", con {antiguedad:.0f} meses de antigüedad"
+            if antiguedad is not None and ancla.get("vencida") else "")
+    texto = (f"Escenario condicional al ancla: si Colombia crece lo que espera {ancla['fuente']} "
+             f"(corte {ancla['fecha_corte']}{edad}), así se reparte según la inercia de cada "
+             f"departamento. No es un pronóstico oficial ni uno que haya superado al ingenuo "
+             f"con significancia.")
+    if desplazamiento:
+        anio = min(desplazamiento, key=int)
+        d = desplazamiento[anio]
+        texto += (f" La reconciliación desplaza a todos casi lo mismo: en {anio}, entre "
+                  f"{pp(d['minimo_pp'])} y {pp(d['maximo_pp'])} puntos (rango de "
+                  f"{pp(d['rango_pp'])[1:]}), así que el patrón del mapa es el de los modelos sin "
+                  f"anclar. No se publican tablas de posiciones: los intervalos se solapan casi "
+                  f"por completo.")
     return texto
 
 
@@ -130,9 +190,15 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
     detalle = backtest.rolling_origin(marco)
     veredictos = backtest.evaluar(detalle)
     aprobado = backtest.exigir_aprobacion(veredictos, "combinacion")
+    # Cobertura empírica del intervalo en el mismo backtest a un paso (informe 02, A1). A un
+    # paso el intervalo del nivel y el del crecimiento son el mismo.
+    cobertura = backtest.cobertura_intervalo(detalle, NIVEL_INTERVALO)
+    cob_por_modelo = cobertura.set_index("modelo")
+    cob_comb = (float(cob_por_modelo.loc["combinacion", "cobertura_empirica"])
+                if "combinacion" in cob_por_modelo.index else None)
 
     # 2. Pronóstico sin anclar.
-    media_log, var_log, vivas = pronosticar(marco, anios)
+    media_log, var_log, var_crec_log, vivas = pronosticar(marco, anios)
     niveles = np.exp(media_log)
     ultimo = marco.pib_nivel.iloc[-1]
 
@@ -155,19 +221,33 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
         # dejaria al lector sin saber cual manda en cada departamento.
         per_capita_crec = (pc_tramo.pct_change().dropna() * 100)
 
-    # 5. Intervalos, que viajan siempre (ADR-022).
-    z_bajo, z_alto = models.Pronostico(media_log.to_numpy(), var_log.to_numpy()).intervalo(NIVEL_INTERVALO)
-    ancho_pp = pd.DataFrame(z_alto - z_bajo, index=media_log.index,
-                            columns=media_log.columns) * 100
+    # 5. Intervalos, que viajan siempre (ADR-022). Dos anchos con nombre propio (A4): el del
+    # crecimiento de cada año, que es lo que colorea el mapa y es la capa de incertidumbre, y el
+    # del nivel acumulado desde el último dato, que a 2 y 3 años es bastante mayor.
+    pron = models.Pronostico(media_log.to_numpy(), var_log.to_numpy(), var_crec_log.to_numpy())
+    z_bajo, z_alto = pron.intervalo(NIVEL_INTERVALO)
+    ancho_nivel_pp = pd.DataFrame(z_alto - z_bajo, index=media_log.index,
+                                  columns=media_log.columns) * 100
+    ancho_crec_pp = pd.DataFrame(pron.ancho_crecimiento(NIVEL_INTERVALO), index=media_log.index,
+                                 columns=media_log.columns) * 100
 
     coherencia = reconcile.coherencia(marco.pib_nivel, marco.nacional)
+    crec_sin_anclar = _crecimiento(niveles, ultimo)
+    crec_reconciliado = _crecimiento(reconciliado, ultimo)
+    desplazamiento = desplazamiento_de_la_reconciliacion(crec_sin_anclar, crec_reconciliado,
+                                                         marco.nombres)
+    ancla_publicada = ancla.as_dict() | anchor.vigencia(ancla)
 
     return {
         "generado_en": datetime.now(UTC).isoformat(timespec="seconds"),
         "vintage": marco.vintage.as_dict(),
         "horizonte": anios,
         "nivel_intervalo": NIVEL_INTERVALO,
-        "ancla": ancla.as_dict(),
+        "ancla": ancla_publicada,
+        "escenario": {
+            "tipo": "condicional al ancla",
+            "lectura": lectura_del_escenario(ancla_publicada, desplazamiento),
+        },
         "puerta_de_calidad": {
             "modelo_publicado": aprobado.modelo,
             "mae": aprobado.mae,
@@ -178,13 +258,21 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
             "n_origenes": aprobado.n_origenes,
             "mejor_origen": aprobado.mejor_origen,
             "ganancia_sin_mejor_origen_pct": aprobado.ganancia_sin_mejor_origen_pct,
-            "lectura": lectura_de_la_puerta(aprobado),
+            "lectura": lectura_de_la_puerta(aprobado, cob_comb),
             "cobertura": aprobado.cobertura,
+            "cobertura_intervalo_empirica": cob_comb,
+            "cobertura_intervalo_nominal": NIVEL_INTERVALO,
             "n_pares": aprobado.n,
         },
         "backtest": {
             "completo": [v.as_dict() for v in veredictos],
             "por_regimen": backtest.por_regimen(detalle),
+            # Por modelo, a un paso: fracción de valores observados dentro del intervalo al 80 %.
+            "cobertura_intervalo": cobertura.to_dict("records"),
+        },
+        "reconciliacion": {
+            "metodo": "proporcional",
+            "desplazamiento_crecimiento_pp": desplazamiento,
         },
         "coherencia_jerarquica_pct": {str(a): float(v) for a, v in coherencia.items()},
         "departamentos": {
@@ -193,20 +281,21 @@ def construir(marco: frame.Marco | None = None, anios: list[int] | None = None,
                 "especificaciones_convergidas": int(vivas[cod]),
                 "sin_anclar": {
                     "nivel": [float(niveles.loc[a, cod]) for a in anios],
-                    "crecimiento_pct": [float(v) for v in
-                                        _crecimiento(niveles, ultimo)[cod].to_numpy()],
+                    "crecimiento_pct": [float(v) for v in crec_sin_anclar[cod].to_numpy()],
                 },
                 "reconciliado": {
                     "nivel": [float(reconciliado.loc[a, cod]) for a in anios],
-                    "crecimiento_pct": [float(v) for v in
-                                        _crecimiento(reconciliado, ultimo)[cod].to_numpy()],
+                    "crecimiento_pct": [float(v) for v in crec_reconciliado[cod].to_numpy()],
                     "per_capita": ([float(per_capita.loc[a, cod]) for a in anios]
                                    if per_capita is not None else None),
                     "per_capita_crecimiento_pct": (
                         [float(per_capita_crec.loc[a, cod]) for a in anios]
                         if per_capita_crec is not None else None),
                 },
-                "intervalo_ancho_pp": [float(ancho_pp.loc[a, cod]) for a in anios],
+                # La capa de incertidumbre del mapa: ancho del crecimiento de cada año.
+                "intervalo_ancho_crecimiento_pp": [float(ancho_crec_pp.loc[a, cod]) for a in anios],
+                # El del nivel acumulado desde el último dato; a un año coincide con el anterior.
+                "intervalo_ancho_nivel_pp": [float(ancho_nivel_pp.loc[a, cod]) for a in anios],
             }
             for cod in marco.departamentos
         },

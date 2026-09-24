@@ -618,7 +618,7 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Qué pasó: `index/build.py::_sarma` hace `fillna(0.0)`; cuatro filas reales (Guainía 2019; Vaupés 2018, 2019 y 2025) entran a la sensibilidad "índice alternativo: Sarma" con N = 231 cuando la base usa 228. Con R-13 aplicado el coeficiente pasa de −0,105 (p 0,336) a −0,108 (p 0,326). Además el máximo se toma sobre todos los años, no sobre la ventana congelada.
 - Causa raíz: la fórmula de distancia se implementó sin mirar la regla de faltantes.
 - Regla: R-13. Cambia una cifra publicada, así que va primero a un ADR (R-11).
-- Estado: abierta
+- Estado: cerrada con ADR-025 (B-085)
 
 ## B-065 · 2026-09-23 · Diebold-Mariano agrupado trata 264 pares como independientes
 - Qué pasó: los 33 departamentos de un mismo origen comparten el choque. La prueba agrupada da p = 2e-7; con la diferencia media de pérdidas por origen (8 orígenes), p = 0,29. La ventaja de la combinación sobre el ingenuo en ADR-020 descansa sobre todo en 2021 (−14,9 pp). Aparte, `evaluar` aprueba con ganancia > 0 y cobertura ≥ 90 % sin usar el valor p que exige ADR-020.
@@ -728,3 +728,110 @@ Las diez entradas que siguen se escribieron el 2026-09-11 en esa rama con los n�
 - Evidencia: `.github/workflows/ci.yml`, paso «El indice y la bateria corren de punta a punta».
 - Estado: abierta — el arreglo de fondo es que `cli.py` fuerce UTF-8 en su salida o use un carácter ASCII; queda anotado y sin hacer para no mezclarlo con esta tanda.
 
+## B-077 · 2026-09-23 · El bootstrap salvaje se studentizaba con el error homocedástico
+- Contexto: el bootstrap es la corrección de ADR-016 para 33 clústeres; lo señaló el referee de identificación (informe 01, O2).
+- Qué pasó: cada réplica se dividía por `sqrt(e'e/gl · (X'X)^-1)` y no por el error agrupado (CRVE). Con el CRVE, el p del bootstrap de la base pasa de 0,481 a 0,550.
+- Causa raíz: se reutilizó el estadístico del MCO homocedástico, y la prueba de tamaño no simulaba heterocedasticidad por clúster.
+- Regla: una réplica se studentiza con el mismo estimador de varianza que el estadístico observado, y la prueba de tamaño incluye heterocedasticidad por clúster.
+- Evidencia: `src/iif/econ/inference.py`; `tests/test_econ.py::test_el_bootstrap_agrupado_tiene_el_tamano_nominal_con_heterocedasticidad`, `::test_el_crve_del_bootstrap_es_el_agrupado_con_su_correccion`.
+- Estado: cerrada
+
+## B-078 · 2026-09-23 · La cota del titular usaba 186 grados de libertad con errores agrupados, y no se sostenía
+- Contexto: ADR-018 hizo de la cota de ±0,50 pp la afirmación principal del proyecto.
+- Qué pasó: el TOST y el MDE usaban los grados de libertad residuales (186) y no los de 33 clústeres. Con t(32) el TOST a ±0,50 pp da 0,042; con el bootstrap, que es la inferencia de referencia, 0,068. La cota vigente es de unos 0,55 pp por desviación identificante (≈ 2 pp por desviación bruta). El README, el caso de estudio y la página del portafolio afirmaban ±0,50 pp.
+- Causa raíz: grados de libertad del MCO en una inferencia agrupada, y un titular que no nombraba la escala de la desviación.
+- Regla: con errores agrupados la referencia es t(G − 1); toda cota se publica en las dos escalas (identificante y bruta) y con la inferencia de referencia, y el titular dice cuál.
+- Evidencia: ADR-024; `tests/test_resultados_publicados.py::test_la_conclusion_de_la_cota_es_la_que_el_texto_afirma`; README #main-result.
+- Estado: cerrada
+
+## B-079 · 2026-09-23 · «No se pueden contrastar tendencias previas» era un artefacto de construcción
+- Contexto: ADR-016 lo descartaba en sus alternativas porque la dependiente empezaba en 2019.
+- Qué pasó: la exposición está fija en 2018 y el PIB real existe desde 2005. Contrastado, la prueba conjunta de 2006–2018 no se rechaza (p bootstrap 0,41).
+- Causa raíz: la muestra de la dependiente se ató a la del índice sin necesidad.
+- Regla: una exposición fija no necesita el regresor antes del año base; las tendencias previas se miden con la serie más larga de la dependiente.
+- Evidencia: `designs.tendencias_previas`; `resultados.json` → `tendencias_previas`.
+- Estado: cerrada
+
+## B-080 · 2026-09-23 · El denominador rezagado reduce el sesgo del placebo pero no lo elimina
+- Contexto: ADR-017 cambió al denominador rezagado con un placebo calculado a mano (−0,2525) que no estaba en `resultados.json` (R-09).
+- Qué pasó: con los controles de la base, el placebo de solo-denominador da −0,228 (p < 0,001) con el producto contemporáneo, −0,129 (p = 0,030) con el rezagado y +0,129 (p = 0,44) con el fijo. El Granger inverso negativo es la misma mecánica: con el denominador fijo cae a p = 0,27.
+- Causa raíz: la prueba sintética de ADR-017 supone un paseo aleatorio sin reversión a la media.
+- Regla: el placebo de solo-denominador vive en `resultados.json` con y sin controles; el índice de denominador fijo se publica como coprincipal.
+- Evidencia: `src/iif/econ/denominador.py`; `resultados.json` → `denominador`; README #diagnostics.
+- Estado: cerrada
+
+## B-081 · 2026-09-23 · La curva escalaba «solo entidad» con la desviación de dos vías
+- Qué pasó: los puntos porcentuales de las especificaciones sin efectos de tiempo salían encogidos; la mediana pasa de 0,40 a 0,95 pp.
+- Causa raíz: `escala_del_regresor` no conocía el régimen de efectos fijos.
+- Regla: la escala identificante es la de su propio régimen de efectos fijos.
+- Evidencia: `tests/test_curve.py::test_solo_entidad_se_escala_con_su_propia_desviacion`.
+- Estado: cerrada
+
+## B-082 · 2026-09-23 · El texto describía un placebo, un modelo espacial y un diseño que el código no hace
+- Qué pasó: `panel.qmd` decía «barajado dentro de cada año» y mostraba el p por trayectoria (B-074); README y `panel.qmd` anunciaban SAR/SDM, un evento de corresponsales digitales e interacciones que no se estiman; el «shift-share» es un diseño de exposición inicial; el README decía «sin Bogotá +0,000» cuando ese valor es sin Vichada (sin Bogotá es +0,003); el cuadrático no se publicaba.
+- Causa raíz: la prosa se escribió a mano y no se regeneró al cambiar el código.
+- Regla: la prosa que afirma un resultado se condiciona al JSON o se ata con una prueba; un método que se anuncia tiene su función.
+- Evidencia: `metodologia/panel.qmd`; README #method, #main-result.
+- Estado: cerrada
+
+## B-083 · 2026-09-23 · La curva cambió con el Sarma corregido y la prueba nueva lo detectó
+- Contexto: la prueba `test_la_curva_publicada_coincide_con_su_json` se añadió en esta misma sesión.
+- Qué pasó: tras ADR-025, la curva pasó de 49 a 50 de 80 especificaciones significativas sin efectos de tiempo, y la prueba falló en los dos README y en los dos casos de estudio hasta actualizarlos.
+- Causa raíz: el conteo de la curva estaba copiado en cuatro textos.
+- Regla: las cifras de la curva se leen del JSON en la prueba, nunca se fijan como literales.
+- Evidencia: `tests/test_repo.py::test_la_curva_publicada_coincide_con_su_json`.
+- Estado: cerrada
+
+## B-084 · 2026-09-23 · La página pública del proyecto contradecía al repositorio
+- Contexto: la página vive en otro repositorio (el portafolio) y copiaba las cifras a mano.
+- Qué pasó: publicaba β = +0,0007 (p = 0,90), bootstrap 0,89, «91 pruebas», «15 especificaciones», KMO invertidos y el titular «Publiqué el cero», todos anteriores a ADR-017 y ADR-018.
+- Causa raíz: dos repositorios con la misma cifra y ninguna prueba que los compare.
+- Regla: las cifras del portafolio viven en un solo módulo (`lib/data/thesis-results.ts`) con el archivo y la clave de origen de cada una, y se actualizan en el mismo cierre que cambia `resultados.json`.
+- Evidencia: repositorio del portafolio, FALLO-40.
+- Estado: cerrada
+
+## B-085 · 2026-09-23 · La distancia tipo Sarma inventaba faltantes y movía su techo
+- Contexto: B-064; informe del economista macro (punto 1.5).
+- Qué pasó: `_sarma` hacía `fillna(0)` (264 filas con valor frente a 260 del compuesto) y dividía por el máximo de todo el panel, así que añadir un año movía los anteriores.
+- Causa raíz: la fórmula se implementó sin mirar R-13 ni la regla de pesos congelados de ADR-004.
+- Regla: R-13 y R-11; todo parámetro de escala de un índice se congela en la ventana de calibración.
+- Evidencia: ADR-025; `tests/test_index.py::test_sarma_deja_faltante_lo_que_falta`, `::test_sarma_congela_el_techo_en_la_calibracion`. Spearman con el compuesto pasa de 0,899 a 0,859.
+- Estado: cerrada
+
+## B-086 · 2026-09-23 · La correlación de rangos agrupada ocultaba el desacuerdo entre versiones del índice
+- Qué pasó: se publicaba solo la correlación agrupada, que la tendencia común infla. Con el tipo Sarma corregido la agrupada es 0,86 pero en cambios es 0,45.
+- Causa raíz: una sola medida de concordancia para un índice en panel.
+- Regla: la concordancia entre versiones de un índice en panel se publica también dentro de cada año y en cambios.
+- Evidencia: `data/processed/indice_correlacion_rangos_detalle.csv`; `tests/test_index.py::test_correlacion_de_rangos_distingue_tendencia_comun_de_orden`.
+- Estado: cerrada
+
+## B-087 · 2026-09-23 · La tabla de ADR-022 no cuadraba con la salida y medía otro ancho
+- Qué pasó: ADR-022 citaba anchos de 2,5, 3,3, 6,2 y 17,5 pp; la salida da 4,3, 4,9, 7,4 y 18,7. Además, a 2 y 3 años el ancho publicado era el del nivel acumulado y el mapa pinta crecimiento anual.
+- Causa raíz: el ADR se escribió sobre una corrida anterior sin prueba que atara sus cifras, y `ancho_pp` salía de la varianza del nivel.
+- Regla: R-09; un ancho publicado declara de qué variable es, y las cifras de un ADR se atan a la salida con una prueba.
+- Evidencia: adenda de ADR-022; `tests/test_forecast.py::test_las_cifras_de_adr_022_cuadran_con_resultados_json`; campos `intervalo_ancho_crecimiento_pp` e `intervalo_ancho_nivel_pp`.
+- Estado: cerrada
+
+## B-088 · 2026-09-23 · La cobertura del intervalo existía en código y no se publicaba
+- Causa raíz: `cobertura_intervalo` se añadió sin engancharla en `run.construir`.
+- Regla: todo ancho de intervalo publicado lleva su cobertura empírica al lado.
+- Evidencia: `puerta_de_calidad.cobertura_intervalo_empirica` = 0,814 al 80 % nominal.
+- Estado: cerrada
+
+## B-089 · 2026-09-23 · El ancla nacional estaba vencida y nada lo decía
+- Qué pasó: el WEO usado tiene corte 2025-05-15, 16,3 meses al cierre.
+- Causa raíz: el ancla no tenía fecha de caducidad.
+- Regla: un ancla con más de 6 meses avisa al correr y lo deja escrito en la salida.
+- Evidencia: `forecast/anchor.py::vigencia`; `ancla.antiguedad_meses` y `ancla.vencida` en `resultados.json`; `tests/test_forecast.py::test_el_ancla_vieja_avisa_y_lo_deja_escrito`.
+- Estado: aviso cerrado; la transcripción de la EME de Banrep en `config/forecast.yaml` queda a cargo del autor
+
+## B-090 · 2026-09-23 · La proyección se leía como pronóstico
+- Qué pasó: la salida no decía que la proyección es la inercia de cada departamento desplazada por un ancla común (desplazamiento 2026 entre −0,863 y −0,821 pp), y ADR-019 medía la ventaja a 2 y 3 años frente a la deriva con la inferencia que ADR-023 invalidó.
+- Regla: se publica como escenario condicional al ancla, con el rango del desplazamiento y sin tablas de posiciones.
+- Evidencia: `escenario` y `reconciliacion` en `data/processed/forecast/resultados.json`; adenda de ADR-019.
+- Estado: cerrada
+
+## S-021 · 2026-09-23 · La frase «el índice mide corresponsales» se volvió cifra
+- Contexto: la guía (§9) lo afirmaba sin medirlo.
+- Qué funcionó: descomponer la varianza intra de dos vías del compuesto por dimensión: acceso 87,5 %, uso 10,2 %, profundidad 2,3 %.
+- Dónde se reutiliza: cualquier índice compuesto que entre a un panel con efectos fijos; `data/processed/indice_varianza_intra.csv`.

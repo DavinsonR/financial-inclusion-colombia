@@ -76,3 +76,19 @@ descarta efectos mayores que ±0,50 pp por desviación (p = 0,009) y **no** desc
 
 Quitar el bloque `potencia` de `src/iif/econ/run.py` y el módulo `power.py`. La redacción del README es
 independiente y habría que revertirla a mano.
+
+## Adenda 2026-09-23: las cifras de arriba son las de su fecha
+
+Las cifras del contexto de este ADR (β = +0,00074, MDE de 0,56 pp, TOST a ±0,50 con p = 0,009) son las de
+la corrida del 2026-09-11, con el denominador contemporáneo. Cambiaron dos veces después:
+
+- con el denominador rezagado de ADR-017, β = +0,00382 (SE 0,00618), MDE80 = 0,58 pp por DE identificante
+  y TOST a ±0,25 / ±0,50 con p = 0,280 / 0,038, todo con 186 grados de libertad;
+- con ADR-024, la referencia pasa a t(G − 1) = t(32) y se añade el TOST por bootstrap salvaje con la nula
+  impuesta en cada margen. Con t(32) el TOST a ±0,50 pp pasa por poco; con el bootstrap no pasa, y la
+  cota que el diseño sostiene es de unos 0,55 pp por DE identificante (≈ 2,0 pp por DE bruta).
+
+Las cifras vigentes no se copian aquí: están en el bloque `potencia` de
+`data/processed/econ/resultados.json`, que escribe `uv run iif econ`, y las que ADR-024 cita están fijadas
+en `tests/test_resultados_publicados.py`. La decisión de este ADR (el nulo se publica con su cota) no
+cambia; cambia la cota.

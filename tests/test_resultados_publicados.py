@@ -151,3 +151,62 @@ def test_el_indice_publicado_se_reproduce_con_los_pesos_congelados():
                 "corre `uv run iif index --recalibrar`"
             )
 
+
+
+# --- ADR-024: las cifras que el ADR y `panel.qmd` citan, fijadas con su valor ------------------------
+#
+# La prueba de arriba compara el JSON entero contra una corrida nueva; esta fija además los números que la
+# prosa cita, para que un cambio aguas arriba (el índice, el almacén) no los mueva sin que se note. Si una
+# corrida legítima los cambia, se actualizan aquí y en ADR-024 en el mismo commit.
+
+
+def _principal(publicado, clave):
+    return next(e for e in publicado["principales"] if e["clave"] == clave)
+
+
+CIFRAS_ADR_024 = {
+    "base: β": (lambda r: _principal(r, "base")["coef"], 0.0038205),
+    "base: p bootstrap Rademacher (CRVE)": (lambda r: _principal(r, "base")["p_bootstrap"], 0.550),
+    "base: p bootstrap Webb": (lambda r: r["robustez"]["wild_cluster_bootstrap_webb"]["p_bootstrap"], 0.539),
+    "denominador fijo: β": (lambda r: _principal(r, "denominador_fijo")["coef"], 0.0052869),
+    "condiciones iniciales × año: β": (lambda r: _principal(r, "condiciones_iniciales")["coef"], 0.00051126),
+    "sin controles: β": (lambda r: _principal(r, "sin_controles")["coef"], 0.0028658),
+    "TOST ±0,50 con t(32): p": (lambda r: r["potencia"]["equivalencia"][1]["p"], 0.041900),
+    "TOST ±0,50 bootstrap: p": (lambda r: r["potencia"]["bootstrap"]["equivalencia"][1]["p"], 0.068),
+    "margen mínimo bootstrap, pp por DE identificante": (
+        lambda r: r["potencia"]["bootstrap"]["margen_minimo"]["pp_por_de"], 0.54623),
+    "MDE80 con t(32), pp por DE identificante": (lambda r: r["potencia"]["mde"]["potencia_80_pp_por_de"], 0.60130),
+    "tendencias previas, PIB total: p bootstrap": (
+        lambda r: r["tendencias_previas"]["crecimiento_pib_total__sin_controles"]["previos"]["p_bootstrap"], 0.406),
+    "dependiente sin B ni K: β": (lambda r: r["dependiente_sin_bk"]["filas"][0]["coef"], 0.0031345),
+    "adelanto: β": (lambda r: r["causalidad_inversa"]["adelanto"]["coef"], -0.0053907),
+    "placebo de solo-denominador contemporáneo: β": (
+        lambda r: next(f["coef"] for f in r["denominador"]["filas"]
+                       if f["indice"] == "placebo" and f["denominador"] == "contemporaneo"), -0.22791),
+    "Aronow-Samii, peso de los cinco primeros": (lambda r: r["aronow_samii"]["top5_peso"], 0.47313),
+    "beta incondicional 2005-2025": (lambda r: r["convergencia"]["beta_incondicional"]["coef"], -0.0023388),
+}
+
+
+@pytest.mark.parametrize("nombre", sorted(CIFRAS_ADR_024))
+def test_las_cifras_citadas_en_adr_024_son_las_publicadas(publicado, nombre):
+    extraer, esperado = CIFRAS_ADR_024[nombre]
+    assert extraer(publicado) == pytest.approx(esperado, rel=1e-3, abs=1e-6), nombre
+
+
+def test_la_conclusion_de_la_cota_es_la_que_el_texto_afirma(publicado):
+    """ADR-024: con t(32) el TOST a ±0,50 pasa por poco; con el bootstrap no pasa, y ±1,00 pasa con los dos.
+
+    Si esto cambia, cambian la sección 7 de `panel.qmd`, el titular del README y ADR-024: no es un número
+    más, es la afirmación principal del proyecto.
+    """
+    pot = publicado["potencia"]
+    assert pot["grados_de_libertad"] == publicado["especificacion"]["unidades"] - 1
+    analitico = {round(t["margen_pp_por_de"], 2): t["equivale"] for t in pot["equivalencia"]}
+    bootstrap = {round(t["margen_pp_por_de"], 2): t["equivale"] for t in pot["bootstrap"]["equivalencia"]}
+    assert analitico == {0.25: False, 0.5: True, 1.0: True}
+    assert bootstrap == {0.25: False, 0.5: False, 1.0: True}
+    assert 0.5 < pot["bootstrap"]["margen_minimo"]["pp_por_de"] < 1.0
+    assert publicado["familia_holm"]["rechazos_holm_5"] == 0
+    assert "driscoll_kraay" in publicado["notas"]
+    assert all(e["errores"] != "driscoll-kraay" for e in publicado["principales"])

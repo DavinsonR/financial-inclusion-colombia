@@ -11,6 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from iif.econ import inference
 from iif.econ.panel import two_way_fe
 
 
@@ -49,64 +50,44 @@ def wild_cluster_bootstrap(
     semilla: int = 20260907,
     unidad: str = "dpto_ccdgo",
     tiempo: str = "anio",
+    pesos: str = "rademacher",
+    invertir: bool = False,
+    margenes: tuple[float, ...] = (),
+    efectos_tiempo: bool = True,
 ) -> dict:
-    """Bootstrap salvaje por clúster con la nula impuesta (Cameron, Gelbach y Miller, 2008).
+    """Bootstrap salvaje por clúster con la nula impuesta, studentizado con el CRVE (ADR-024).
 
-    Se estima el modelo restringido —sin la variable de interés—, y cada réplica reasigna al residuo de
-    cada **departamento entero** un signo de Rademacher. Imponer la nula es lo que da al procedimiento su
-    buen comportamiento con pocos clústeres; remuestrear sin imponerla devuelve intervalos demasiado
-    estrechos, que es el error que este bootstrap existe para no cometer.
+    Se estima el modelo restringido —sin la variable de interés— y cada réplica reasigna al residuo de
+    cada **departamento entero** un peso de media cero (Rademacher o Webb). El estadístico de cada réplica
+    se studentiza con el error agrupado, igual que el observado: es lo que da al procedimiento el
+    refinamiento asintótico que justifica usarlo con 33 clústeres (Cameron, Gelbach y Miller, 2008). La
+    versión anterior studentizaba con el error homocedástico y no lo tenía.
+
+    Con `invertir`, añade el intervalo del 95 % por inversión de la prueba; con `margenes`, el TOST
+    bootstrap en cada margen (en unidades del regresor).
     """
+
     controls = list(controls or [])
-    cols = [y, x, *controls]
-    datos = df.dropna(subset=[*cols, unidad, tiempo]).reset_index(drop=True)
-    Z = demean_two_way(datos, cols, unidad, tiempo)
-    yv, Xv = Z[:, 0], Z[:, 1:]
-
-    def beta_de(objetivo: np.ndarray) -> np.ndarray:
-        return np.linalg.lstsq(Xv, objetivo, rcond=None)[0]
-
-    b = beta_de(yv)
-    resid = yv - Xv @ b
-    gl = max(len(yv) - Xv.shape[1], 1)
-    xtx_inv = np.linalg.pinv(Xv.T @ Xv)
-    se = float(np.sqrt(float(resid @ resid) / gl * xtx_inv[0, 0]))
-    t_obs = float(b[0] / se) if se > 0 else float("nan")
-
-    # modelo restringido: se quita la variable de interés y se guarda su residuo
-    X_r = Xv[:, 1:] if Xv.shape[1] > 1 else np.zeros((len(yv), 0))
-    if X_r.shape[1]:
-        b_r = np.linalg.lstsq(X_r, yv, rcond=None)[0]
-        resid_r = yv - X_r @ b_r
-        ajuste_r = X_r @ b_r
-    else:
-        resid_r, ajuste_r = yv.copy(), np.zeros_like(yv)
-
-    grupos = datos[unidad].to_numpy()
-    claves = np.unique(grupos)
-    rng = np.random.default_rng(semilla)
-    ts = np.empty(replicas)
-    for k in range(replicas):
-        signos = rng.choice([-1.0, 1.0], size=claves.size)
-        peso = np.ones_like(yv)
-        for s, clave in zip(signos, claves, strict=True):
-            peso[grupos == clave] = s
-        y_b = ajuste_r + resid_r * peso
-        b_b = beta_de(y_b)
-        r_b = y_b - Xv @ b_b
-        se_b = float(np.sqrt(float(r_b @ r_b) / gl * xtx_inv[0, 0]))
-        ts[k] = b_b[0] / se_b if se_b > 0 else np.nan
-
-    validos = ts[np.isfinite(ts)]
-    p = (np.sum(np.abs(validos) >= abs(t_obs)) + 1) / (validos.size + 1)
-    return {
-        "coef": float(b[0]),
-        "t_observado": t_obs,
-        "p_bootstrap": float(p),
-        "replicas": int(validos.size),
-        "clusteres": int(claves.size),
-        "n": int(len(yv)),
+    d = inference.diseno(df, y, [x, *controls], unidad=unidad, tiempo=tiempo, efectos_tiempo=efectos_tiempo)
+    boot = inference.BootstrapUnCoeficiente(d, 0, replicas=replicas, semilla=semilla, pesos=pesos)
+    salida = {
+        "coef": boot.coef,
+        "se_crve": boot.se,
+        "t_observado": boot.t_observado(0.0),
+        "p_bootstrap": boot.p_simetrico(0.0),
+        "pesos": pesos,
+        "studentizacion": "CRVE (CR1)",
+        "replicas": int(replicas),
+        "clusteres": int(d.G),
+        "n": int(d.n),
     }
+    if invertir:
+        salida["ic95_bootstrap"] = boot.intervalo(0.95)
+        salida["ic90_bootstrap"] = boot.intervalo(0.90)
+    if margenes:
+        salida["tost_bootstrap"] = [boot.tost(m) for m in margenes]
+        salida["margen_minimo_bootstrap"] = boot.margen_minimo()
+    return salida
 
 
 def placebo_permutacion(

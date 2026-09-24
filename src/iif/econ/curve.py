@@ -38,7 +38,7 @@ REGRESORES = {
     "uso": "iif_uso",
     "profundidad": "iif_profundidad",
     "índice por PCA": "iif_sensibilidad_pca",
-    "índice de Sarma": "iif_sensibilidad_sarma",
+    "distancia tipo Sarma": "iif_sensibilidad_sarma",
 }
 
 CONTROLES = {
@@ -81,11 +81,13 @@ def estimar_rejilla(db: str | None = None) -> pd.DataFrame:
             filas.append({"regresor": reg_nom, "controles": ctl_nom, "muestra": mue_nom,
                           "efectos": efe_nom, "estimable": False})
             continue
-        # Los ocho regresores no están en la misma escala: el índice de Sarma es una distancia en [0, 1] y
+        # Los ocho regresores no están en la misma escala: la distancia tipo Sarma está en [0, 1] y
         # los demás son estandarizados, así que sus coeficientes crudos no se pueden poner en el mismo eje.
         # Cada uno se expresa en puntos porcentuales de crecimiento por desviación típica IDENTIFICANTE de
-        # ese regresor, que es la unidad en la que sí son comparables (ADR-018).
-        sd = escala_del_regresor(muestra, reg_col, ctl)["de_identificante"]
+        # ese regresor, que es la unidad en la que sí son comparables (ADR-018). La identificante es la de
+        # SU régimen de efectos: sin efectos de tiempo queda mucha más variación, y escalar "solo entidad"
+        # con la desviación de dos vías encogía sus pp en la misma proporción (ADR-024, A10).
+        sd = escala_del_regresor(muestra, reg_col, ctl, efectos_tiempo=con_tiempo)["de_identificante"]
         factor = sd * 100 if sd > 0 else float("nan")
         coef_pp, bajo_pp, alto_pp = (
             float(est.coef * factor),

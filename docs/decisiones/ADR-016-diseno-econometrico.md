@@ -65,3 +65,26 @@ parece. Y 33 clústeres no bastan para que el error estándar agrupado se compor
 La especificación vive en `src/iif/econ/run.py` (`CONTROLES`, `ANIO_BASE`, `ANIO_EVENTO`); cambiarla es
 cambiar esas constantes y volver a correr `uv run iif econ`. Los diseños son funciones independientes en
 `designs.py` y se pueden quitar de la batería sin tocar los demás.
+
+## Adenda 2026-09-23: lo que cambió después de la decisión
+
+Esta adenda no reescribe el cuerpo de arriba, que describe lo que se decidió el 2026-09-07. Registra en qué
+se separa hoy la batería de ese texto.
+
+1. **El placebo del punto 6 ya no baraja dentro de cada año.** Desde B-074 (numerada B-054 en la rama
+   original `auditoria-potencia-y-denominador` y renumerada al fusionar), el placebo reasigna la
+   trayectoria completa de cada departamento: barajar dentro del año destruía también la correlación
+   serial del índice y producía una nube tres veces demasiado estrecha. El cambio se hizo después de ver
+   que el placebo antiguo rechazaba (p = 0,038) donde el error agrupado y el bootstrap no; el argumento
+   técnico es correcto, y por eso el modo antiguo sigue publicado al lado como diagnóstico.
+2. **El bootstrap del punto 6 se studentiza con el error agrupado**, no con el homocedástico, y se publica
+   también con pesos de Webb y con el intervalo por inversión (ADR-024).
+3. **Driscoll-Kraay (punto 1) pasa a nota.** Con T = 7 no es creíble como inferencia.
+4. **El "shift-share" del punto 4 se llama diseño de exposición inicial**, y los diseños del punto 4 dejan
+   de presentarse como "que no dependen de la exogeneidad": el de exposición inicial la exige para el
+   nivel de 2018, y su placebo de urbanización muestra que no se cumple.
+5. **Las tendencias previas sí se contrastan.** La alternativa descartada ("no es posible") era un
+   artefacto de construcción: la exposición es fija en 2018 y el PIB real existe desde 2005. ADR-024
+   añade el contraste.
+6. **La carrera del punto 5** se corre contra el ingreso y contra la urbanización iniciales, y contra las
+   dos a la vez, no solo contra el ingreso.

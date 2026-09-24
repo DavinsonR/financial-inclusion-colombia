@@ -1,15 +1,19 @@
-"""Diseños que no dependen de que el índice sea exógeno: CCE, shift-share, eventos y espacial.
+"""Diseños complementarios: CCE, exposición inicial, estudio de eventos, tendencias previas y espacial.
 
 Los efectos fijos de dos vías quitan lo permanente de cada departamento y lo común de cada año, pero no un
-choque que golpee distinto a departamentos distintos. Estos cuatro diseños atacan ese hueco por caminos
-independientes, y su valor está en que fallen o sobrevivan **juntos**.
+choque que golpee distinto a departamentos distintos. Estos diseños atacan ese hueco por caminos distintos.
+Ninguno identifica un efecto causal por sí solo: el de exposición inicial exige que el nivel de 2018 sea
+exógeno, y su placebo de urbanización muestra que no lo es (ADR-024). Su valor está en que fallen o
+sobrevivan **juntos**.
 """
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from scipy import stats
 
+from iif.econ import inference
 from iif.econ.diagnostics import matriz_pesos
 from iif.econ.panel import Estimacion, two_way_fe
 
@@ -62,7 +66,7 @@ def exposicion_inicial(marco: pd.DataFrame, x: str, anio_base: int) -> pd.Series
     return base.set_index("dpto_ccdgo")[x].rename("exposicion")
 
 
-def shift_share(
+def exposicion_por_adopcion(
     df: pd.DataFrame,
     y: str,
     x: str,
@@ -71,7 +75,12 @@ def shift_share(
     *,
     nacional: pd.Series | None = None,
 ) -> tuple[Estimacion, pd.DataFrame]:
-    """Exposición inicial × adopción nacional.
+    """Diseño de exposición inicial: nivel de 2018 × adopción nacional.
+
+    Se llamaba "shift-share" y no lo es en el sentido de Goldsmith-Pinkham, Sorkin y Swift o de Borusyak,
+    Hull y Jaravel: hay una sola participación y una sola serie común, sin muchos choques ni pesos de
+    Rotemberg (ADR-024, O5). La columna del regresor conserva el nombre `shift_share` porque la leen el
+    bootstrap y el placebo de `run.py`.
 
     El regresor deja de ser el índice observado y pasa a ser el que le habría tocado a cada departamento si
     solo hubiera seguido la adopción nacional desde su posición inicial. Así la variación viene de una
@@ -85,8 +94,14 @@ def shift_share(
     datos["adopcion_nacional"] = datos["anio"].map(serie_nacional)
     datos["shift_share"] = datos["dpto_ccdgo"].map(exposicion) * datos["adopcion_nacional"]
     datos = datos.dropna(subset=["shift_share"])
-    est, _ = two_way_fe(datos, y, "shift_share", controls, nombre="shift-share (exposición 2018 × adopción)")
+    est, _ = two_way_fe(
+        datos, y, "shift_share", controls, nombre="exposición inicial (índice 2018 × adopción nacional)"
+    )
     return est, datos
+
+
+# El nombre viejo se conserva como alias: lo usan las pruebas y cualquier cuaderno que lo importe.
+shift_share = exposicion_por_adopcion
 
 
 def event_study(
@@ -102,9 +117,9 @@ def event_study(
 
     2020 es el año en que la transferencia monetaria de emergencia abrió cuentas a millones de hogares. Si
     la inclusión financiera empuja el crecimiento, los departamentos más expuestos antes del choque
-    deberían separarse **después** y no antes. Con la dependiente empezando en 2019, solo hay un año
-    anterior al choque y es el de referencia: este diseño no puede contrastar tendencias previas, y se
-    publica diciéndolo. Lo que sí mide es en qué años posteriores se separan los más expuestos.
+    deberían separarse **después** y no antes. Con la dependiente per cápita empezando en 2019, aquí solo
+    hay un año anterior al choque y es el de referencia; las tendencias previas se contrastan aparte, con la
+    serie larga del producto (`tendencias_previas`, ADR-024).
     """
     datos = df.dropna(subset=[y, x]).copy()
     exposicion = (exposicion - exposicion.mean()) / exposicion.std(ddof=1)
@@ -171,3 +186,94 @@ def slx(df: pd.DataFrame, y: str, x: str, vecinos: dict[str, list[str]], control
         piezas.append(pieza)
     datos = pd.concat(piezas).dropna(subset=[f"w_{x}"])
     return two_way_fe(datos, y, x, [*controls, f"w_{x}"], nombre="SLX (rezago espacial del índice)")
+
+
+def tendencias_previas(
+    larga: pd.DataFrame,
+    y: str,
+    exposicion: pd.Series,
+    *,
+    anio_referencia: int = 2019,
+    anio_evento: int = 2020,
+    controles_iniciales: dict[str, pd.Series] | None = None,
+    replicas: int = 999,
+    semilla: int = 20260907,
+) -> dict:
+    """Estudio de eventos sobre la serie larga, con la prueba conjunta de los coeficientes previos.
+
+    La exposición es fija (el índice de 2018 estandarizado), así que no hace falta el índice en los años
+    anteriores: lo que se pregunta es si los departamentos más expuestos ya crecían distinto antes del
+    choque. Se estima exposición × año para todos los años salvo el de referencia, con efectos de entidad y
+    de año, y se contrasta que los coeficientes anteriores a `anio_referencia` sean cero a la vez: F contra
+    F(q, G − 1) con el error agrupado y, al lado, el bootstrap salvaje del Wald con la nula impuesta.
+
+    `controles_iniciales` añade cada condición inicial × año (por ejemplo, la urbanización de 2018): si la
+    pendiente de los expuestos es la de los urbanos, desaparece con ella dentro.
+    """
+    z = (exposicion - exposicion.mean()) / exposicion.std(ddof=1)
+    datos = larga[["dpto_ccdgo", "anio", y]].copy()
+    datos["exposicion"] = datos["dpto_ccdgo"].map(z)
+    datos = datos.dropna(subset=[y, "exposicion"]).reset_index(drop=True)
+    anios = sorted(int(a) for a in datos["anio"].unique())
+    eventos = []
+    for a in anios:
+        if a == anio_referencia:
+            continue
+        col = f"ev_{a}"
+        datos[col] = datos["exposicion"] * (datos["anio"] == a).astype(float)
+        eventos.append(col)
+    controles = []
+    for nombre, serie in (controles_iniciales or {}).items():
+        datos[f"_{nombre}"] = datos["dpto_ccdgo"].map(serie)
+        for a in anios[1:]:
+            col = f"{nombre}_x_{a}"
+            datos[col] = datos[f"_{nombre}"] * (datos["anio"] == a).astype(float)
+            controles.append(col)
+    datos = datos.dropna(subset=[*eventos, *controles]).reset_index(drop=True)
+
+    d = inference.diseno(datos, y, [*eventos, *controles])
+    todos = inference.crve(d, list(range(len(eventos))))
+    previos = [i for i, c in enumerate(eventos) if int(c.removeprefix("ev_")) < anio_referencia]
+    posteriores = [i for i, c in enumerate(eventos) if int(c.removeprefix("ev_")) >= anio_evento]
+    gl = d.G - 1
+
+    coeficientes = []
+    for i, col in enumerate(eventos):
+        b, se = float(todos["coef"][i]), float(todos["se"][i])
+        coeficientes.append(
+            {
+                "anio": int(col.removeprefix("ev_")),
+                "coef": b,
+                "se": se,
+                "p": float(2 * stats.t.sf(abs(b / se), gl)) if se > 0 else float("nan"),
+                "referencia": False,
+            }
+        )
+    coeficientes.append({"anio": anio_referencia, "coef": 0.0, "se": 0.0, "p": None, "referencia": True})
+    coeficientes.sort(key=lambda f: f["anio"])
+    return {
+        "dependiente": y,
+        "anios": [anios[0], anios[-1]],
+        "anio_referencia": anio_referencia,
+        "controles_iniciales": sorted(controles_iniciales or {}),
+        "n": d.n,
+        "clusteres": d.G,
+        "previos": wald_resumen(d, previos, replicas=replicas, semilla=semilla),
+        "posteriores": wald_resumen(d, posteriores, replicas=replicas, semilla=semilla),
+        "coeficientes": coeficientes,
+    }
+
+
+def wald_resumen(d: inference.Diseno, idx: list[int], *, replicas: int, semilla: int) -> dict:
+    """La prueba conjunta con el F agrupado y los dos bootstraps (Rademacher y Webb)."""
+    rad = inference.wald_bootstrap(d, idx, replicas=replicas, semilla=semilla, pesos="rademacher")
+    webb = inference.wald_bootstrap(d, idx, replicas=replicas, semilla=semilla, pesos="webb")
+    return {
+        "q": rad["q"],
+        "F": rad["F"],
+        "gl": rad["gl"],
+        "p_F": rad["p_F"],
+        "p_bootstrap": rad["p_bootstrap"],
+        "p_bootstrap_webb": webb["p_bootstrap"],
+        "replicas": rad["replicas"],
+    }

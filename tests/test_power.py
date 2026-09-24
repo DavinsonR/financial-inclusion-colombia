@@ -120,3 +120,51 @@ def test_un_efecto_verdadero_grande_no_pasa_la_prueba_de_equivalencia():
     est, _ = two_way_fe(df, "y", "x", ["c"])
     r = resumen(est, df, "x", ["c"])
     assert not r["equivalencia"][0]["equivale"], "0,25 pp por desviación no puede cubrir un efecto así"
+
+
+# --- ADR-024: con errores agrupados la referencia es t(G - 1) ------------------------------------------
+
+
+def test_el_mde_con_t_de_g_menos_uno_es_mayor_que_el_normal():
+    """Con 33 clústeres el factor pasa de 2,802 a 2,891: el MDE crece un 3 %."""
+    from scipy import stats
+
+    esperado = (stats.t.ppf(0.975, 32) + stats.t.ppf(0.80, 32)) * 0.01
+    assert mde(0.01, gl=32) == pytest.approx(esperado, rel=1e-12)
+    assert mde(0.01, gl=32) == pytest.approx(0.02891, abs=5e-5)
+    assert mde(0.01, gl=32) > mde(0.01)
+
+
+def test_el_tost_con_32_grados_de_libertad_es_mas_exigente_que_con_186():
+    agrupado = tost(coef=0.0038, se=0.0062, margen=0.0148, gl=32)
+    residual = tost(coef=0.0038, se=0.0062, margen=0.0148, gl=186)
+    assert agrupado["p"] > residual["p"]
+
+
+def test_el_resumen_usa_los_clusteres_y_no_los_grados_de_libertad_residuales():
+    from iif.econ.panel import two_way_fe
+
+    df = _panel(n=30, t=8)
+    rng = np.random.default_rng(2)
+    df["y"] = rng.normal(0, 0.02, len(df))
+    est, _ = two_way_fe(df, "y", "x", ["c"])
+    r = resumen(est, df, "x", ["c"])
+    assert r["grados_de_libertad"] == 29
+    assert r["grados_de_libertad_residuales"] == grados_de_libertad(est.n, 30, 8, 2)
+    assert r["mde"]["potencia_80"] == pytest.approx(mde(est.se, gl=29), rel=1e-12)
+    # La cota se traduce también a la desviación bruta, que es la que un lector de política tiene en mente.
+    t50 = r["equivalencia"][1]
+    esc = r["escala_del_regresor"]
+    assert t50["margen_pp_por_de_bruta"] == pytest.approx(0.5 * esc["de_bruta"] / esc["de_identificante"], rel=1e-12)
+    # El margen mínimo analítico es el extremo más lejano del IC al 90 % con t(G - 1).
+    assert tost(est.coef, est.se, r["margen_minimo"]["unidades"] * 1.001, 29)["equivale"]
+    assert not tost(est.coef, est.se, r["margen_minimo"]["unidades"] * 0.999, 29)["equivale"]
+
+
+def test_sin_efectos_de_tiempo_la_escala_es_la_de_entidad():
+    """La escala de "solo entidad" no puede ser la de dos vías: la de año es casi toda la varianza aquí."""
+    df = _panel(ruido=0.4)
+    dos_vias = escala_del_regresor(df, "x")["de_identificante"]
+    entidad = escala_del_regresor(df, "x", efectos_tiempo=False)["de_identificante"]
+    assert entidad > 3 * dos_vias
+    assert entidad == pytest.approx(escala_del_regresor(df, "x")["de_sin_efectos_de_entidad"], rel=1e-12)

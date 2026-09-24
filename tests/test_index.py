@@ -375,10 +375,12 @@ def test_recalibrar_vuelve_a_estimar_los_pesos(monkeypatch, contrato):
 
     recibido = []
 
-    def falso_build_level(nivel, *, db=None, contract=None, congelados=None):
+    def falso_build_level(nivel, *, db=None, contract=None, congelados=None, techo=None):
         recibido.append((nivel, congelados))
         panel = _panel_sintetico()
-        return panel, build_index(panel, UNIDADES, contract=contract, pesos_congelados=congelados)
+        return panel, build_index(
+            panel, UNIDADES, contract=contract, pesos_congelados=congelados, techo_congelado=techo
+        )
 
     monkeypatch.setattr(index_run, "build_level", falso_build_level)
     # Solo el nivel departamental: el municipal exige otras claves y aquí no aporta nada al contraste.
@@ -408,3 +410,156 @@ def test_recalibrar_vuelve_a_estimar_los_pesos(monkeypatch, contrato):
     medias_nuevas = reescrito["pesos_congelados"]["uso"]["media"]
     assert medias_nuevas != medias_viejas, "recalibrar tiene que cambiar los pesos que escribe"
 
+
+
+# --- Distancia tipo Sarma (ADR-025, B-064) -----------------------------------------------------------
+
+
+def test_sarma_deja_faltante_lo_que_falta(contrato):
+    """R-13: una variable sin dato no se rellena con cero; la fila se queda sin distancia tipo Sarma.
+
+    Antes `fillna(0)` ponía la variable ausente a la máxima distancia del ideal y la fila entraba a la
+    sensibilidad con un valor inventado (B-064).
+    """
+    panel = _panel_sintetico()
+    ultimo = panel["anio"].max()
+    objetivo = panel.index[(panel["anio"] == ultimo) & (panel["dpto_ccdgo"] == "03")]
+    panel.loc[objetivo, "monto_total_micro"] = np.nan
+    res = build_index(panel, UNIDADES, contract=contrato)
+    sens = res.sensibilidad.set_index(["dpto_ccdgo", "anio"])
+    assert np.isnan(sens.loc[("03", ultimo), "iif_sarma"])
+    # el resto de las filas con todas las variables sí tiene valor, y en [0, 1]
+    completas = res.scores.dropna(subset=["iif_compuesto"]).set_index(["dpto_ccdgo", "anio"]).index
+    valores = sens.loc[completas, "iif_sarma"]
+    assert valores.notna().all()
+    assert valores.between(0, 1).all()
+
+
+def test_sarma_congela_el_techo_en_la_calibracion(contrato):
+    """Añadir un año con valores extremos no mueve la distancia tipo Sarma de los años anteriores.
+
+    Con el máximo de todo el panel, un año nuevo que supera el techo lo subía y bajaba el valor de
+    todos los años ya publicados. Con el techo de la ventana de calibración, como las medias, no.
+    """
+    panel = _panel_sintetico()
+    primero = build_index(panel, UNIDADES, contract=contrato)
+    extremo = panel[panel.anio == panel.anio.max()].assign(anio=panel.anio.max() + 1)
+    for v in ("nro_corresp_activos", "monto_total_cred_consumo", "nro_total"):
+        extremo[v] = extremo[v] * 10
+    segundo = build_index(pd.concat([panel, extremo], ignore_index=True), UNIDADES, contract=contrato)
+    ids = ["dpto_ccdgo", "anio"]
+    antes = primero.sensibilidad.set_index(ids).iif_sarma
+    despues = segundo.sensibilidad.set_index(ids).iif_sarma.loc[antes.index]
+    pd.testing.assert_series_equal(antes, despues, check_exact=False, rtol=1e-12)
+    assert primero.techo_sarma == segundo.techo_sarma
+    # lo que supera el techo cuenta como haber llegado al ideal: el valor no pasa de 1
+    assert segundo.sensibilidad.iif_sarma.max() <= 1.0
+
+
+def test_el_techo_de_sarma_se_puede_imponer_desde_otro_panel(contrato):
+    """El municipal usa el techo del departamental, como usa sus medias y desviaciones."""
+    panel = _panel_sintetico()
+    base = build_index(panel, UNIDADES, contract=contrato)
+    doble = {k: 2 * v for k, v in base.techo_sarma.items()}
+    otro = build_index(panel, UNIDADES, contract=contrato, techo_congelado=doble)
+    assert otro.techo_sarma == doble
+    assert otro.sensibilidad.iif_sarma.mean() < base.sensibilidad.iif_sarma.mean()
+
+
+# --- Correlación de rangos y varianza intra (informe 02, A6 y A8) ------------------------------------
+
+
+def test_correlacion_de_rangos_distingue_tendencia_comun_de_orden():
+    """Dos versiones que comparten la tendencia pero ordenan distinto dentro del año.
+
+    La agrupada sale alta por la tendencia; la de dentro de cada año y la de los cambios, no.
+    """
+    from iif.index.build import correlacion_rangos_detalle
+
+    rng = np.random.default_rng(1)
+    filas = []
+    for u in range(30):
+        for anio in range(2018, 2024):
+            t = 3.0 * (anio - 2018)
+            filas.append(dict(dpto_ccdgo=f"{u:02d}", anio=anio, a=t + rng.normal(), b=t + rng.normal()))
+    det = correlacion_rangos_detalle(pd.DataFrame(filas), ["a", "b"], ("dpto_ccdgo", "anio")).iloc[0]
+    assert det.agrupada > 0.9
+    assert abs(det.por_anio_media) < 0.3
+    assert det.por_anio_minimo <= det.por_anio_media
+    assert abs(det.cambios) < 0.3
+    assert det.n_anios == 6
+
+
+def test_la_varianza_intra_se_reparte_exacta_entre_dimensiones(contrato):
+    """Las participaciones suman uno, y una dimensión sin variación intra no aporta nada."""
+    from iif.index.build import participacion_varianza_intra
+
+    pesos = contrato["compuesto"]["pesos"]
+    # En el panel sintético la intensidad es nivel de unidad + tendencia común: los efectos fijos lo
+    # absorben todo y no hay varianza intra que repartir. La tabla lo dice con NaN, no con un cociente
+    # de residuos numéricos.
+    res = build_index(_panel_sintetico(), UNIDADES, contract=contrato)
+    vacia = participacion_varianza_intra(res.scores, pesos, ("dpto_ccdgo", "anio"))
+    assert vacia.participacion.isna().all()
+
+    # Panel controlado: el acceso varía dentro de la unidad y el año; uso y profundidad son suma de un
+    # efecto de unidad y uno de año, que los efectos fijos absorben por completo.
+    rng = np.random.default_rng(2)
+    filas = []
+    ef_u = rng.normal(size=20)
+    ef_t = {a: rng.normal() for a in range(2018, 2024)}
+    for u in range(20):
+        for anio in range(2018, 2024):
+            if (u, anio) == (3, 2020):
+                continue  # un hueco: el panel no balanceado exige iterar la proyección
+            filas.append(dict(dpto_ccdgo=f"{u:02d}", anio=anio, iif_acceso=rng.normal(),
+                              iif_uso=ef_u[u] + ef_t[anio], iif_profundidad=2 * ef_u[u] - ef_t[anio]))
+    df = pd.DataFrame(filas)
+    df["iif_compuesto"] = sum(df[f"iif_{d}"] * w for d, w in pesos.items())
+    t = participacion_varianza_intra(df, pesos, ("dpto_ccdgo", "anio")).set_index("dimension")
+    assert t.participacion.sum() == pytest.approx(1.0, abs=1e-9)
+    assert t.fraccion_intra_de_la_total.between(0, 1).all()
+    assert t.loc["acceso", "participacion"] == pytest.approx(1.0, abs=1e-6)
+    assert abs(t.loc["uso", "participacion"]) < 1e-6
+    assert abs(t.loc["profundidad", "participacion"]) < 1e-6
+
+
+@pytest.mark.data
+@pytest.mark.skipif(
+    not (config.DATA_PROCESSED / "indice_varianza_intra.csv").exists(),
+    reason="sin data/processed; corre `make index`",
+)
+def test_las_cifras_de_sensibilidad_del_indice_cuadran_con_su_salida():
+    """R-09: lo que `metodologia/indice.qmd` y ADR-025 citan sale de estos CSV."""
+    det = pd.read_csv(config.DATA_PROCESSED / "indice_correlacion_rangos_detalle.csv")
+    par = det.set_index(["version_a", "version_b"])
+    assert set(par.index) == {("iif_compuesto", "iif_pca"), ("iif_compuesto", "iif_sarma"), ("iif_pca", "iif_sarma")}
+    assert (par.por_anio_minimo <= par.por_anio_media + 1e-12).all()
+    var = pd.read_csv(config.DATA_PROCESSED / "indice_varianza_intra.csv").set_index("dimension")
+    assert var.participacion.sum() == pytest.approx(1.0, abs=1e-9)
+    # La frase de la guía (§9) hecha cifra: el acceso domina la varianza intra del compuesto.
+    assert var.participacion.idxmax() == "acceso"
+    d = pd.read_parquet(config.DATA_PROCESSED / "indice_departamento_anual.parquet")
+    # R-13: la distancia tipo Sarma no tiene valor donde el compuesto no lo tiene.
+    assert (d.iif_sarma.notna() <= d.iif_compuesto.notna()).all()
+
+    # Las cifras de la tabla de ADR-025 y de la sección de sensibilidad de indice.qmd.
+    assert int(d.iif_sarma.notna().sum()) == 260
+    sar = par.loc[("iif_compuesto", "iif_sarma")]
+    assert round(sar.agrupada, 3) == 0.859
+    assert round(par.loc[("iif_pca", "iif_sarma")].agrupada, 3) == 0.815
+    assert (round(sar.por_anio_media, 3), round(sar.por_anio_minimo, 3), int(sar.anio_del_minimo)) == (
+        0.797, 0.594, 2023)
+    assert round(sar.cambios, 3) == 0.447
+    assert round(var.loc["acceso", "participacion"], 2) == 0.87
+    # La saturación que ADR-025 declara: filas por encima del techo congelado de 2018-2019.
+    contrato = load_contract()
+    fits = contrato["pesos_congelados"]
+    cal = contrato["calibracion"]
+    en_cal = d.anio.between(cal["anio_desde"], cal["anio_hasta"])
+    saturadas = {}
+    for f in fits.values():
+        for v in f["variables"]:
+            z = ((d[v] - f["media"][v]) / f["desviacion"][v]).clip(lower=0)
+            saturadas[v] = int((z > z[en_cal].max()).sum())
+    assert (saturadas["nro_corresp_activos"], saturadas["nro_total"], saturadas["monto_total"]) == (101, 65, 30)

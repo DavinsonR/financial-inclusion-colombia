@@ -12,9 +12,13 @@ from iif import config
 
 R = json.loads((config.REPO_ROOT / "data" / "processed" / "econ" / "resultados.json").read_text(encoding="utf-8"))
 E = R["especificacion"]
+PR = {e["clave"]: e for e in R["principales"]}
 
 def fmt(v, d=4):
     return "—" if v is None else f"{v:+.{d}f}"
+
+def fp(v, d=3):
+    return "—" if v is None else f"{v:.{d}f}"
 
 def tabla(filas, con_errores=True):
     df = pd.DataFrame([
@@ -23,20 +27,31 @@ def tabla(filas, con_errores=True):
          **({"Errores": e["errores"]} if con_errores else {})}
         for e in filas])
     return Markdown(df.to_markdown(index=False))
+
+def tabla_con_bootstrap(filas):
+    df = pd.DataFrame([
+        {"Especificación": e["nombre"], "β": fmt(e["coef"]), "EE agrupado": f'{e["se"]:.4f}',
+         "p, t(G − 1)": fp(e.get("p_t_g1")), "p bootstrap": fp(e.get("p_bootstrap")), "N": e["n"],
+         "Dptos.": e["unidades"]}
+        for e in filas])
+    return Markdown(df.to_markdown(index=False))
 ```
 
 La pregunta es si el índice de inclusión financiera predice el crecimiento del PIB real per cápita de los
 departamentos. Todo lo de esta página sale de un solo archivo que escribe `uv run iif econ`
 (`data/processed/econ/resultados.json`); ninguna cifra viene de un cuaderno. El diseño está decidido en
-ADR-016 y probado en `tests/test_econ.py` sobre paneles sintéticos, donde se sabe la verdad.
+ADR-016, la inferencia y los contrastes que pidió el referee en ADR-024, y todo está probado en
+`tests/test_econ.py` sobre paneles sintéticos, donde se sabe la verdad.
 
 ```{python}
 #| echo: false
 Markdown(f"""
 **Muestra.** {E['unidades']} departamentos, {E['periodos'][0]} a {E['periodos'][-1]}, N = {E['n']}.
 Dependiente: tasa de crecimiento del PIB real per cápita. Regresor: índice compuesto estandarizado.
-Controles: {', '.join(E['controles'])}. Efectos fijos de {E['efectos']}. Exposición inicial medida en
-{E['anio_base_exposicion']}, anterior a toda observación de la dependiente.
+Controles: {', '.join(E['controles'])}. Efectos fijos de {E['efectos']}. Errores agrupados por
+departamento, con t({E['unidades'] - 1}) como referencia y bootstrap salvaje studentizado con el error
+agrupado. Exposición inicial medida en {E['anio_base_exposicion']}, anterior a toda observación de la
+dependiente.
 """)
 ```
 
@@ -44,14 +59,34 @@ Controles: {', '.join(E['controles'])}. Efectos fijos de {E['efectos']}. Exposic
 
 ```{python}
 #| echo: false
-tabla(R["principales"])
+tabla_con_bootstrap(R["principales"])
 ```
 
-La primera fila es la especificación base. La segunda repite el modelo con errores de Driscoll-Kraay, que
-admiten dependencia entre departamentos dentro de un mismo año. La tercera **no es una alternativa**: es el
-mismo modelo sin efectos de tiempo, y se publica porque la distancia entre su coeficiente y el de la
+```{python}
+#| echo: false
+dk = R["notas"]["driscoll_kraay"]
+Markdown(f"""
+La primera fila es la especificación base. La segunda es **coprincipal**: el mismo modelo con el índice
+construido sobre el producto fijo de 2018 en el denominador de los montos, que es el único denominador sin
+ningún camino mecánico hacia la dependiente (ADR-017; sección 8). La tercera **no es una alternativa**: es
+el mismo modelo sin efectos de tiempo, y se publica porque la distancia entre su coeficiente y el de la
 primera fila es exactamente la parte de la relación que era tendencia nacional. La cuarta reemplaza el
 nivel del índice por su cambio anual.
+
+Las dos últimas atienden al control de convergencia. Con efectos de entidad y siete años, el rezago del
+ingreso tiene sesgo de Nickell, y ese sesgo puede pasar a β si el índice se correlaciona con el ingreso
+del año anterior. La quinta fila lo sustituye por las condiciones iniciales de 2018 (log del ingreso y
+urbanización) interactuadas con cada año, que no tienen ese sesgo; la sexta no lleva controles. La
+especificación base no cambia de definición: son filas añadidas después de la revisión, y se leen como
+tales (ADR-024).
+
+El «p, t(G − 1)» usa el error agrupado con {E['unidades'] - 1} grados de libertad; el «p bootstrap» es el
+bootstrap salvaje por clúster con la nula impuesta y studentizado con el mismo error agrupado (Rademacher,
+999 réplicas). Nota: con errores de Driscoll-Kraay, que admiten dependencia entre departamentos en un mismo
+año, el error estándar de la base sería {dk['se']:.4f} (p = {dk['p']:.3f}). Con T = {len(E['periodos'])}
+ese estimador no es creíble, y por eso queda como nota y no como fila.
+""")
+```
 
 ## 2. Por dimensión y con índices alternativos
 
@@ -60,9 +95,21 @@ nivel del índice por su cambio anual.
 tabla(R["dimensiones"] + R["sensibilidad_indice"], con_errores=False)
 ```
 
+```{python}
+#| echo: false
+U = R["unidades_naturales"]
+Markdown(f"""
 Acceso, uso y profundidad entran cada una en su propia regresión: juntas medirían el efecto parcial de una
 dimensión manteniendo fijas las otras, que no es la pregunta cuando las tres se mueven a la vez por
-construcción. Los índices por PCA y por distancia de Sarma son las alternativas de ADR-015.
+construcción. Los índices por PCA y por distancia tipo Sarma (ADR-025) son las alternativas de ADR-015.
+
+En unidades naturales, el coeficiente de acceso equivale a {fmt(U['pp_por_10_corresponsales_por_10k'], 2)}
+puntos porcentuales de crecimiento anual por cada 10 corresponsales activos más por 10.000 habitantes
+(IC 95 % [{U['ic95_pp_por_10_corresponsales_por_10k'][0]:+.2f}, {U['ic95_pp_por_10_corresponsales_por_10k'][1]:+.2f}]).
+La traducción usa la desviación de la ventana de calibración, {U['desviacion_calibracion_por_10k']:.2f}
+corresponsales por 10.000 habitantes, congelada en `config/index.yaml`.
+""")
+```
 
 ## 3. Diagnósticos
 
@@ -85,7 +132,7 @@ moran = pd.DataFrame([
 Markdown(f"""
 | Prueba | Estadístico | Lectura |
 |---|---|---|
-| CD de Pesaran (residuos del modelo base) | {cd['estadistico']:.2f} (p = {cd['p']:.3f}; ρ̄ = {cd['rho_medio']:.3f}) | dependencia transversal débil pero presente: por eso Driscoll-Kraay acompaña al clúster |
+| CD de Pesaran (residuos del modelo base) | {cd['estadistico']:.2f} (p = {cd['p']:.3f}; ρ̄ = {cd['rho_medio']:.3f}) | dependencia transversal débil pero presente; los efectos de año absorben la parte común |
 | CIPS sobre el índice | {ci['cips']:.2f} con T = {ci['periodos']} | {ci.get('nota', '')} |
 
 I de Moran por año, con inferencia por permutación sobre la contigüidad de los departamentos:
@@ -105,27 +152,33 @@ La contigüidad no viene de una biblioteca espacial: dos departamentos son vecin
 TopoJSON del atlas, que guarda cada frontera una sola vez. Es exacto por construcción. El archipiélago no
 toca a nadie y queda con fila de ceros, no con un vecino inventado.
 
-## 4. Diseños que no dependen de la exogeneidad del índice
+## 4. Diseños complementarios
 
 ```{python}
 #| echo: false
 tabla(R["disenos"], con_errores=False)
 ```
 
+Ninguno de estos diseños identifica un efecto causal por sí solo; su valor está en que fallen o sobrevivan
+juntos.
+
 - **CCE** añade las medias transversales de la dependiente y del regresor con una carga distinta por
   departamento, sin efectos de tiempo: un choque nacional que golpea el doble a un departamento que a otro
   deja de confundirse con el índice.
-- **Shift-share** sustituye el índice observado por la exposición de 2018 multiplicada por la adopción
-  nacional. Con efectos de tiempo identifica la pendiente diferencial de los departamentos que empezaron
-  más incluidos.
+- **Diseño de exposición inicial** sustituye el índice observado por su nivel de 2018 multiplicado por la
+  adopción nacional. Con efectos de tiempo identifica la pendiente diferencial de los departamentos que
+  empezaron más incluidos, y exige que ese nivel inicial sea exógeno. Antes se llamaba «shift-share», y no
+  lo es: hay una sola participación y una sola serie común, sin muchos choques ni pesos de Rotemberg.
 - **SLX** añade la media del índice de los vecinos: si el coeficiente propio se sostiene, la relación no
-  era el reflejo de un vecindario.
+  era el reflejo de un vecindario. Es el único modelo espacial que el código estima: los modelos con rezago
+  espacial de la dependiente (SAR, SDM) exigen máxima verosimilitud y supuestos que un panel de siete años
+  no sostiene, y no se estiman.
 
-### El shift-share, contrastado contra sí mismo
+### La exposición inicial, contrastada contra sí misma
 
 ```{python}
 #| echo: false
-S = R["shift_share_contraste"]
+S = R["exposicion_inicial_contraste"]
 tabla(S["placebos"] + S["carrera"], con_errores=False)
 ```
 
@@ -139,14 +192,15 @@ Markdown(f"""
 Cualquier condición inicial correlacionada con el índice produciría la misma pendiente diferencial si lo
 que hay es recuperación desigual y no inclusión. Con el ingreso inicial como exposición el coeficiente es
 {fmt(S['placebos'][0]['coef'])} (p = {S['placebos'][0]['p']:.3f}); con la urbanización inicial,
-{fmt(S['placebos'][1]['coef'])} (p = {S['placebos'][1]['p']:.3f}).
+{fmt(S['placebos'][1]['coef'])} (p = {S['placebos'][1]['p']:.3f}). El placebo de urbanización gana: el
+nivel inicial del índice no es exógeno a lo que pasó después.
 
 El diseño resiste su propia inferencia: bootstrap salvaje por clúster p = {inf['wild_cluster_bootstrap']['p_bootstrap']:.3f}
-y placebo por permutación p = {inf['placebo_permutacion']['p_placebo']:.3f}. Lo que no resiste es la carrera
-contra la exposición que gana: con la urbanización inicial dentro de la misma ecuación el índice cae a
-{fmt(c_urb['coef'])} (p = {c_urb['p']:.3f}), y con las dos exposiciones dentro,
-{fmt(c_tod['coef'])} (p = {c_tod['p']:.3f}). Correr la carrera solo contra el ingreso —el rival que pierde—
-la habría dado por superada.
+(Webb, {inf['wild_cluster_bootstrap_webb']['p_bootstrap']:.3f}) y placebo por permutación
+p = {inf['placebo_permutacion']['p_placebo']:.3f}. Lo que no resiste es la carrera contra la exposición que
+gana: con la urbanización inicial dentro de la misma ecuación el índice cae a {fmt(c_urb['coef'])}
+(p = {c_urb['p']:.3f}), y con las dos exposiciones dentro, {fmt(c_tod['coef'])} (p = {c_tod['p']:.3f}).
+Correr la carrera solo contra el ingreso —el rival que pierde— la habría dado por superada.
 """)
 ```
 
@@ -160,56 +214,134 @@ ev_t.columns = ["Año", "k", "β (exposición 2018 × año)", "EE"]
 Markdown(ev_t.to_markdown(index=False))
 ```
 
-La exposición es el índice de 2018 estandarizado; el año de referencia es 2019. **Este diseño no puede
-contrastar tendencias previas**: la dependiente empieza en 2019 y el choque es 2020, así que solo hay un
-año anterior y es el de referencia. Lo que mide es en qué años posteriores se separan los departamentos
-más expuestos, y se publica con esa limitación escrita.
+```{python}
+#| echo: false
+fuera = [int(r.anio) for r in ev.itertuples() if not r.referencia and (r.ic_bajo > 0 or r.ic_alto < 0)]
+Markdown(f"""
+La exposición es el índice de 2018 estandarizado; el año de referencia es 2019. Con la dependiente per
+cápita, que empieza en 2019, esta tabla solo tiene años posteriores al choque.
+{('Los años ' + ' y '.join(map(str, fuera)) + ' tienen intervalos que excluyen el cero: son') if fuera else 'Ningún año tiene un intervalo que excluya el cero; si lo tuviera, sería'}
+la misma pendiente diferencial del diseño de exposición inicial, y como él necesitan la carrera contra la
+urbanización (abajo) y el descuento por comparaciones múltiples (sección 9).
+""")
+```
+
+### Tendencias previas desde 2006
+
+```{python}
+#| echo: false
+TP = R["tendencias_previas"]
+etiquetas = {
+    "crecimiento_pib_total__sin_controles": ("PIB real total", "—"),
+    "crecimiento_pib_total__con_urbanizacion_2018": ("PIB real total", "urbanización 2018 × año"),
+    "crecimiento_pib_pc__sin_controles": ("PIB real per cápita", "—"),
+    "crecimiento_pib_pc__con_urbanizacion_2018": ("PIB real per cápita", "urbanización 2018 × año"),
+}
+filas = []
+for clave, (dep, ctl) in etiquetas.items():
+    t = TP[clave]
+    filas.append({
+        "Dependiente": dep, "Control": ctl, "Años": f"{t['anios'][0]}–{t['anios'][1]}",
+        "F previos (q = 13)": f"{t['previos']['F']:.2f}", "p F(q, G − 1)": fp(t['previos']['p_F']),
+        "p bootstrap": fp(t['previos']['p_bootstrap']), "p Webb": fp(t['previos']['p_bootstrap_webb']),
+        "p bootstrap posteriores": fp(t['posteriores']['p_bootstrap']), "Dptos.": t["clusteres"],
+    })
+Markdown(pd.DataFrame(filas).to_markdown(index=False))
+```
+
+```{python}
+#| echo: false
+t0 = TP["crecimiento_pib_total__sin_controles"]
+tu = TP["crecimiento_pib_pc__con_urbanizacion_2018"]
+boot_previos = [TP[k]["previos"]["p_bootstrap"] for k in etiquetas]
+rechaza_F = sum(TP[k]["previos"]["p_F"] < 0.05 for k in etiquetas)
+post_boot = [TP[k]["posteriores"]["p_bootstrap"] for k in etiquetas]
+Markdown(f"""
+La exposición es fija en 2018 y no necesita el índice en los años anteriores, así que el contraste de
+tendencias previas sí se puede hacer: basta una dependiente que empiece antes. El DANE publica el PIB real
+departamental desde 2005, y el per cápita se construye con la población implícita en su PIB per cápita
+corriente, que coincide con la proyección de población desde 2018. Se estima exposición × año para todos
+los años salvo 2019, con efectos de entidad y de año, y se contrasta que los trece coeficientes de 2006 a
+2018 sean cero a la vez.
+
+Con trece restricciones y {t0['clusteres']} clústeres el F agrupado rechaza de más: estima una matriz de
+varianza de 13 × 13 con 32 grupos. La referencia es el bootstrap salvaje del Wald con la nula impuesta.
+Con él, {'**no hay tendencias previas detectables**' if min(boot_previos) >= 0.05 else '**hay tendencias previas**'}:
+p = {t0['previos']['p_bootstrap']:.2f} con el PIB total y p = {tu['previos']['p_bootstrap']:.2f} con el per
+cápita y la urbanización inicial dentro (el menor de los cuatro, {min(boot_previos):.2f}). El F analítico se
+publica al lado y rechaza en {rechaza_F} de las cuatro filas: quien prefiera esa referencia tiene que leer
+el estudio de eventos con esa reserva. Los seis años posteriores juntos
+{'tampoco se separan de cero con el bootstrap' if min(post_boot) >= 0.05 else 'sí se separan de cero en alguna fila'}
+(p entre {min(post_boot):.2f} y {max(post_boot):.2f}).
+""")
+```
 
 ## 6. Inferencia con pocos clústeres
 
 ```{python}
 #| echo: false
-W = R["robustez"]["wild_cluster_bootstrap"]; P = R["robustez"]["placebo_permutacion"]
+W = R["robustez"]["wild_cluster_bootstrap"]; WW = R["robustez"]["wild_cluster_bootstrap_webb"]
+P = R["robustez"]["placebo_permutacion"]
 Markdown(f"""
 | Procedimiento | Resultado |
 |---|---|
-| Bootstrap salvaje por clúster, nula impuesta, {W['replicas']} réplicas de Rademacher sobre {W['clusteres']} departamentos | β = {fmt(W['coef'])}, t = {W['t_observado']:+.2f}, **p = {W['p_bootstrap']:.3f}** |
-| Placebo: el índice barajado entre departamentos dentro de cada año, {P['replicas']} permutaciones | β verdadero = {fmt(P['coef_verdadero'])}; placebos con media {fmt(P['media_placebos'])} y DE {P['de_placebos']:.4f}; **p = {P['p_placebo']:.3f}** |
+| Bootstrap salvaje por clúster, nula impuesta, studentizado con el error agrupado; {W['replicas']} réplicas de Rademacher sobre {W['clusteres']} departamentos | β = {fmt(W['coef'])}, t = {W['t_observado']:+.2f}, **p = {W['p_bootstrap']:.3f}**; IC 95 % por inversión [{W['ic95_bootstrap'][0]:+.4f}, {W['ic95_bootstrap'][1]:+.4f}] |
+| Lo mismo con los seis puntos de Webb | **p = {WW['p_bootstrap']:.3f}**; IC 95 % [{WW['ic95_bootstrap'][0]:+.4f}, {WW['ic95_bootstrap'][1]:+.4f}] |
+| Placebo: la trayectoria completa del índice reasignada entre departamentos, {P['replicas']} permutaciones | β verdadero = {fmt(P['coef_verdadero'])}; placebos con media {fmt(P['media_placebos'])} y DE {P['de_placebos']:.4f}; **p = {P['p_placebo']:.3f}** |
 """)
 ```
 
 Con 33 clústeres el error estándar agrupado descansa en una asintótica que no se cumple; el bootstrap
-salvaje con la nula impuesta es la corrección estándar para ese caso. El placebo baraja el índice dentro de
-cada año: conserva la trayectoria nacional y destruye solo la asignación territorial, que es la variación
-que identificaría un efecto.
+salvaje con la nula impuesta es la corrección estándar para ese caso, y su refinamiento viene de
+studentizar cada réplica con el mismo error agrupado que el estadístico observado (Cameron, Gelbach y
+Miller, 2008). La versión anterior studentizaba con el error homocedástico (ADR-024). El intervalo es el
+conjunto de valores β₀ que la prueba con la nula β = β₀ no rechaza.
+
+El placebo reasigna la **serie completa** de cada departamento a otro: conserva la trayectoria nacional y la
+correlación serial del índice, y destruye solo la asignación territorial, que es la variación que
+identificaría un efecto. Barajar dentro de cada año, como se hacía al principio, destruye también la
+correlación serial y produce una nube demasiado estrecha (B-074; sección 8).
 
 ## 7. Qué descarta este diseño y qué no
 
 ```{python}
 #| echo: false
 POT = R["potencia"]; esc = POT["escala_del_regresor"]; mde = POT["mde"]; ic = POT["intervalo"]
+BO = POT["bootstrap"]; BW = POT["bootstrap_webb"]
+eq_boot = {round(t["margen_pp_por_de"], 4): t for t in BO["equivalencia"]}
+eq_webb = {round(t["margen_pp_por_de"], 4): t for t in BW["equivalencia"]}
 eq = pd.DataFrame([
-    {"Margen (pp por DE)": f"±{t['margen_pp_por_de']:.2f}",
-     "p del TOST": f"{t['p']:.3f}",
-     "¿Descartado?": "sí" if t["equivale"] else "no"}
+    {"Margen (pp por DE identificante)": f"±{t['margen_pp_por_de']:.2f}",
+     "≈ pp por DE bruta": f"±{t['margen_pp_por_de_bruta']:.2f}",
+     f"p TOST, t({POT['grados_de_libertad']})": f"{t['p']:.3f}",
+     "p TOST bootstrap": f"{eq_boot[round(t['margen_pp_por_de'], 4)]['p']:.3f}",
+     "p TOST Webb": f"{eq_webb[round(t['margen_pp_por_de'], 4)]['p']:.3f}",
+     "¿Descartado (bootstrap)?": "sí" if eq_boot[round(t['margen_pp_por_de'], 4)]["equivale"] else "no"}
     for t in POT["equivalencia"]
 ])
 Markdown(f"""
 Un contraste que no rechaza no distingue entre que el efecto sea cero y que este diseño no lo vería aunque
 existiera. La cifra que separa las dos lecturas es el efecto mínimo detectable, y depende del error
-estándar, no del coeficiente (ADR-018).
+estándar, no del coeficiente (ADR-018). Con errores agrupados, la referencia es t(G − 1) =
+t({POT['grados_de_libertad']}), no los {POT['grados_de_libertad_residuales']} grados de libertad residuales
+que se usaban antes (ADR-024).
 
 | Cantidad | Valor |
 |---|---|
 | Desviación típica del índice, bruta | {esc['de_bruta']:.3f} |
-| Desviación típica tras los efectos fijos y los controles | {esc['de_identificante']:.3f} |
+| Desviación típica tras los efectos fijos y los controles (identificante) | {esc['de_identificante']:.3f} |
 | Varianza del índice que identifica el coeficiente | {esc['varianza_que_identifica'] * 100:.1f} % |
-| MDE al 80 % de potencia | {mde['potencia_80']:.4f} = {mde['potencia_80_pp_por_de']:.2f} pp por desviación |
-| IC 95 % del coeficiente | [{ic['ic95'][0]:+.4f}, {ic['ic95'][1]:+.4f}] = [{ic['ic95_pp_por_de'][0]:+.2f}, {ic['ic95_pp_por_de'][1]:+.2f}] pp por desviación |
+| MDE al 80 % de potencia, t({POT['grados_de_libertad']}) | {mde['potencia_80']:.4f} = {mde['potencia_80_pp_por_de']:.2f} pp por DE identificante (≈ {mde['potencia_80_pp_por_de_bruta']:.2f} pp por DE bruta) |
+| IC 95 %, t({POT['grados_de_libertad']}) | [{ic['ic95_pp_por_de'][0]:+.2f}, {ic['ic95_pp_por_de'][1]:+.2f}] pp por DE identificante |
+| IC 95 %, bootstrap invertido | [{BO['ic95_pp_por_de'][0]:+.2f}, {BO['ic95_pp_por_de'][1]:+.2f}] pp por DE identificante (≈ [{BO['ic95_pp_por_de_bruta'][0]:+.2f}, {BO['ic95_pp_por_de_bruta'][1]:+.2f}] por DE bruta) |
+| Margen más pequeño que el TOST descarta, t({POT['grados_de_libertad']}) | {POT['margen_minimo']['pp_por_de']:.2f} pp por DE identificante (≈ {POT['margen_minimo']['pp_por_de_bruta']:.2f} por DE bruta) |
+| Margen más pequeño que el TOST descarta, bootstrap | {BO['margen_minimo']['pp_por_de']:.2f} pp por DE identificante (≈ {BO['margen_minimo']['pp_por_de_bruta']:.2f} por DE bruta); Webb {BW['margen_minimo']['pp_por_de']:.2f} |
 
 Los efectos fijos de dos vías se llevan el {100 - esc['varianza_que_identifica'] * 100:.0f} % de la varianza
 del índice. Eso es lo que hace al diseño poco potente y es también lo que lo hace creíble: la variación que
-queda no es tendencia nacional ni nivel permanente de cada departamento.
+queda no es tendencia nacional ni nivel permanente de cada departamento. Por eso cada cota se da en las dos
+escalas: la identificante, que es la que el diseño usa, y la bruta, que es la que un lector tiene en mente
+cuando piensa en «un departamento una desviación más incluido que otro».
 
 Prueba de equivalencia (dos contrastes unilaterales) sobre el coeficiente base:
 
@@ -217,9 +349,20 @@ Prueba de equivalencia (dos contrastes unilaterales) sobre el coeficiente base:
 """)
 ```
 
-La lectura correcta del resultado no es «no hay efecto» sino la cota: el diseño descarta efectos por encima
-del margen más pequeño que sí rechaza, y no puede pronunciarse por debajo. Un trabajo posterior se juzga por
-cuánto baja esa cota, no por cuántas filas añade.
+```{python}
+#| echo: false
+m50 = next(t for t in POT["equivalencia"] if abs(t["margen_pp_por_de"] - 0.5) < 1e-9)
+b50 = eq_boot[0.5]
+Markdown(f"""
+La lectura correcta del resultado no es «no hay efecto» sino la cota, y la cota depende de la inferencia.
+Con la referencia t({POT['grados_de_libertad']}) el TOST a ±0,50 pp {'pasa por poco' if m50['equivale'] else 'no pasa'} (p = {m50['p']:.3f}).
+Con el bootstrap, que es la inferencia que este panel sostiene con 33 clústeres,
+{'**no pasa**' if not b50['equivale'] else '**también pasa**'} (p = {b50['p']:.3f}): el diseño descarta efectos por encima de unos {BO['margen_minimo']['pp_por_de']:.2f} pp
+de crecimiento anual por desviación típica identificante del índice (≈ {BO['margen_minimo']['pp_por_de_bruta']:.1f} pp
+por desviación bruta), y no puede pronunciarse por debajo. Un trabajo posterior se juzga por cuánto baja
+esa cota, no por cuántas filas añade.
+""")
+```
 
 ## 8. Robustez
 
@@ -239,43 +382,201 @@ Con 33 unidades, un resultado que dependiera de una sola no sería un resultado.
 
 {ventanas.to_markdown(index=False)}
 
-El placebo por permutación reasigna la **trayectoria completa** de cada departamento, no los valores de
-cada año por separado: barajar dentro del año destruye también la correlación serial del índice y produce
-una nube artificialmente estrecha, que rechaza donde el estimador no rechaza. Las dos versiones se publican
-para que la diferencia se vea: la nube por trayectoria tiene desviación
-{R['robustez']['placebo_permutacion']['de_placebos']:.5f}, del orden del error estándar agrupado, y la de
-dentro del año {PA['de_placebos']:.5f} (B-074).
+El placebo por trayectoria tiene una nube con desviación {R['robustez']['placebo_permutacion']['de_placebos']:.5f},
+del orden del error estándar agrupado; el de dentro del año, {PA['de_placebos']:.5f}. Las dos versiones se
+publican para que se vea cuánta variación destruye cada una (B-074).
 """)
 ```
 
-## 9. Lectura
+### La dependiente sin minería ni sector financiero
 
 ```{python}
 #| echo: false
-b = R["principales"][0]; s = R["principales"][2]; ss = R["disenos"][1]
+BK = R["dependiente_sin_bk"]
+tabla_con_bootstrap(BK["filas"])
+```
+
+```{python}
+#| echo: false
+Markdown(f"""
+El PIB departamental incluye la sección K (actividades financieras), cuyo valor agregado sube con el
+crédito y las cuentas por construcción, y la B (minería), que mueve el crecimiento de Arauca, Casanare,
+Meta, La Guajira y Cesar con precios externos. La dependiente de estas filas es el crecimiento del valor
+agregado per cápita a precios constantes sin esas secciones. El volumen encadenado del DANE no es aditivo:
+desde 2018 la suma de las secciones se separa del valor agregado total en una mediana de
+{BK['no_aditividad']['mediana_abs'] * 100:.2f} % y como mucho {BK['no_aditividad']['max_abs'] * 100:.1f} %,
+y esa es la precisión de esta aproximación.
+""")
+```
+
+### Causalidad inversa
+
+```{python}
+#| echo: false
+CI = R["causalidad_inversa"]
+tabla_con_bootstrap([CI["adelanto"], CI["adelanto_con_contemporaneo"], CI["granger_inverso"], CI["granger_inverso_denominador_fijo"]])
+```
+
+```{python}
+#| echo: false
+g, gf = CI["granger_inverso"], CI["granger_inverso_denominador_fijo"]
+Markdown(f"""
+Si el crédito responde al crecimiento esperado, el índice de mañana «explicaría» el crecimiento de hoy.
+{'No lo hace' if CI['adelanto']['p_bootstrap'] >= 0.05 else 'Lo hace'}: {fmt(CI['adelanto']['coef'])}
+(p bootstrap = {CI['adelanto']['p_bootstrap']:.2f}). El Granger inverso —el cambio del índice sobre el
+crecimiento del año anterior— sale {'negativo' if g['coef'] < 0 else 'positivo'} con el índice publicado
+({fmt(g['coef'], 3)}, p bootstrap = {g['p_bootstrap']:.3f}), y la parte negativa es aritmética: con el
+denominador rezagado, el índice de un año lleva abajo el producto del año anterior, así que su cambio
+contiene el crecimiento de ese año con signo negativo. Con el índice de denominador fijo el coeficiente cae
+a {fmt(gf['coef'], 3)} (p bootstrap = {gf['p_bootstrap']:.2f}). Ninguna de las dos cosas prueba causalidad;
+dicen que el orden temporal que la base supone no está contradicho por los datos.
+""")
+```
+
+### El denominador del índice
+
+```{python}
+#| echo: false
+DEN = R["denominador"]
+filas = []
+for f in DEN["filas"]:
+    if f["ventana"] != "completa" and not f["estimable"]:
+        continue
+    filas.append({
+        "Índice": "real" if f["indice"] == "iif" else "placebo",
+        "Denominador": f["denominador"], "Ventana": f["ventana"],
+        "Controles": "base" if f["controles"] else "ninguno",
+        "β": fmt(f.get("coef")) if f["estimable"] else "no estimable",
+        "p": fp(f.get("p")) if f["estimable"] else f.get("motivo", ""),
+        "N": f.get("n", "—"),
+    })
+Markdown(pd.DataFrame(filas).to_markdown(index=False))
+```
+
+```{python}
+#| echo: false
+def _den(indice, modo, ventana="completa", controles=True):
+    return next(f for f in DEN["filas"] if f["indice"] == indice and f["denominador"] == modo
+                and f["ventana"] == ventana and bool(f["controles"]) == controles)
+pc, pr, pf = _den("placebo", "contemporaneo"), _den("placebo", "rezagado"), _den("placebo", "fijo")
+prs = _den("placebo", "rezagado", controles=False)
+Markdown(f"""
+El índice placebo congela todos los numeradores en su valor de 2018: no contiene ninguna información
+financiera y solo se mueve por sus denominadores. Con el producto contemporáneo da {fmt(pc['coef'])}
+(p = {pc['p']:.4f}), que es el sesgo que motivó ADR-017. Con el producto rezagado el sesgo
+{'**se reduce pero no desaparece**' if pr['p'] < 0.05 else 'deja de ser significativo'}: {fmt(pr['coef'])}
+(p = {pr['p']:.3f}) con los controles de la base, y {fmt(prs['coef'])} (p = {prs['p']:.2f}) sin ellos; con
+los controles dentro, 1 / producto rezagado es casi colineal con el rezago del ingreso. Con el
+producto fijo de 2018, {fmt(pf['coef'])} (p = {pf['p']:.2f}). Por eso el índice de denominador fijo es fila
+coprincipal en la sección 1: es el único sin camino mecánico hacia la dependiente, y da el mismo veredicto.
+""")
+```
+
+### Quién identifica el coeficiente
+
+```{python}
+#| echo: false
+AS = R["aronow_samii"]
+top = pd.DataFrame([
+    {"Departamento": d["departamento"], "Peso en la identificación": f"{d['peso'] * 100:.1f} %",
+     "Participación en la población 2018": f"{d['participacion_poblacion'] * 100:.1f} %"}
+    for d in AS["por_departamento"][:8]
+])
+pp = AS["ponderada_por_poblacion"]
+Markdown(f"""
+Con efectos fijos, cada departamento pesa en el coeficiente según la varianza que le queda al índice dentro
+de él una vez quitados los efectos y los controles (Aronow y Samii, 2016). Los cinco que más pesan
+aportan el {AS['top5_peso'] * 100:.0f} % de la identificación y reúnen el
+{AS['top5_participacion_poblacion'] * 100:.0f} % de la población; el panel equivale a
+{AS['unidades_efectivas']:.0f} departamentos con peso igual, no a 33.
+
+{top.to_markdown(index=False)}
+
+Ponderando cada departamento por su población de 2018 —la pregunta pasa de «el departamento típico» a «el
+habitante típico»—, el coeficiente es {fmt(pp['coef'])} (EE {pp['se']:.4f}, p = {pp['p_t_g1']:.2f} con t(G − 1)).
+""")
+```
+
+## 9. No linealidad y comparaciones múltiples
+
+```{python}
+#| echo: false
+NL = R["no_linealidad"]; H = R["familia_holm"]
+holm = pd.DataFrame([
+    {"Contraste": f["contraste"], "β": fmt(f["coef"]), "p, t(G − 1)": f"{f['p']:.3f}",
+     "p Holm": f"{f['p_holm']:.3f}"}
+    for f in H["filas"]
+])
+Markdown(f"""
+El término cuadrático prueba si el efecto se agota o se invierte con el nivel (Arcand, Berkes y Panizza,
+2015). Su coeficiente es {fmt(NL['coef_cuadratico'])} (p agrupado = {NL['p_cuadratico']:.3f}; bootstrap
+p = {NL['p_bootstrap_cuadratico']:.3f}), con el término lineal en {fmt(NL['coef_lineal'])} y el vértice en
+{NL['vertice']:.2f} desviaciones del índice, por debajo del cual está el {NL.get('fraccion_bajo_el_vertice', 0) * 100:.0f} %
+de la muestra.
+
+Ese p no se puede leer solo. La página lee {H['contrastes']} contrastes —la base, las tres dimensiones, la
+exposición inicial, los seis años posteriores del estudio de eventos y el cuadrático—, y
+{H['rechazos_sin_ajuste_5']} de ellos dan p < 0,05 sin ajustar. Con el ajuste de Holm, que es válido bajo
+cualquier dependencia entre ellos, **{'ninguno sobrevive' if H['rechazos_holm_5'] == 0 else str(H['rechazos_holm_5']) + ' sobreviven'}**.
+
+{holm.to_markdown(index=False)}
+""")
+```
+
+## 10. Convergencia
+
+```{python}
+#| echo: false
+CV = R["convergencia"]; BI = CV["beta_incondicional"]
+sig = pd.DataFrame(CV["sigma"])
+Markdown(f"""
+Dos hechos estilizados contra los que se lee el término de convergencia condicional del panel, sobre la
+serie larga 2005–2025 del DANE. La **sigma-convergencia** es la dispersión entre departamentos del log del
+PIB real per cápita: pasa de {sig['de'].iloc[0]:.3f} en {int(sig['anio'].iloc[0])} a {sig['de'].iloc[-1]:.3f}
+en {int(sig['anio'].iloc[-1])}: {'la dispersión no se cierra, crece' if sig['de'].iloc[-1] > sig['de'].iloc[0] else 'la dispersión se cierra'}. La **beta-convergencia
+incondicional** es el corte transversal de {BI['n']} departamentos: el crecimiento medio anual
+{BI['desde']}–{BI['hasta']} sobre el log del nivel de {BI['desde']} da {fmt(BI['coef'])}
+(EE robusto {BI['se_hc1']:.4f}, p = {BI['p']:.2f}, R² = {BI['r2']:.3f}).
+{'Los departamentos pobres no crecieron más rápido que los ricos.' if not (BI['coef'] < 0 and BI['p'] < 0.05) else 'Los departamentos pobres crecieron más rápido que los ricos.'}
+
+| Año | {' | '.join(str(int(a)) for a in sig['anio'][::4])} |
+|---|{'---|' * len(sig['anio'][::4])}
+| DE del log del PIB real per cápita | {' | '.join(f'{v:.3f}' for v in sig['de'][::4])} |
+""")
+```
+
+## 11. Lectura
+
+```{python}
+#| echo: false
+b = PR["base"]; s = PR["solo_entidad"]; f = PR["denominador_fijo"]; ss = R["disenos"][1]
+h_exp = next(x for x in H["filas"] if x["contraste"] == "exposición inicial")
 conv = b["coeficientes"]["log_pib_rezago"]
-eq_min = next((t for t in POT["equivalencia"] if t["equivale"]), None)
-eq_no = [t for t in POT["equivalencia"] if not t["equivale"]]
 Markdown(f"""
 El coeficiente del índice sobre el crecimiento es **{fmt(b['coef'])}** con efectos fijos de entidad y
-tiempo (p = {b['p']:.2f}; bootstrap salvaje p = {W['p_bootstrap']:.2f}; placebo p = {P['p_placebo']:.2f}).
-Sin efectos de tiempo sería {fmt(s['coef'])} (p < 0,001): esa diferencia es lo que valía la tendencia
-nacional, y es el resultado más útil de toda la página.
+tiempo (p = {b['p_t_g1']:.2f} con t(G − 1); bootstrap p = {W['p_bootstrap']:.2f}; placebo
+p = {P['p_placebo']:.2f}), y {fmt(f['coef'])} (p = {f['p_t_g1']:.2f}) con el denominador fijo. Sin efectos
+de tiempo sería {fmt(s['coef'])} (p < 0,001): esa diferencia es lo que valía la tendencia nacional, y es el
+resultado más útil de toda la página.
 
-Dicho como cota, que es como se sostiene: este diseño descarta efectos mayores que
-±{eq_min['margen_pp_por_de']:.2f} puntos porcentuales de crecimiento anual por desviación típica del índice
-(p = {eq_min['p']:.3f}){' y no puede descartar ±' + f"{eq_no[0]['margen_pp_por_de']:.2f}" + f" pp (p = {eq_no[0]['p']:.2f})" if eq_no else ''}.
+Dicho como cota, que es como se sostiene: con la inferencia bootstrap, este diseño descarta efectos
+mayores que unos {BO['margen_minimo']['pp_por_de']:.2f} puntos porcentuales de crecimiento anual por
+desviación típica identificante del índice (≈ {BO['margen_minimo']['pp_por_de_bruta']:.1f} pp por
+desviación bruta){' y no puede descartar ±0,50 pp (p = ' + f"{b50['p']:.2f})" if not b50['equivale'] else ''}.
 
-Las tres dimensiones, la especificación en cambios, el CCE, el SLX, los dos índices alternativos, las cinco
-ventanas y el jackknife coinciden. El único diseño con un coeficiente distinto de cero es el shift-share
-({fmt(ss['coef'])}, p = {ss['p']:.3f}), y no sobrevive a la carrera contra la urbanización inicial: lo que
-recoge es que los departamentos más urbanos, que son también los más incluidos, crecieron más rápido en el
-periodo. Es una pendiente diferencial, no un efecto causal del índice.
+Las tres dimensiones, la especificación en cambios, las condiciones iniciales en lugar del rezago del
+ingreso, la dependiente sin minería ni sector financiero, el CCE, el SLX, los dos índices alternativos, las
+cinco ventanas y el jackknife coinciden. El único diseño con un coeficiente distinto de cero es el de
+exposición inicial ({fmt(ss['coef'])}, p = {ss['p']:.3f}), y no sobrevive a la carrera contra la
+urbanización inicial{' ni al ajuste de Holm' if not h_exp['rechaza_holm_5'] else ''}: lo que recoge es que los departamentos más urbanos, que son
+también los más incluidos, crecieron más rápido en el periodo. Es una pendiente diferencial, no un efecto
+causal del índice.
 
 Una cifra que este panel estima en cada corrida y que merece leerse aparte: el término de convergencia
 condicional vale {fmt(conv['coef'])} (p = {conv['p']:.4f}). Tomado al pie de la letra implicaría una
-convergencia de {abs(conv['coef']) * 100:.0f} % anual, muy por encima del 2 % que la literatura encuentra;
-con T = {len(E['periodos'])} el sesgo de Nickell sobre ese coeficiente es del orden de −0,28, y corregido
-queda cerca del 5 % anual. Se publica con esa advertencia, no como una estimación de convergencia regional.
+convergencia de {abs(conv['coef']) * 100:.0f} % anual, muy por encima del 2 % que la literatura encuentra,
+y del todo en contraste con la beta incondicional de la sección 10; con T = {len(E['periodos'])} el sesgo
+de Nickell sobre ese coeficiente es del orden de −0,28, y corregido queda cerca del 5 % anual. Se publica
+con esa advertencia, no como una estimación de convergencia regional.
 """)
 ```

@@ -22,10 +22,12 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [016](ADR-016-diseno-econometrico.md) | Diseño econométrico del panel departamental | aceptada |
 | [017](ADR-017-denominador-del-indice.md) | El denominador de las variables monetarias del índice | aceptada |
 | [018](ADR-018-potencia-y-equivalencia.md) | Un nulo se publica con su potencia y su prueba de equivalencia | aceptada |
-| [019](ADR-019-grano-y-horizonte-del-pronostico.md) | Grano anual y horizonte de tres años para el pronóstico departamental | aceptada |
+| [019](ADR-019-grano-y-horizonte-del-pronostico.md) | Grano anual y horizonte de tres años para el pronóstico departamental | aceptada, con adenda |
 | [020](ADR-020-atipicos-declarados-2020-2021.md) | 2020 y 2021 entran al modelo como atípicos declarados | aceptada, con adenda |
 | [021](ADR-021-ancla-nacional-y-reconciliacion.md) | Ancla nacional y reconciliación proporcional, no MinT | aceptada |
-| [022](ADR-022-incertidumbre-visible-en-el-mapa.md) | La incertidumbre viaja al mapa como capa propia, no como heurística | aceptada |
+| [022](ADR-022-incertidumbre-visible-en-el-mapa.md) | La incertidumbre viaja al mapa como capa propia, no como heurística | aceptada, con adenda |
 | [023](ADR-023-diebold-mariano-agrupado-por-origen.md) | Diebold-Mariano agrupado por origen, y una puerta de calidad que no finge potencia | aceptada |
+| [024](ADR-024-inferencia-y-contrastes-del-referee.md) | Inferencia con el error agrupado, tendencias previas y los contrastes que pidió el referee | aceptada |
+| [025](ADR-025-distancia-tipo-sarma.md) | La alternativa de Sarma es una distancia tipo Sarma: faltante sigue faltante y techo congelado | aceptada |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.

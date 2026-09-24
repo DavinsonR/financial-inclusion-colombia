@@ -34,7 +34,12 @@ def _con(db: Path | None = None) -> duckdb.DuckDBPyConnection:
 
 
 def build_level(
-    nivel: str, *, db: Path | None = None, contract: dict | None = None, congelados: dict | None = None
+    nivel: str,
+    *,
+    db: Path | None = None,
+    contract: dict | None = None,
+    congelados: dict | None = None,
+    techo: dict | None = None,
 ):
     spec = NIVELES[nivel]
     contract = contract or load_contract()
@@ -48,6 +53,7 @@ def build_level(
         id_cols=spec["id_cols"],
         col_producto=spec["col_producto"],
         pesos_congelados=congelados,
+        techo_congelado=techo,
     )
 
 
@@ -76,8 +82,12 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
         ruta.write_text(yaml.safe_dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
 
     escritos: dict[str, Path] = {}
+    techo = None
     for nivel in NIVELES:
-        panel, res = build_level(nivel, db=db, contract=contract, congelados=congelados)
+        # El techo de la distancia tipo Sarma se calibra en el departamental, como las medias (ADR-025).
+        panel, res = build_level(nivel, db=db, contract=contract, congelados=congelados, techo=techo)
+        if techo is None:
+            techo = res.techo_sarma
         salida = out_dir / f"indice_{nivel}_anual.parquet"
         ids = list(NIVELES[nivel]["id_cols"])
         scores = res.scores.merge(res.sensibilidad, on=ids, how="left")
@@ -110,6 +120,13 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
         ]
     ).to_csv(out_dir / "indice_diagnosticos.csv", index=False)
     res_dep.correlacion_rangos.to_csv(out_dir / "indice_correlacion_rangos.csv")
+    # La agrupada sola engaña: la tendencia común la infla. Van al lado la de dentro de cada año y la de
+    # los cambios (informe 02, A6).
+    res_dep.correlacion_rangos_detalle.to_csv(out_dir / "indice_correlacion_rangos_detalle.csv", index=False)
+    # Qué dimensión mueve el compuesto una vez quitados los efectos fijos de unidad y de año (A8).
+    res_dep.varianza_intra.to_csv(out_dir / "indice_varianza_intra.csv", index=False)
     escritos["pesos_implicitos"] = out_dir / "indice_pesos_implicitos.csv"
     escritos["diagnosticos"] = out_dir / "indice_diagnosticos.csv"
+    escritos["correlacion_rangos_detalle"] = out_dir / "indice_correlacion_rangos_detalle.csv"
+    escritos["varianza_intra"] = out_dir / "indice_varianza_intra.csv"
     return escritos

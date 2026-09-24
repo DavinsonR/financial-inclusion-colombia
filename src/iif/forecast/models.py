@@ -7,6 +7,12 @@ más estable que elegir el ganador de un backtest con ocho orígenes.
 
 Todo devuelve `Pronostico`: media y varianza en logaritmos. El intervalo se construye al
 final, una sola vez, para que no haya dos formas distintas de calcularlo en el módulo.
+
+La varianza viene en dos sabores y conviene no confundirlos (informe 02, A4): `varianza` es
+la del **nivel acumulado** a h pasos (log PIB en T + h), que crece con el horizonte porque
+suma todos los choques desde T; `varianza_crecimiento` es la del **crecimiento de ese año**
+(log PIB en T + h menos log PIB en T + h − 1), que es lo que colorea el mapa. A un paso las
+dos coinciden; a dos y tres pasos la del nivel es bastante mayor.
 """
 
 from __future__ import annotations
@@ -23,15 +29,27 @@ from iif.forecast.frame import dummies_atipicos
 
 @dataclass(frozen=True)
 class Pronostico:
-    """Media y varianza en logaritmos, por horizonte."""
+    """Media y varianza en logaritmos, por horizonte.
+
+    `varianza_crecimiento` es la varianza del crecimiento anual de cada año del horizonte; si
+    falta, el crecimiento de ese año no tiene intervalo propio y no se inventa.
+    """
 
     media: np.ndarray
     varianza: np.ndarray
+    varianza_crecimiento: np.ndarray | None = None
 
     def intervalo(self, nivel: float = 0.80) -> tuple[np.ndarray, np.ndarray]:
         z = stats.norm.ppf(0.5 + nivel / 2)
         ancho = z * np.sqrt(self.varianza)
         return self.media - ancho, self.media + ancho
+
+    def ancho_crecimiento(self, nivel: float = 0.80) -> np.ndarray:
+        """Ancho del intervalo del crecimiento anual de cada año, en log-puntos."""
+        if self.varianza_crecimiento is None:
+            return np.full(len(self.media), np.nan)
+        z = stats.norm.ppf(0.5 + nivel / 2)
+        return 2 * z * np.sqrt(np.asarray(self.varianza_crecimiento, float))
 
 
 # ------------------------------------------------------------------ referencias
@@ -41,7 +59,9 @@ def naive(serie: pd.Series, h: int) -> Pronostico:
     d = serie.diff().dropna()
     media = serie.iloc[-1] + d.iloc[-1] * np.arange(1, h + 1)
     var = d.var(ddof=1) * np.arange(1, h + 1)
-    return Pronostico(np.asarray(media, float), np.asarray(var, float))
+    # Paseo aleatorio: cada año suma un choque independiente, así que el crecimiento de cada año
+    # tiene la misma varianza y la del nivel es su suma.
+    return Pronostico(np.asarray(media, float), np.asarray(var, float), np.full(h, d.var(ddof=1)))
 
 
 def drift(serie: pd.Series, h: int) -> Pronostico:
@@ -49,7 +69,7 @@ def drift(serie: pd.Series, h: int) -> Pronostico:
     d = serie.diff().dropna()
     media = serie.iloc[-1] + d.mean() * np.arange(1, h + 1)
     var = d.var(ddof=1) * np.arange(1, h + 1)
-    return Pronostico(np.asarray(media, float), np.asarray(var, float))
+    return Pronostico(np.asarray(media, float), np.asarray(var, float), np.full(h, d.var(ddof=1)))
 
 
 # ------------------------------------------------------------------ Box-Jenkins
@@ -72,8 +92,29 @@ def arima(serie: pd.Series, h: int, order: tuple[int, int, int],
         warnings.simplefilter("ignore")
         ajuste = ARIMA(serie.to_numpy(float), order=order, trend="t", exog=exog).fit()
         salida = ajuste.get_forecast(h, exog=exog_fut)
-    return Pronostico(np.asarray(salida.predicted_mean, float),
-                      np.asarray(salida.var_pred_mean, float))
+    var_nivel = np.asarray(salida.var_pred_mean, float)
+    return Pronostico(np.asarray(salida.predicted_mean, float), var_nivel,
+                      varianza_crecimiento_arma(ajuste.arparams, ajuste.maparams, var_nivel[0], h))
+
+
+def pesos_psi(ar: np.ndarray, ma: np.ndarray, h: int) -> np.ndarray:
+    """Los h primeros pesos de la representación MA(∞) del ARMA de las diferencias."""
+    from statsmodels.tsa.arima_process import arma2ma
+
+    return arma2ma(np.r_[1.0, -np.asarray(ar, float)], np.r_[1.0, np.asarray(ma, float)], lags=h)
+
+
+def varianza_crecimiento_arma(ar: np.ndarray, ma: np.ndarray, sigma2: float, h: int) -> np.ndarray:
+    """Varianza del crecimiento de cada año del horizonte en un ARIMA(p, 1, q).
+
+    Las diferencias siguen un ARMA con pesos ψ; el error de pronóstico del crecimiento del año
+    T + k es Σ_{j<k} ψ_j ε_{T+k−j}, con varianza σ² Σ_{j<k} ψ_j². La del nivel, la que
+    devuelve statsmodels, es σ² Σ_{j<k} (ψ_0 + … + ψ_j)²: acumula. `sigma2` se toma de la
+    varianza del nivel a un paso, que es σ², para que las dos varianzas salgan del mismo ajuste.
+    Como la de statsmodels, no incluye la incertidumbre de los parámetros.
+    """
+    psi = pesos_psi(ar, ma, h)
+    return float(sigma2) * np.cumsum(psi ** 2)
 
 
 # Las cuatro que el backtest de ADR-020 dejó por encima del ingenuo, más la deriva, que
@@ -122,11 +163,20 @@ def combinar(partes: dict[str, Pronostico]) -> Pronostico:
     vivos = [p for p in partes.values() if np.all(np.isfinite(p.media))]
     if not vivos:
         h = len(next(iter(partes.values())).media)
-        return Pronostico(np.full(h, np.nan), np.full(h, np.nan))
+        return Pronostico(np.full(h, np.nan), np.full(h, np.nan), np.full(h, np.nan))
 
     medias = np.vstack([p.media for p in vivos])
     varianzas = np.vstack([np.nan_to_num(p.varianza, nan=np.nanmax(p.varianza) if np.any(np.isfinite(p.varianza)) else 0.0)
                            for p in vivos])
     media = medias.mean(axis=0)
     desacuerdo = medias.var(axis=0, ddof=0)
-    return Pronostico(media, varianzas.mean(axis=0) + desacuerdo)
+
+    # La misma mezcla para el crecimiento de cada año: media de las varianzas más el desacuerdo
+    # entre los crecimientos centrales. El punto de partida (el último dato) es común a todas,
+    # así que el desacuerdo del primer año es el de la media a un paso.
+    var_crec = None
+    if all(p.varianza_crecimiento is not None for p in vivos):
+        crecimientos = np.diff(medias, axis=1, prepend=0.0)
+        v_c = np.vstack([np.asarray(p.varianza_crecimiento, float) for p in vivos])
+        var_crec = v_c.mean(axis=0) + crecimientos.var(axis=0, ddof=0)
+    return Pronostico(media, varianzas.mean(axis=0) + desacuerdo, var_crec)
