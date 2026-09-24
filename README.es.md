@@ -145,7 +145,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 
 - [`docs/GUIA_DEL_PROYECTO.md`](docs/GUIA_DEL_PROYECTO.md): qué se construye, semáforo por fase, mapa del repo, glosario, decisiones de valor, hoja de ruta, preguntas abiertas.
 - [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md): errores (B-001 en adelante) y aciertos (S-001 en adelante) con causa raíz y regla.
-- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016 y ADR-019 a ADR-022 (017 y 018 llegan con otra rama).
+- [`docs/decisiones/`](docs/decisiones/README.md): ADR-001 a ADR-016 y ADR-019 a ADR-023 (017 y 018 llegan con otra rama).
 - [`docs/HOJA_DE_RUTA_PROYECCION.md`](docs/HOJA_DE_RUTA_PROYECCION.md): plan de la capa de proyección.
 - [`docs/LICENCIAS_DATOS.md`](docs/LICENCIAS_DATOS.md): licencia y atribución por fuente.
 
@@ -164,7 +164,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | Índice por dimensión con pesos congelados y publicados, y sus dos versiones de sensibilidad | Hecho |
 | Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
 | Econometría: `src/iif/econ`, 12 pruebas sintéticas, `metodologia/panel.qmd` con los resultados | Hecho |
-| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada a una senda nacional y reconciliada (ADR-019 a ADR-022); el ancla es el WEO del FMI mientras la EME de Banrep no se transcriba en `config/forecast.yaml` | Motor y exportación al atlas hechos; render en la página del proyecto pendiente |
+| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada a una senda nacional y reconciliada (ADR-019 a ADR-023); el ancla es el WEO del FMI mientras la EME de Banrep no se transcriba en `config/forecast.yaml`. En el backtest 2018–2025 reduce el error medio del pronóstico ingenuo un 38,6 %, pero gana en 3 de 8 años, sin 2021 la ganancia es de +8,3 % y, agrupada por año, la diferencia no es estadísticamente distinguible (p = 0,29): un escenario con incertidumbre, no un modelo con superioridad demostrada (`data/processed/forecast/resultados.json`) | Motor y exportación al atlas hechos; render en la página del proyecto pendiente |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Fase 4, pendiente |
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |

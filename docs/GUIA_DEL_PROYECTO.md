@@ -152,7 +152,9 @@ Salida: `ruff`, `pytest` y `dbt build` en verde; entradas B-051 a B-066 y S-019 
 - [x] dbt: SQL portable por macros, 127 pruebas nuevas, cifras publicadas fijadas en `assert_cifras_publicadas.sql`
 - [x] CI llama a `make`; permisos mínimos; acciones de terceros fijadas por SHA; secreto de BigQuery por `env:`
 - [x] Documentación: KMO bien atribuido, estado real de la proyección, `site-url` retirado, atribución CC BY-SA completa
-- [ ] Decidir en un ADR la prueba Diebold-Mariano agrupada por origen (B-065) y el tratamiento de faltantes en Sarma (B-064)
+- [x] ADR-023 aceptado e implementado: Diebold-Mariano agrupado por origen y puerta sin el mejor año (B-065)
+- [ ] Fusionar `auditoria-potencia-y-denominador` (renumerando sus entradas B-051 a B-055) y regenerar el atlas desde `main` (B-067)
+- [ ] Decidir en un ADR el tratamiento de faltantes en Sarma (B-064)
 - [ ] Primera compilación real en BigQuery (B-058) y primer `quarto render` tras los cambios
 
 ### Fase 4: anexo y manuscrito

@@ -624,7 +624,7 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Qué pasó: los 33 departamentos de un mismo origen comparten el choque. La prueba agrupada da p = 2e-7; con la diferencia media de pérdidas por origen (8 orígenes), p = 0,29. La ventaja de la combinación sobre el ingenuo en ADR-020 descansa sobre todo en 2021 (−14,9 pp). Aparte, `evaluar` aprueba con ganancia > 0 y cobertura ≥ 90 % sin usar el valor p que exige ADR-020.
 - Causa raíz: la inferencia sobre errores de pronóstico no se agrupó en el nivel donde está la dependencia.
 - Regla: en un panel, la prueba sobre errores de pronóstico se agrupa por año de origen o usa HAC sobre la media transversal. Requiere ADR.
-- Estado: abierta
+- Estado: cerrada con ADR-023 (medición reproducida: correlación intraorigen 0,60, 3 de 8 orígenes ganados, +8,3 % sin 2021, efecto detectable de 6,1 pp con 8 orígenes). `diebold_mariano` agrupa por origen; la puerta exige ganancia también sin el mejor origen; `resultados.json` y el atlas publican la lectura completa. Evidencia: `tests/test_forecast.py::test_diebold_mariano_agrupa_por_origen_y_no_confunde_un_choque_comun_con_ventaja`, `::test_la_puerta_frena_una_ganancia_que_es_un_solo_anio` y la prueba lenta sobre el panel real, que fija las cifras de ADR-023
 
 ## B-066 · 2026-09-23 · La documentación contaba cifras y un estado que ya no eran
 - Qué pasó: los README atribuían KMO 0,314 a acceso y 0,404 a uso (son uso y profundidad; acceso tiene una sola variable); decían "anclada al consenso" cuando el ancla es el WEO del FMI; el abstract en español negaba resultados; `index.qmd` daba las fases 2 y 3 por pendientes; `modelo-de-datos.qmd` describía `dim_vintage` y hechos que no existen; la hoja de ruta repetía la brecha de 0,07 % sin su ventana (B-049).
@@ -637,3 +637,12 @@ Numeración: B-001 a B-015 son los defectos T-01 a T-15 de la auditoría del not
 - Contexto: B-049 enseñó que una cifra sin ventana no es trazable.
 - Qué funcionó: `dbt/tests/assert_cifras_publicadas.sql` fija 264/231 filas y crecimientos departamentales, 7.861/1.123 municipales, 1.121 polígonos MGN, 96 y 98 variables (70 + 8 + 20), 19/17 canales, 603.232 filas de ptgf y las medianas de 2020 y 2021, cada una con dónde se publica y sobre qué muestra se mide.
 - Dónde se reutiliza: toda cifra nueva del README o de la guía entra a esta prueba o a una prueba pytest antes de publicarse.
+
+## B-067 · 2026-09-23 · Las series del atlas en `main` salieron de un warehouse de otra rama
+- Contexto: al regenerar el atlas para ADR-023, las series observadas (variables en % del PIB y los subíndices del IIF) cambiaron aunque ni los datos ni el código de `main` las tocan.
+- Qué pasó: el commit 6b9e7dc exportó el atlas desde un DuckDB construido con la rama `auditoria-potencia-y-denominador` (f7903b5, denominador rezagado de ADR-017), que no está fusionada. Desde `main`, `iif atlas` reproduce exactamente las series del 6 de septiembre, no las publicadas. El atlas versionado no traza al código que lo acompaña (R-09).
+- Causa raíz: el warehouse local es estado compartido entre ramas; `iif atlas` lee lo último que se construyó, no lo que el código de la rama construiría.
+- Regla: antes de exportar el atlas o cualquier salida versionada, `dbt build` desde la rama que se va a commitear. Un JSON exportado lleva la rama de la que salió.
+- Decisión provisional: el PR de ADR-023 solo reemplaza el bloque `proyeccion.backtest` y no toca las series, para no mover cifras publicadas sin decisión del autor. Se resuelve al fusionar `auditoria-potencia-y-denominador` y regenerar el atlas desde `main`.
+- Aviso: esa rama usa también los números B-051 a B-055 para otras entradas y ya arregla `IIF_DUCKDB_PATH`; al fusionarla hay que renumerar sus entradas y resolver el solape con B-053.
+- Estado: abierta

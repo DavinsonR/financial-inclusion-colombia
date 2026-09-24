@@ -10,6 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from scipy import stats
 
 from iif.forecast import backtest, frame, models, reconcile
 
@@ -192,6 +193,88 @@ def test_diebold_mariano_calla_sin_pares_suficientes():
     assert ganancia is None and p is None
 
 
+def _detalle_con_choque_comun(diferencia_por_origen: dict[int, float], n_dptos: int = 33,
+                              seed: int = 11) -> pd.DataFrame:
+    """Diferencias de error absoluto = choque del año + ruido propio: la estructura de B-065.
+
+    El modelo no tiene ninguna ventaja propia; todo lo que lo separa del ingenuo es el choque
+    que comparten los departamentos de un mismo origen.
+    """
+    rng = np.random.default_rng(seed)
+    filas = []
+    for origen, choque in diferencia_por_origen.items():
+        for i in range(n_dptos):
+            ref = 20.0 + float(rng.normal(0, 1))
+            mio = ref + choque + float(rng.normal(0, 1))
+            cod = f"{i:02d}"
+            filas.append(dict(dpto_ccdgo=cod, origen=origen, modelo="ingenuo",
+                              real=0.0, pronostico=ref, error=ref))
+            filas.append(dict(dpto_ccdgo=cod, origen=origen, modelo="combinacion",
+                              real=0.0, pronostico=mio, error=mio))
+    return pd.DataFrame(filas)
+
+
+# El patrón del panel real (ADR-023): casi toda la ventaja está en el año de recuperación.
+PATRON_REAL = {2018: 0.33, 2019: 0.03, 2020: 0.59, 2021: -14.94,
+               2022: -1.15, 2023: -2.22, 2024: 0.13, 2025: 0.11}
+
+
+def test_diebold_mariano_agrupa_por_origen_y_no_confunde_un_choque_comun_con_ventaja():
+    """Con un choque común por año, la t sobre pares independientes rechaza y la por origen no."""
+    detalle = _detalle_con_choque_comun(PATRON_REAL)
+    w = detalle.pivot_table(index=["dpto_ccdgo", "origen"], columns="modelo", values="error")
+    p_pares = stats.ttest_1samp(w.combinacion.abs() - w.ingenuo.abs(), 0.0).pvalue
+    assert p_pares < 1e-6  # la premisa: la prueba vieja lo da por significativo
+
+    idx = ["dpto_ccdgo", "origen"]
+    ganancia, p = backtest.diebold_mariano(
+        detalle[detalle.modelo == "combinacion"].set_index(idx).error,
+        detalle[detalle.modelo == "ingenuo"].set_index(idx).error)
+    assert ganancia > 0
+    assert p > 0.2
+
+
+def test_la_puerta_informa_los_origenes_y_el_mejor_anio():
+    v = backtest.evaluar(_detalle_con_choque_comun(PATRON_REAL))
+    combinacion = next(x for x in v if x.modelo == "combinacion")
+    assert (combinacion.origenes_ganados, combinacion.n_origenes) == (3, 8)
+    assert combinacion.mejor_origen == 2021
+    assert combinacion.ganancia_sin_mejor_origen_pct > 0
+    assert combinacion.aprobado  # la puerta de ADR-023 no exige significancia
+
+
+def test_la_puerta_frena_una_ganancia_que_es_un_solo_anio():
+    """Pierde un poco todos los años y gana mucho en uno: sin ese año, no hay ventaja."""
+    patron = {a: 0.5 for a in range(2018, 2025)} | {2025: -15.0}
+    v = backtest.evaluar(_detalle_con_choque_comun(patron))
+    combinacion = next(x for x in v if x.modelo == "combinacion")
+    assert combinacion.ganancia_pct > 0
+    assert combinacion.ganancia_sin_mejor_origen_pct < 0
+    assert not combinacion.aprobado
+    with pytest.raises(backtest.PuertaDeCalidad):
+        backtest.exigir_aprobacion(v, "combinacion")
+
+
+def test_diebold_mariano_calla_con_menos_de_tres_origenes():
+    detalle = _detalle_con_choque_comun({2020: -1.0, 2021: -2.0})
+    idx = ["dpto_ccdgo", "origen"]
+    ganancia, p = backtest.diebold_mariano(
+        detalle[detalle.modelo == "combinacion"].set_index(idx).error,
+        detalle[detalle.modelo == "ingenuo"].set_index(idx).error)
+    assert ganancia > 0 and p is None
+
+
+def test_la_lectura_publicada_no_deja_sola_la_ganancia():
+    from iif.forecast.run import lectura_de_la_puerta
+
+    v = backtest.Veredicto("combinacion", 3.4, 1.0, 38.5539, 0.287, 264, True,
+                           origenes_ganados=3, n_origenes=8, mejor_origen=2021,
+                           ganancia_sin_mejor_origen_pct=8.29)
+    texto = lectura_de_la_puerta(v)
+    assert "38,6 %" in texto and "3 de 8" in texto and "sin 2021" in texto and "+8,3 %" in texto
+    assert "no es estadísticamente distinguible" in texto and "p = 0,29" in texto
+
+
 # ------------------------------------------------------------------ auditoría: fallos que no avisaban
 
 def _marco_sintetico(anios=range(2005, 2026), nacional_hasta: int | None = None) -> frame.Marco:
@@ -298,10 +381,15 @@ def test_el_marco_no_promedia_filas_repetidas(tmp_path):
 
 @pytest.mark.slow
 def test_la_combinacion_supera_al_ingenuo_en_el_panel_real(marco):
-    """La afirmación de ADR-020 que el módulo publica, comprobada sobre los datos."""
+    """Las afirmaciones de ADR-020 y ADR-023 que el módulo publica, comprobadas sobre los datos."""
     detalle = backtest.rolling_origin(marco)
     veredictos = backtest.evaluar(detalle)
     aprobado = backtest.exigir_aprobacion(veredictos, "combinacion")
     assert aprobado.cobertura == 1.0
     assert aprobado.ganancia_pct > 20
-    assert aprobado.dm_p < 0.01
+    # Las cifras de ADR-023 (R-09): la ventaja se concentra en 2021 y, agrupada por
+    # origen, no es significativa con ocho años.
+    assert (aprobado.origenes_ganados, aprobado.n_origenes) == (3, 8)
+    assert aprobado.mejor_origen == 2021
+    assert 5 < aprobado.ganancia_sin_mejor_origen_pct < 12
+    assert 0.2 < aprobado.dm_p < 0.4
