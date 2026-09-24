@@ -61,6 +61,11 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
     out_dir.mkdir(parents=True, exist_ok=True)
     contract = load_contract()
     congelados = contract.get("pesos_congelados") or None
+    # Recalibrar significa volver a estimar, así que la primera pasada tiene que ir SIN los pesos viejos:
+    # pasándolos, `build_index` los reutiliza y `res_dep.fits` devuelve exactamente lo que ya había, de modo
+    # que la orden se cumplía escribiendo de nuevo los mismos números (B-073).
+    if recalibrar:
+        congelados = None
 
     panel_dep, res_dep = build_level("departamento", db=db, contract=contract, congelados=congelados)
     if recalibrar or not congelados:
@@ -80,6 +85,13 @@ def run(*, recalibrar: bool = False, out_dir: Path | None = None, db: Path | Non
         # el desglose por variable, y publicarlas hace auditable de qué está hecho cada subíndice.
         variables = [v for f in res.fits.values() for v in f.variables]
         scores = scores.merge(res.normalizado[ids + variables], on=ids, how="left")
+        # Ordenar antes de escribir, y no por estetica: las filas vienen de una
+        # consulta a DuckDB sin ORDER BY, que no promete orden ninguno y ademas
+        # paraleliza, asi que el mismo codigo sobre los mismos datos escribia las
+        # filas en un orden distinto en cada maquina. El fichero cambiaba de bytes
+        # sin cambiar una sola cifra -- medido: alineadas por clave, la mayor
+        # diferencia entre dos entornos es 1,4e-14.
+        scores = scores.sort_values(ids).reset_index(drop=True)
         scores.to_parquet(salida, index=False)
         escritos[nivel] = salida
     res_dep.implicitos.to_csv(out_dir / "indice_pesos_implicitos.csv", index=False)

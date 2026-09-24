@@ -9,7 +9,7 @@ El proyecto hace tres cosas:
 
 1. **Reconstruye los datos** desde las fuentes primarias (Superintendencia Financiera, DANE, MinTIC, MEN, MGN) en un warehouse abierto con esquema estrella y vintages, a nivel departamental y municipal, de 2005 a 2026. Ver [Fuentes](datos/fuentes.qmd) y [Claves geográficas](datos/crosswalk.qmd).
 2. **Construye un índice** de inclusión financiera en dos etapas (acceso, uso, profundidad) con pesos congelados y publicados por variable, y lo lleva a un atlas interactivo.
-3. **Vuelve a estimar** con la frecuencia correcta (anual), dos paneles (departamental y municipal) y una batería explícita contra la correlación espuria. Los resultados están en [Panel anual](metodologia/panel.qmd), leídos de `data/processed/econ/resultados.json`.
+3. **Vuelve a estimar** con la frecuencia correcta (anual), dos paneles (departamental y municipal) y una batería explícita contra la correlación espuria. Los resultados están publicados, cada cifra con su prueba: ver [Panel](metodologia/panel.qmd) y [Especificaciones](metodologia/especificaciones.qmd).
 
 ## Estado
 

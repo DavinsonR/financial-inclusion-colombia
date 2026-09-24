@@ -10,7 +10,7 @@ endif
 export QUARTO_PYTHON ?= $(VENV_PYTHON)
 DBT_FLAGS := --profiles-dir dbt --project-dir dbt
 
-.PHONY: help setup quarto-install lint test test-data dbt-build reproduce render check data acquire parse index forecast atlas manifest clean
+.PHONY: help setup quarto-install lint test test-data dbt-build reproduce render check data acquire parse index econ curva forecast atlas manifest clean
 
 help:             ## lista los targets con su descripcion
 	@grep -E '^[a-z-]+:.*## ' Makefile | sed 's/:.*## /	/'
@@ -57,14 +57,20 @@ parse:            ## XLSX/GeoJSON del DANE y MGN a Parquet tidy
 	uv run iif parse dane
 	uv run iif parse mgn
 
-index:            ## construye el índice de inclusión financiera (ADR-015)
+index:            ## construye el índice de inclusión financiera (ADR-015, ADR-017)
 	uv run iif index
+
+econ:             ## corre la batería econométrica y escribe resultados.json (ADR-016, ADR-018)
+	uv run iif econ
+
+curva:            ## estima la curva de especificación (ADR-018)
+	uv run iif curva
+
+atlas:            ## exporta la geometría y las series del atlas (ADR-005)
+	uv run iif atlas
 
 forecast:         ## capa de proyeccion del crecimiento departamental (ADR-019 a ADR-022)
 	uv run iif forecast
-
-atlas:            ## exporta atlas/data/*.json desde config/atlas.yaml (ADR-005)
-	uv run iif atlas
 
 manifest:         ## verifica data/raw contra data/raw/manifest.jsonl
 	uv run iif manifest verify

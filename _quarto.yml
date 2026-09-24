@@ -30,6 +30,7 @@ website:
         menu:
           - metodologia/indice.qmd
           - metodologia/panel.qmd
+          - metodologia/especificaciones.qmd
       - text: Atlas
         href: atlas/index.qmd
       - text: Anexos

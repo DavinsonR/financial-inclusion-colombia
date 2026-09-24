@@ -20,6 +20,8 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [014](ADR-014-snowflake.md) | DuckDB como motor, BigQuery en la nube, Snowflake como demo posterior | aceptada, con adendas |
 | [015](ADR-015-seleccion-de-variables-del-indice.md) | Selección, normalización y ponderación de las variables del índice | aceptada, con adenda |
 | [016](ADR-016-diseno-econometrico.md) | Diseño econométrico del panel departamental | aceptada |
+| [017](ADR-017-denominador-del-indice.md) | El denominador de las variables monetarias del índice | aceptada |
+| [018](ADR-018-potencia-y-equivalencia.md) | Un nulo se publica con su potencia y su prueba de equivalencia | aceptada |
 | [019](ADR-019-grano-y-horizonte-del-pronostico.md) | Grano anual y horizonte de tres años para el pronóstico departamental | aceptada |
 | [020](ADR-020-atipicos-declarados-2020-2021.md) | 2020 y 2021 entran al modelo como atípicos declarados | aceptada, con adenda |
 | [021](ADR-021-ancla-nacional-y-reconciliacion.md) | Ancla nacional y reconciliación proporcional, no MinT | aceptada |
@@ -27,5 +29,3 @@ Cada decisión de valor del proyecto se escribe aquí antes del código (R-11). 
 | [023](ADR-023-diebold-mariano-agrupado-por-origen.md) | Diebold-Mariano agrupado por origen, y una puerta de calidad que no finge potencia | aceptada |
 
 Las decisiones metodológicas de la versión corregida de la tesis (agosto de 2026) están en [`../decisiones-metodologicas.md`](../decisiones-metodologicas.md) como registro histórico.
-
-017 y 018 (denominador del índice, y potencia y equivalencia) llegan con la rama `auditoria-potencia-y-denominador`; se añaden a esta tabla cuando se fusione.
