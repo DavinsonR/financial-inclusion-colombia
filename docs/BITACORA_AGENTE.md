@@ -849,3 +849,11 @@ Las diez entradas que siguen se escribieron el 2026-09-11 en esa rama con los n�
 - Regla: ninguna fuente se publica con licencia pendiente; la cita se escribe con las condiciones de uso delante.
 - Evidencia: `config/forecast.yaml` (fuente con fecha de consulta y «supuesto del proyecto» para 2028), `anchor.desde_weo` (cita con base, edición, enlace y consulta), `docs/LICENCIAS_DATOS.md`.
 - Estado: cerrada; queda abierta la duda de si la EME cae en la §2 o en la §6 del aviso de Banrep (ver licencias)
+
+## B-093 · 2026-09-25 · El README decía que el atlas no pintaba la proyección cuando ya la pintaba
+- Contexto: la fila de la proyección en «What exists and what is missing» / «Qué hay y qué falta».
+- Qué pasó: la capa 2026–2028 llegó al atlas del portafolio (D-36 del portafolio, verificada en producción), pero los dos README seguían diciendo que el atlas interactivo aún no la pintaba.
+- Causa raíz: el cambio se hizo en otro repositorio y ninguna revisión volvió sobre las páginas de estado de este (misma raíz que B-066).
+- Regla: R-16. Un cambio en una superficie pública del proyecto, aunque viva en otro repositorio, cierra con una revisión de la tabla de estado de los dos README.
+- Evidencia: README.md y README.es.md, #que-hay-y-que-falta.
+- Estado: cerrada
