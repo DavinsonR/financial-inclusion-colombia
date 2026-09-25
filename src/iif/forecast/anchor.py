@@ -34,9 +34,11 @@ from pathlib import Path
 from iif import config
 from iif.forecast.reconcile import Ancla
 
-# Crecimiento real del PIB de Colombia en el WEO, desde la API SDMX del propio FMI.
+# Crecimiento real del PIB de Colombia en el WEO, desde la API SDMX del propio FMI. Una serie y
+# una llamada por corrida: no es la descarga masiva automatizada que los términos del FMI vedan.
 URL_WEO = ("https://api.imf.org/external/sdmx/2.1/data/IMF.RES,WEO/COL.NGDP_RPCH.A"
            "?startPeriod={desde}&endPeriod={hasta}")
+PAGINA_WEO = "https://data.imf.org/en/datasets/IMF.RES:WEO"
 CONFIG_FORECAST = config.CONFIG_DIR / "forecast.yaml"
 # Más de seis meses es más de dos ediciones del Informe de Política Monetaria y de dos EME con
 # pregunta por el PIB (enero, abril, julio y octubre):
@@ -124,7 +126,14 @@ def desde_weo(anios: list[int], timeout: int = 40) -> Ancla:
     faltan = [a for a in anios if a not in senda]
     if faltan:
         raise KeyError(f"el WEO no cubre {faltan}")
-    return Ancla(fuente="FMI, World Economic Outlook",
+    # La cita que piden los términos de datos del FMI: base, edición y enlace (B-092).
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+             "septiembre", "octubre", "noviembre", "diciembre"]
+    edicion = date.fromisoformat(publicado)
+    fuente = (f"Fondo Monetario Internacional, World Economic Outlook Database, "
+              f"{meses[edicion.month - 1]} de {edicion.year}, {PAGINA_WEO}, "
+              f"consultada el {date.today().isoformat()}")
+    return Ancla(fuente=fuente,
                  fecha_corte=publicado,
                  crecimiento={a: round(senda[a], 2) for a in anios})
 

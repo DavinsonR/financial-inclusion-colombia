@@ -842,3 +842,10 @@ Las diez entradas que siguen se escribieron el 2026-09-11 en esa rama con los n�
 - Regla: una fuente se fecha por la publicación de su emisor, nunca por la de un intermediario; toda fuente automática se prueba contra esa fecha.
 - Evidencia: ancla central transcrita de la EME de julio de 2026 (`config/forecast.yaml`); el respaldo del WEO pasa a la API SDMX del FMI y se fecha por `PUBLICATION_DATE`; adenda 1 de ADR-021; pruebas `test_el_ancla_de_la_eme_*` y `test_el_weo_se_fecha_por_su_publicacion`.
 - Estado: cerrada
+
+## B-092 · 2026-09-25 · La cita del ancla no cumplía las condiciones de uso de sus fuentes
+- Qué pasó: el aviso legal de Banrep (§2, versión del 2026-06-03) permite reproducir su información estadística si no se altera, se indica la fuente y se menciona la fecha de consulta del portal; la fuente publicada daba el corte de la encuesta, no la fecha de consulta, y no decía que las cifras son expectativas de los analistas y no pronósticos del Banco. La del WEO no nombraba la base, la edición ni el enlace que piden los términos de datos del FMI (vigentes desde el 2024-10-11).
+- Causa raíz: `LICENCIAS_DATOS.md` dejó ambas licencias «pendiente de verificar» y la cita se escribió sin leerlas.
+- Regla: ninguna fuente se publica con licencia pendiente; la cita se escribe con las condiciones de uso delante.
+- Evidencia: `config/forecast.yaml` (fuente con fecha de consulta y «supuesto del proyecto» para 2028), `anchor.desde_weo` (cita con base, edición, enlace y consulta), `docs/LICENCIAS_DATOS.md`.
+- Estado: cerrada; queda abierta la duda de si la EME cae en la §2 o en la §6 del aviso de Banrep (ver licencias)
