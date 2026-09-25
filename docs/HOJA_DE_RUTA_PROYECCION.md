@@ -213,7 +213,7 @@ reparto proporcional simple y es defendible ante cualquiera.
 
 | Fuente | Qué aporta | Frecuencia | Acceso |
 |---|---|---|---|
-| **Banrep — EME** (Encuesta mensual de expectativas de analistas) | Consenso de PIB, inflación, tasa, TRM. Trae **dispersión** entre analistas | mensual | PDF/XLSX en banrep.gov.co |
+| **Banrep — EME** (Encuesta mensual de expectativas de analistas) | Consenso de PIB, inflación, tasa, TRM. Trae **dispersión** entre analistas | mensual; PIB trimestral (ene/abr/jul/oct) | PDF/XLSX en banrep.gov.co |
 | **MinHacienda — MFMP** | Senda oficial de PIB a 10 años, con supuestos fiscales | anual (junio) | PDF, extracción manual |
 | **Fedesarrollo — EOF** | Encuesta de opinión financiera, consenso de mercado | mensual | PDF |
 | **DNP** | Expectativas económicas, visión de planeación | periódico | web |
@@ -422,4 +422,4 @@ Cifras citadas y su origen:
 - Pesos §1.3: participación en `pib_constante_2015_mm`, año 2023 (último definitivo)
 - Crecimientos nacionales: log-diferencias ×100, **no** las tasas aritméticas publicadas por el
   DANE. Difieren en la segunda decimal
-- Consenso EME 2026 (2,8 %): Banrep, resultados de mayo de 2026
+- Consenso EME 2026 (2,40 %, mediana): Banrep, encuesta de julio de 2026, `res_inf_jul2026.xlsx`, hoja `PIB`. La cifra que figuraba aquí (2,8 %) era la mediana de la EME de enero de 2026, mal fechada como «mayo de 2026»: la EME de mayo no pregunta por el PIB (ADR-021, adenda 1)

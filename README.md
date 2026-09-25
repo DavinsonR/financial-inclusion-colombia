@@ -224,7 +224,7 @@ These are written in Spanish, the language of the thesis.
 | Interactive three-view atlas, inside the project page | Done |
 | Econometrics: `src/iif/econ`, synthetic tests for the battery and for power, `metodologia/panel.qmd` with the results | Done |
 | Power, equivalence and specification curve (ADR-018); referee corrections and new robustness (ADR-024) | Done |
-| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to a national path and reconciled (ADR-019 to ADR-023); the anchor is the IMF WEO until the Banrep survey is transcribed into `config/forecast.yaml`. In the 2018–2025 backtest it cuts the naive forecast's mean error by 38.6 %, but it wins in 3 of 8 years, the gain without 2021 is +8.3 %, and grouped by year the difference is not statistically distinguishable (p = 0.29): a scenario conditional on the anchor, not a model with proven superiority. Its 80% interval covers 81.4% of outcomes in the backtest; the anchor is 16 months old and the output says so (`data/processed/forecast/resultados.json`) | Engine, atlas export and a scenario section on the project page done; the interactive atlas does not paint 2026–2028 yet |
+| Forecast 2026-2028: `src/iif/forecast`, a combination of ARIMA models with declared outliers, anchored to a national path and reconciled (ADR-019 to ADR-023); the anchor is the median of Banrep's monthly analyst survey (EME, July 2026), transcribed in `config/forecast.yaml`, with the IMF WEO as automatic fallback (ADR-021, addendum 1). In the 2018–2025 backtest it cuts the naive forecast's mean error by 38.6 %, but it wins in 3 of 8 years, the gain without 2021 is +8.3 %, and grouped by year the difference is not statistically distinguishable (p = 0.29): a scenario conditional on the anchor, not a model with proven superiority. Its 80% interval covers 81.4% of outcomes in the backtest; the anchor's cutoff and age travel with the output, which warns once it is more than 6 months old (`data/processed/forecast/resultados.json`) | Engine, atlas export and a scenario section on the project page done; the interactive atlas does not paint 2026–2028 yet |
 | Temporal-disaggregation annex, MIDAS, manuscript | Deferred: future work, outside the scope of this project (see the guide) |
 | BigQuery: dbt target, load, partitioning, cost control and authorised views | Written; not yet run against a real project |
 | Snowflake demonstration (same dbt models, stage, clone by vintage) | Later, no date |
@@ -264,7 +264,7 @@ This project was built by its author working with AI coding agents (Claude Code)
 - **Decisions before code**: each choice of value is an ADR in [`docs/decisiones/`](docs/decisiones/README.md) before it becomes a line of Python.
 - **Root-cause logbook**: every mistake is logged in [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md) with its cause and the rule that prevents it, before it is fixed.
 - **Adversarial audits**: independent reviews tried to break the result (the denominator that manufactured correlation, ADR-017, and the power of the null, ADR-018, came out of them).
-- **CI that re-derives every figure**: nothing published survives if the code stops producing it (242 pytest tests plus the dbt tests).
+- **CI that re-derives every figure**: nothing published survives if the code stops producing it (245 pytest tests plus the dbt tests).
 
 ## How to cite
 

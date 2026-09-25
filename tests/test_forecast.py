@@ -458,6 +458,7 @@ def test_el_ancla_vieja_avisa_y_lo_deja_escrito(tmp_path, monkeypatch):
     estado = anchor.vigencia(viejo, hoy=date(2026, 9, 23))
     assert estado["vencida"] and 16 < estado["antiguedad_meses"] < 16.5
     assert "config/forecast.yaml" in estado["aviso"]
+    assert "enero, abril, julio u octubre" in estado["aviso"]
     nuevo = anchor.vigencia(reconcile.Ancla("prueba", "2026-08-31", {2026: 2.6}), hoy=date(2026, 9, 23))
     assert not nuevo["vencida"] and nuevo["aviso"] is None
     assert anchor.vigencia(reconcile.Ancla("prueba", "desconocida", {}))["vencida"]
@@ -469,6 +470,83 @@ def test_el_ancla_vieja_avisa_y_lo_deja_escrito(tmp_path, monkeypatch):
     with pytest.warns(anchor.AnclaVencida, match="meses de antigüedad"):
         ancla = anchor.cargar([2026, 2027, 2028], sin_red=True)
     assert ancla.fuente == "prueba"
+
+
+def _respuesta_weo(observaciones, atributos):
+    """Una respuesta SDMX-JSON mínima del WEO, con la forma que devuelve api.imf.org."""
+    return {"structure": {"dimensions": {"observation": [{"id": "TIME_PERIOD", "values": [
+                {"id": "2026"}, {"id": "2027"}, {"id": "2028"}]}]},
+                          "attributes": {"dataSet": atributos}},
+            "dataSets": [{"series": {"0:0:0": {"observations": observaciones}}}]}
+
+
+PUBLICADO = [{"id": "PUBLISHER", "values": [{"name": "International Monetary Fund (IMF)"}]},
+             {"id": "PUBLICATION_DATE", "values": [{"name": "2026-04-14T13:00:00Z"}]}]
+
+
+def test_el_weo_se_fecha_por_su_publicacion():
+    """B-091: la fecha del ancla es la de publicación del FMI, no la de un intermediario."""
+    from iif.forecast import anchor
+
+    # Claves fuera de orden, un hueco y un valor nulo: el período sale del índice, no del orden.
+    senda, fecha = anchor.senda_weo(_respuesta_weo({"2": ["2.62"], "0": ["2.341661"], "1": [None]},
+                                                   PUBLICADO))
+    assert fecha == "2026-04-14"
+    assert senda == {2026: pytest.approx(2.341661), 2028: 2.62}
+    with pytest.raises(RuntimeError, match="PUBLICATION_DATE"):
+        anchor.senda_weo(_respuesta_weo({"0": ["2.3"]}, PUBLICADO[:1]))
+    with pytest.raises(RuntimeError, match="PUBLICATION_DATE"):
+        anchor.senda_weo(_respuesta_weo({"0": ["2.3"]}, [
+            {"id": "PUBLICATION_DATE", "values": [{"name": "abril de 2026"}]}]))
+
+
+def test_desde_weo_pide_json_del_horizonte_y_redondea(monkeypatch):
+    """Sin `Accept: application/json` la API del FMI responde XML; el horizonte va en la URL."""
+    import io
+    import json
+
+    from iif.forecast import anchor
+
+    pedida = {}
+
+    def falsa(peticion, timeout):
+        pedida["url"], pedida["accept"] = peticion.full_url, peticion.get_header("Accept")
+        cuerpo = _respuesta_weo({"0": ["2.341661"], "1": ["2.542343"], "2": ["2.62"]}, PUBLICADO)
+        return io.BytesIO(json.dumps(cuerpo).encode("utf-8"))
+
+    monkeypatch.setattr(anchor.urllib.request, "urlopen", falsa)
+    ancla = anchor.desde_weo([2026, 2027, 2028])
+    assert pedida["accept"] == "application/json"
+    assert "startPeriod=2026" in pedida["url"] and "endPeriod=2028" in pedida["url"]
+    assert "api.imf.org" in pedida["url"]
+    assert ancla.fecha_corte == "2026-04-14"
+    assert ancla.crecimiento == {2026: 2.34, 2027: 2.54, 2028: 2.62}
+
+
+def test_el_ancla_de_la_eme_se_carga_con_sus_tres_escenarios(monkeypatch):
+    """ADR-021 adenda 1: la EME transcrita manda sobre el WEO, con fuente, fecha y dispersión."""
+    from iif.forecast import anchor
+
+    anios = [2026, 2027, 2028]
+    anclas = {e: anchor.desde_config(anios, e) for e in ("central", "pesimista", "optimista")}
+    for e, a in anclas.items():
+        assert "EME" in a.fuente and "2028 repite 2027" in a.fuente, e
+        assert a.fecha_corte == "2026-07-10", e
+        assert a.crecimiento[2028] == a.crecimiento[2027], e
+    # Las cifras que citan la adenda y el README, transcritas de res_inf_jul2026.xlsx, hoja PIB.
+    assert anclas["central"].crecimiento == {2026: 2.40, 2027: 2.29, 2028: 2.29}
+    assert anclas["pesimista"].crecimiento == {2026: 2.10, 2027: 1.60, 2028: 1.60}
+    assert anclas["optimista"].crecimiento == {2026: 2.90, 2027: 3.40, 2028: 3.40}
+    for anio in anios:
+        assert (anclas["pesimista"].crecimiento[anio] <= anclas["central"].crecimiento[anio]
+                <= anclas["optimista"].crecimiento[anio])
+
+    # Con la EME transcrita, `cargar` no llega a bajar el WEO.
+    def no_bajar(*_a, **_k):
+        pytest.fail("con la EME transcrita no se baja el WEO")
+
+    monkeypatch.setattr(anchor, "desde_weo", no_bajar)
+    assert anchor.cargar(anios).fuente == anclas["central"].fuente
 
 
 # ------------------------------------------------------------------ escenario y reconciliación (A10)
@@ -541,7 +619,11 @@ def test_las_cifras_de_adr_022_cuadran_con_resultados_json():
     assert comb["cobertura_empirica"] == puerta["cobertura_intervalo_empirica"]
     assert "antiguedad_meses" in r["ancla"]
     d26 = r["reconciliacion"]["desplazamiento_crecimiento_pp"]["2026"]
-    assert round(d26["minimo_pp"], 2) == -0.86 and round(d26["maximo_pp"], 2) == -0.82
+    # Con la EME de julio de 2026 como ancla (ADR-021, adenda 1); con el WEO de abril de 2025
+    # era de −0,86 a −0,82. Cambia con cada ancla: se actualiza aquí en el mismo commit (R-09).
+    assert round(d26["minimo_pp"], 2) == -1.09 and round(d26["maximo_pp"], 2) == -1.04
+    assert r["ancla"]["fecha_corte"] == "2026-07-10" and r["ancla"]["vencida"] is False
+    assert r["ancla"]["crecimiento"] == {"2026": 2.4, "2027": 2.29, "2028": 2.29}
     assert d26["rango_pp"] < 0.1, "el ancla desplaza a todos casi lo mismo"
     assert r["escenario"]["lectura"].startswith("Escenario condicional al ancla")
     sueltas = [c["cobertura_empirica"] for c in r["backtest"]["cobertura_intervalo"]

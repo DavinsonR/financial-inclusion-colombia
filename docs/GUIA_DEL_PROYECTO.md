@@ -171,9 +171,10 @@ Salida: `ruff`, `pytest` (242, con y sin datos), `dbt build` (377) y CI en verde
 - [x] Proyección: cobertura del intervalo, ancho del crecimiento anual, aviso de ancla vencida, escenario condicional
 - [x] Cara pública: badges, TL;DR, qué demuestra, arquitectura, cómo se construyó, `CASE_STUDY.md` y `docs/CASO_DE_ESTUDIO.md`
 - [x] Página del portafolio con cifras centralizadas en un módulo y copy nuevo (repositorio del portafolio)
+- [x] Ancla renovada: EME de julio de 2026 transcrita en `config/forecast.yaml` y respaldo del WEO desde la API del FMI (B-091, ADR-021 adenda 1)
 
 **Trabajo futuro, fuera del alcance de este proyecto** (no son pendientes; quedan documentados para quien lo retome):
-- Transcribir la EME de Banrep en `config/forecast.yaml` y volver a correr `iif forecast` (el ancla actual tiene 16 meses y la salida lo avisa, B-089).
+- Renovar el ancla con cada EME que pregunte por el PIB (enero, abril, julio y octubre): transcribirla en `config/forecast.yaml` y volver a correr `iif forecast` e `iif atlas` (ADR-021, adenda 1).
 - Correr el objetivo BigQuery contra un proyecto real con credenciales del autor (B-058).
 - Extensiones de investigación de los informes de cierre: Bartik de red bancaria, DiD escalonado con corresponsales móviles a nivel municipal, índice v2 con canales digitales y validación contra Banca de las Oportunidades, resiliencia con proyecciones locales, pronóstico con factor común sectorial y nowcast con ITAED.
 - Fase 4: anexo de desagregación temporal, MIDAS y manuscrito.

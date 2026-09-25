@@ -151,7 +151,8 @@ como insumo del nivel de partida.
   contrato del atlas tiene que acomodar los dos.
 - Aparece una dependencia externa con calendario propio: la EME se publica mensualmente y el mapa queda
   fechado respecto de ella. Hay que decidir cada cuánto se refresca; mientras no se decida, la fecha del
-  ancla es parte de la pieza.
+  ancla es parte de la pieza. (Decidido en la adenda 1: la pregunta por el PIB es trimestral y el ancla se
+  renueva con cada EME que la trae.)
 - La decisión 1 contradice la hoja de ruta original, que proponía MinT. La hoja de ruta queda superada en
   ese punto y este ADR es la referencia.
 - El punto de equilibrio de 3,5 puntos es una cifra que conviene revisar cuando haya histórico propio de
@@ -163,3 +164,23 @@ como insumo del nivel de partida.
 El anclaje es un paso posterior al pronóstico base: quitarlo devuelve el abajo-arriba puro, cuyo desempeño
 está medido arriba. Cambiar el reparto proporcional por MinT es cambiar el vector de pesos; ambos quedan
 implementados para que la comparación se pueda repetir.
+
+## Adenda 1 (2026-09-25): el ancla se renueva con la EME de julio de 2026, y el respaldo deja de estar congelado
+
+**Qué se encontró (B-091).** El ancla publicada seguía siendo el WEO de abril de 2025.
+
+- Sin transcripción en `config/forecast.yaml`, el módulo bajaba el WEO de DBnomics. DBnomics dejó de actualizarlo en abril de 2025: `WEO:latest` redirige a `WEO:2025-04`, así que re-correr no renovaba nada.
+- La fecha de corte salía del día en que DBnomics indexó la serie, no del día en que el FMI la publicó.
+- La EME no se había transcrito porque se creía que solo existía en PDF. Banrep publica un Excel. La pregunta por el PIB es **trimestral**: va en las encuestas de enero, abril, julio y octubre. Las de abril, julio y octubre preguntan por el año en curso y el siguiente; la de enero, por el anterior y el actual.
+
+**Decisiones que se añaden.**
+
+1. **El ancla central es la EME de julio de 2026** (trabajo de campo del 8 al 10 de julio; `res_inf_jul2026.xlsx`, hoja `PIB`, todas las entidades participantes). Se toma la mediana: 2,40 % en 2026 (34 analistas) y 2,29 % en 2027 (30). Se contrastó con la serie histórica (`series_historicas.xlsx`, hoja `VARIACIONES PIB TRIM.`, fila de julio de 2026), que da lo mismo.
+2. **La EME no llega a 2028.** Se repite su último año (2,29 %) y la fuente lo dice, como ya pedía `config/forecast.yaml`. No se completa con otra fuente: mezclar el WEO en 2028 metería un salto de 0,33 puntos que no es economía sino cambio de fuente.
+3. **Los escenarios salen del mínimo y el máximo de los analistas** (decisión 6), con la misma regla para 2028:
+   - pesimista: 2,10 %, 1,60 % y 1,60 %;
+   - optimista: 2,90 %, 3,40 % y 3,40 %.
+4. **El respaldo automático lee la API SDMX del FMI** (`api.imf.org`, `IMF.RES,WEO`), no DBnomics, y se fecha por el `PUBLICATION_DATE` del conjunto. El WEO vigente es el de abril de 2026, publicado el 14 de abril: 2,34 % en 2026, 2,54 % en 2027 y 2,62 % en 2028. Queda como contraste y como red de seguridad; ya no se congela.
+5. **Calendario de renovación.** El ancla vence a los seis meses (`ANTIGUEDAD_MAXIMA_MESES`). La próxima EME con PIB es la de octubre de 2026 (años 2026 y 2027); la de enero de 2027 pregunta por 2026 y 2027, y la primera que pregunta por 2028 será la de abril de 2027. El WEO se publica en abril y en septiembre u octubre.
+
+**Lo que cambia en las cifras.** Cambia el nivel del ancla; el reparto entre departamentos sigue siendo la inercia de cada uno. Las cifras que dependen del ancla (el desplazamiento de la reconciliación en `resultados.json`, la lectura del escenario) se regeneran con `uv run iif forecast` en el mismo commit que esta adenda.

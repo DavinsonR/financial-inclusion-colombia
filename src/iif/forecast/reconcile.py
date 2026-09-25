@@ -18,8 +18,9 @@ equilibrio medido está en unos 3,5 puntos porcentuales de error del consenso. P
 **Una propiedad del reparto proporcional que conviene tener presente al leer el mapa.**
 Repartir en proporción al tamaño equivale a multiplicar todos los departamentos por el
 mismo escalar, así que la reconciliación **no altera el patrón espacial ni el orden**: solo
-desplaza el nivel común. En la corrida publicada el ancla baja el crecimiento de 2026 de los
-33 departamentos entre 0,82 (Casanare) y 0,86 puntos (Meta), prácticamente lo mismo a todos;
+desplaza el nivel común. En la corrida publicada (EME de julio de 2026) el ancla baja el
+crecimiento de 2026 de los 33 departamentos entre 1,04 (Casanare) y 1,09 puntos (Meta),
+prácticamente lo mismo a todos;
 el rango sale en `resultados.json`, bloque `reconciliacion`, y lo fija una prueba. Dicho de
 otro modo, la proyección es un escenario condicional al ancla: el ancla decide cuán intenso se
 ve el mapa entero, no qué departamento se ve mejor que cuál.

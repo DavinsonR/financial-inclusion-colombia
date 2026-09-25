@@ -38,10 +38,17 @@ Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que es
 - Licencia: sin licencia explícita; información pública del DANE. Se atribuye.
 - Atribución que se usa: "Límites: DANE, Marco Geoestadístico Nacional 2024, obtenido del servicio REST el <fecha>, simplificado para el atlas."
 
-### Ancla nacional del pronóstico: FMI, World Economic Outlook (vía DBnomics)
+### Ancla nacional del pronóstico: Banrep, Encuesta mensual de expectativas de analistas económicos (EME)
 
-- Uso: `src/iif/forecast/anchor.py` baja la senda de crecimiento del PIB de Colombia cuando `config/forecast.yaml` no trae una transcripción de la EME de Banrep; los tres valores quedan en `data/processed/forecast/resultados.json` (`ancla`) y en el atlas.
-- Licencia: **pendiente de verificar**. No está registrada en `config/sources.yaml` ni pasa por `iif acquire` (R-07), así que no tiene fila en el manifiesto.
+- Uso: mediana, mínimo y máximo de las expectativas de crecimiento anual del PIB, transcritos a mano en `config/forecast.yaml` (ADR-021, adenda 1). Los valores del escenario central quedan en `data/processed/forecast/resultados.json` (`ancla`) y en el atlas.
+- Acceso: portal de estadísticas de Banrep (suameca.banrep.gov.co), Encuestas, 1.1 EME. Archivo `res_inf_jul2026.xlsx`, hoja `PIB`, bloque «TODAS LAS ENTIDADES PARTICIPANTES», consultado el 2026-09-25.
+- Licencia: **pendiente de verificar** contra la política de derechos de autor de Banrep. Solo se transcriben seis cifras con su fuente; el archivo no se redistribuye ni pasa por `iif acquire`.
+- Atribución que se usa: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026".
+
+### Respaldo del ancla: FMI, World Economic Outlook (API SDMX del FMI)
+
+- Uso: `src/iif/forecast/anchor.py` baja la senda del WEO vigente de `api.imf.org` cuando `config/forecast.yaml` no trae ancla, y la fecha por su `PUBLICATION_DATE`. Hasta el 2026-09-25 la bajaba de DBnomics, que dejó de actualizar el WEO en abril de 2025 (B-091).
+- Licencia: la API la declara «© International Monetary Fund Copyright. All Rights Reserved», con los términos de https://www.imf.org/external/terms.htm. **Pendiente de verificar** su alcance para cifras citadas. No pasa por `iif acquire` (R-07).
 
 ### Fuentes descartadas
 

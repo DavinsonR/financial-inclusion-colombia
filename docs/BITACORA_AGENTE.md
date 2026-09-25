@@ -823,7 +823,7 @@ Las diez entradas que siguen se escribieron el 2026-09-11 en esa rama con los n�
 - Causa raíz: el ancla no tenía fecha de caducidad.
 - Regla: un ancla con más de 6 meses avisa al correr y lo deja escrito en la salida.
 - Evidencia: `forecast/anchor.py::vigencia`; `ancla.antiguedad_meses` y `ancla.vencida` en `resultados.json`; `tests/test_forecast.py::test_el_ancla_vieja_avisa_y_lo_deja_escrito`.
-- Estado: aviso cerrado; la transcripción de la EME de Banrep en `config/forecast.yaml` queda a cargo del autor
+- Estado: aviso cerrado; la transcripción de la EME de Banrep en `config/forecast.yaml` queda a cargo del autor (hecha el 2026-09-25 con la EME de julio de 2026: B-091)
 
 ## B-090 · 2026-09-23 · La proyección se leía como pronóstico
 - Qué pasó: la salida no decía que la proyección es la inercia de cada departamento desplazada por un ancla común (desplazamiento 2026 entre −0,863 y −0,821 pp), y ADR-019 medía la ventaja a 2 y 3 años frente a la deriva con la inferencia que ADR-023 invalidó.
@@ -835,3 +835,10 @@ Las diez entradas que siguen se escribieron el 2026-09-11 en esa rama con los n�
 - Contexto: la guía (§9) lo afirmaba sin medirlo.
 - Qué funcionó: descomponer la varianza intra de dos vías del compuesto por dimensión: acceso 87,5 %, uso 10,2 %, profundidad 2,3 %.
 - Dónde se reutiliza: cualquier índice compuesto que entre a un panel con efectos fijos; `data/processed/indice_varianza_intra.csv`.
+
+## B-091 · 2026-09-25 · El ancla automática estaba congelada y se fechaba por el intermediario
+- Qué pasó: `anchor.desde_weo` pedía `IMF/WEO:latest` a DBnomics, que redirige a `WEO:2025-04`: DBnomics dejó de actualizar el WEO en abril de 2025. Re-correr `iif forecast` nunca iba a renovar el ancla. Y la fecha de corte salía de `indexed_at`, el día en que DBnomics indexó la serie, no el día en que el FMI la publicó.
+- Causa raíz: la fuente automática no se contrastaba con el emisor. La EME, el ancla preferida (ADR-021), no se había transcrito porque `config/forecast.yaml` decía que «solo se publica en PDF». Banrep publica un Excel, y la pregunta por el PIB es trimestral (encuestas de enero, abril, julio y octubre), en la hoja `PIB` del archivo mensual y en `VARIACIONES PIB TRIM.` de la serie histórica.
+- Regla: una fuente se fecha por la publicación de su emisor, nunca por la de un intermediario; toda fuente automática se prueba contra esa fecha.
+- Evidencia: ancla central transcrita de la EME de julio de 2026 (`config/forecast.yaml`); el respaldo del WEO pasa a la API SDMX del FMI y se fecha por `PUBLICATION_DATE`; adenda 1 de ADR-021; pruebas `test_el_ancla_de_la_eme_*` y `test_el_weo_se_fecha_por_su_publicacion`.
+- Estado: cerrada
