@@ -156,8 +156,11 @@ def lectura_del_escenario(ancla: dict, desplazamiento: dict[str, dict]) -> str:
     antiguedad = ancla.get("antiguedad_meses")
     edad = (f", con {antiguedad:.0f} meses de antigüedad"
             if antiguedad is not None and ancla.get("vencida") else "")
-    texto = (f"Escenario condicional al ancla: si Colombia crece lo que espera {ancla['fuente']} "
-             f"(corte {ancla['fecha_corte']}{edad}), así se reparte según la inercia de cada "
+    # «lo que anticipa el ancla» y no «lo que espera <fuente>»: con la EME, la fuente es Banrep
+    # pero la expectativa es de los analistas que encuesta, no del banco.
+    texto = (f"Escenario condicional al ancla: si Colombia crece lo que anticipa el ancla "
+             f"({ancla['fuente']}, corte {ancla['fecha_corte']}{edad}), así se reparte según la "
+             f"inercia de cada "
              f"departamento. No es un pronóstico oficial ni uno que haya superado al ingenuo "
              f"con significancia.")
     if desplazamiento:

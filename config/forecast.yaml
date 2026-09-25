@@ -1,51 +1,54 @@
-# Anclas nacionales para la capa de proyección (ADR-021 decisión 4).
+# Anclas nacionales para la capa de proyección (ADR-021 decisión 4 y adenda 1).
 #
-# Este archivo tiene prioridad sobre la descarga automática del WEO. Está pensado para
-# transcribir a mano la Encuesta mensual de expectativas de analistas económicos (EME) de
-# Banrep, que es el ancla preferida y solo se publica en PDF, y el Marco Fiscal de Mediano
-# Plazo de MinHacienda.
+# Este archivo tiene prioridad sobre la descarga automática del WEO. Aquí se transcribe a
+# mano la Encuesta mensual de expectativas de analistas económicos (EME) de Banrep, que es
+# el ancla preferida, y, si hiciera falta, el Marco Fiscal de Mediano Plazo de MinHacienda.
 #
 # Todo bloque debe declarar `fuente` y `fecha_corte`. Sin eso no se carga: un mapa anclado
 # sin decir a qué está anclado atribuye a su autor la visión de otro.
 #
-# Mientras no haya transcripción, el módulo baja la senda del FMI (WEO) por su cuenta.
-# Advertencia sobre esa red de seguridad: la senda del WEO para Colombia repite el mismo
-# número de 2027 en adelante (2,76 % hasta 2030), porque es su valor de convergencia de
-# mediano plazo y no un pronóstico año a año.
+# Sin transcripción, el módulo baja el WEO del FMI por su cuenta, de la API SDMX del FMI
+# (`anchor.desde_weo`), fechado por su publicación. Hasta septiembre de 2026 lo bajaba de
+# DBnomics, que dejó de actualizar el WEO en abril de 2025 (B-091).
 #
 # Un ancla caduca. Si `fecha_corte` tiene más de 6 meses (`anchor.ANTIGUEDAD_MAXIMA_MESES`),
 # `uv run iif forecast` emite el aviso `AnclaVencida` y `resultados.json` lo deja escrito en
 # `ancla.antiguedad_meses`, `ancla.vencida` y `ancla.aviso`, que el atlas recibe con el ancla.
-# El 2026-09-23 el WEO descargado tiene corte 2025-05-15: 16 meses.
 #
-# Cómo transcribir la EME (tarea del autor; un agente no inventa estas cifras):
-#   1. Banrep, "Encuesta mensual de expectativas de analistas económicos", la última
-#      publicada. Tomar el crecimiento real del PIB esperado para cada año del horizonte
-#      (2026, 2027, 2028; si la encuesta no llega a 2028, usar su último año y decirlo en
-#      `fuente`).
-#   2. `central` es la mediana (o media, según el cuadro) de los analistas; `pesimista` y
-#      `optimista` el mínimo y el máximo (ADR-021 decisión 6).
-#   3. `fecha_corte` es la fecha de la encuesta, no la de la transcripción, en formato
-#      AAAA-MM-DD. `fuente` nombra el documento y el cuadro.
-#   4. Correr `uv run iif forecast` y comprobar que `ancla.fuente` en resultados.json ya no es
-#      el WEO y que `ancla.vencida` es false. Las cifras publicadas cambian: bitácora y, si
+# Dónde está la EME (no es solo un PDF: Banrep publica un Excel):
+#   - Portal de estadísticas de Banrep (suameca.banrep.gov.co), Encuestas, 1.1 EME, Datos.
+#     El archivo del mes es `res_inf_<mes><año>.xlsx` (por ejemplo `res_inf_jul2026.xlsx`).
+#   - La pregunta por el PIB es TRIMESTRAL: solo va en las encuestas de enero, abril, julio y
+#     octubre. Abril, julio y octubre preguntan por el año en curso y el siguiente; enero, por el
+#     anterior y el actual (la nota de Banrep dice «diciembre», pero en la serie histórica ese
+#     patrón está en las filas de enero). La primera EME con 2028 será la de abril de 2027.
+#     Está en la hoja `PIB` del archivo del mes, bloque «TODAS LAS ENTIDADES PARTICIPANTES»:
+#     Mediana, Mínimo y Máximo de las columnas «AÑO <año>». Las cifras vienen en fracción
+#     (0,024) y aquí van en por ciento (2.4).
+#   - Contraste: `series_historicas.xlsx`, hoja `VARIACIONES PIB TRIM.`, columnas «año».
+#
+# Cómo transcribir (un agente no inventa estas cifras: las copia del archivo y lo cita):
+#   1. `central` es la mediana; `pesimista` y `optimista`, el mínimo y el máximo de los
+#      analistas (ADR-021 decisión 6).
+#   2. Si la encuesta no llega a 2028, se repite su último año y `fuente` lo dice.
+#   3. `fecha_corte` es el último día del trabajo de campo («Fecha de realización» en la
+#      hoja RESUMEN), en formato AAAA-MM-DD.
+#   4. Correr `uv run iif forecast` y comprobar que `ancla.fuente` en resultados.json es la
+#      EME y que `ancla.vencida` es false. Las cifras publicadas cambian: bitácora y, si
 #      alguna prueba fija cifras del ancla, actualizarla en el mismo commit (R-09, R-10).
 
-anclas: {}
-
-# Ejemplo de cómo se rellena, con los tres escenarios que ADR-021 decisión 6 pide construir
-# a partir de la dispersión de la EME (consenso, mínimo y máximo de los analistas):
-#
-# anclas:
-#   central:
-#     fuente: "Banrep, Encuesta mensual de expectativas de analistas economicos (EME)"
-#     fecha_corte: "2026-05-31"
-#     crecimiento: {2026: 2.8, 2027: 3.0, 2028: 3.0}
-#   pesimista:
-#     fuente: "Banrep, EME - minimo de los analistas"
-#     fecha_corte: "2026-05-31"
-#     crecimiento: {2026: 2.1, 2027: 2.3, 2028: 2.4}
-#   optimista:
-#     fuente: "Banrep, EME - maximo de los analistas"
-#     fecha_corte: "2026-05-31"
-#     crecimiento: {2026: 3.4, 2027: 3.6, 2028: 3.6}
+anclas:
+  # EME de julio de 2026 (trabajo de campo del 8 al 10 de julio de 2026), res_inf_jul2026.xlsx,
+  # hoja PIB, todas las entidades. 2026: 34 analistas; 2027: 30. Transcrita el 2026-09-25.
+  central:
+    fuente: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana (2028 repite 2027)"
+    fecha_corte: "2026-07-10"
+    crecimiento: {2026: 2.40, 2027: 2.29, 2028: 2.29}
+  pesimista:
+    fuente: "Banrep, EME de julio de 2026, mínimo de los analistas (2028 repite 2027)"
+    fecha_corte: "2026-07-10"
+    crecimiento: {2026: 2.10, 2027: 1.60, 2028: 1.60}
+  optimista:
+    fuente: "Banrep, EME de julio de 2026, máximo de los analistas (2028 repite 2027)"
+    fecha_corte: "2026-07-10"
+    crecimiento: {2026: 2.90, 2027: 3.40, 2028: 3.40}

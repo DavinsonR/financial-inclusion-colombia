@@ -222,7 +222,7 @@ Solo `uv`; nunca `pip install`. `make check` corre ruff, pytest, `dbt build` en 
 | Atlas interactivo de tres vistas, dentro de la página del proyecto | Hecho |
 | Econometría: `src/iif/econ`, pruebas sintéticas de la batería y de la potencia, `metodologia/panel.qmd` con los resultados | Hecho |
 | Potencia, equivalencia y curva de especificación (ADR-018); correcciones del referee y robustez nueva (ADR-024) | Hecho |
-| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada a una senda nacional y reconciliada (ADR-019 a ADR-023); el ancla es el WEO del FMI mientras la EME de Banrep no se transcriba en `config/forecast.yaml`. En el backtest 2018–2025 reduce el error medio del pronóstico ingenuo un 38,6 %, pero gana en 3 de 8 años, sin 2021 la ganancia es de +8,3 % y, agrupada por año, la diferencia no es estadísticamente distinguible (p = 0,29): un escenario condicional al ancla, no un modelo con superioridad demostrada. Su intervalo al 80 % cubre el 81,4 % de los resultados en el backtest; el ancla tiene 16 meses y la salida lo dice (`data/processed/forecast/resultados.json`) | Motor, exportación al atlas y sección de escenario en la página del proyecto hechos; el atlas interactivo aún no pinta 2026–2028 |
+| Proyección 2026-2028: `src/iif/forecast`, combinación de ARIMA con atípicos declarados, anclada a una senda nacional y reconciliada (ADR-019 a ADR-023); el ancla es la mediana de la Encuesta mensual de expectativas de analistas de Banrep (EME, julio de 2026), transcrita en `config/forecast.yaml`, con el WEO del FMI como respaldo automático (ADR-021, adenda 1). En el backtest 2018–2025 reduce el error medio del pronóstico ingenuo un 38,6 %, pero gana en 3 de 8 años, sin 2021 la ganancia es de +8,3 % y, agrupada por año, la diferencia no es estadísticamente distinguible (p = 0,29): un escenario condicional al ancla, no un modelo con superioridad demostrada. Su intervalo al 80 % cubre el 81,4 % de los resultados en el backtest; la fecha de corte y la edad del ancla viajan con la salida, que avisa cuando pasa de 6 meses (`data/processed/forecast/resultados.json`) | Motor, exportación al atlas y sección de escenario en la página del proyecto hechos; el atlas interactivo aún no pinta 2026–2028 |
 | Anexo de desagregación temporal, MIDAS, manuscrito | Diferido: trabajo futuro, fuera del alcance de este proyecto (ver la guía) |
 | BigQuery: objetivo dbt, carga, particionado, control de coste y vistas autorizadas | Escrito; sin ejecutar contra un proyecto real |
 | Demo de Snowflake (mismos modelos dbt, stage, clon por vintage) | Posterior, sin fecha |
@@ -262,7 +262,7 @@ Este proyecto lo construyó su autor trabajando con agentes de IA para programac
 - **Decisiones antes del código**: cada decisión de valor es un ADR en [`docs/decisiones/`](docs/decisiones/README.md) antes de convertirse en una línea de Python.
 - **Bitácora de causa raíz**: cada error queda en [`docs/BITACORA_AGENTE.md`](docs/BITACORA_AGENTE.md) con su causa y la regla que lo evita, antes de arreglarlo.
 - **Auditorías adversariales**: revisiones independientes intentaron romper el resultado (de ellas salieron el denominador que fabricaba correlación, ADR-017, y la potencia del nulo, ADR-018).
-- **CI que rederiva cada cifra**: nada publicado sobrevive si el código deja de producirlo (242 pruebas de pytest más las pruebas de dbt).
+- **CI que rederiva cada cifra**: nada publicado sobrevive si el código deja de producirlo (245 pruebas de pytest más las pruebas de dbt).
 
 ## Cómo citar
 

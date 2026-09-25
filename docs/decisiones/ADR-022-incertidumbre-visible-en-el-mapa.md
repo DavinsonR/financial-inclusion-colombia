@@ -146,5 +146,6 @@ sentido, y el ancho de esos años es de modelo, no validado.
 **Lectura.** La capa es un **escenario condicional al ancla**, no un pronóstico con ventaja demostrada
 (ADR-023): la reconciliación proporcional desplaza el crecimiento de 2026 de los 33 departamentos entre
 −0,86 (Meta) y −0,82 puntos (Casanare), un rango de 0,04, así que el patrón del mapa es el de los modelos
-sin anclar. Se publica en `resultados.json` (`reconciliacion`, `escenario.lectura`). Con intervalos que
+sin anclar. (Cifras con el WEO de abril de 2025 como ancla. Con la EME de julio de 2026, ADR-021 adenda 1,
+el desplazamiento de 2026 va de −1,09 a −1,04 puntos, rango 0,05: cambia el nivel, no el patrón.) Se publica en `resultados.json` (`reconciliacion`, `escenario.lectura`). Con intervalos que
 se solapan casi por completo, el sitio no publica tablas de posiciones del crecimiento proyectado.
