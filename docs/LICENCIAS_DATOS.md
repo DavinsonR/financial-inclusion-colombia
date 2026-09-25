@@ -40,15 +40,36 @@ Qué licencia tiene cada fuente, cómo se atribuye y qué implica para lo que es
 
 ### Ancla nacional del pronóstico: Banrep, Encuesta mensual de expectativas de analistas económicos (EME)
 
-- Uso: mediana, mínimo y máximo de las expectativas de crecimiento anual del PIB, transcritos a mano en `config/forecast.yaml` (ADR-021, adenda 1). Los valores del escenario central quedan en `data/processed/forecast/resultados.json` (`ancla`) y en el atlas.
-- Acceso: portal de estadísticas de Banrep (suameca.banrep.gov.co), Encuestas, 1.1 EME. Archivo `res_inf_jul2026.xlsx`, hoja `PIB`, bloque «TODAS LAS ENTIDADES PARTICIPANTES», consultado el 2026-09-25.
-- Licencia: **pendiente de verificar** contra la política de derechos de autor de Banrep. Solo se transcriben seis cifras con su fuente; el archivo no se redistribuye ni pasa por `iif acquire`.
-- Atribución que se usa: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026".
+- Uso: mediana, mínimo y máximo de las expectativas de crecimiento anual del PIB para 2026 y 2027 (seis cifras, total de la muestra), transcritas en `config/forecast.yaml` (ADR-021, adenda 1). Se convierten de fracción a por ciento sin redondear. El valor de 2028 no viene de la EME: es un supuesto del proyecto y la fuente lo dice. El escenario central queda en `data/processed/forecast/resultados.json` (`ancla`) y en el atlas.
+- Acceso: portal de estadísticas de Banrep (suameca.banrep.gov.co), Encuestas, 1.1 EME. Archivo `res_inf_jul2026.xlsx`, hoja `PIB`, bloque «TODAS LAS ENTIDADES PARTICIPANTES». Consultado el 2026-09-25. El archivo no se redistribuye: la ficha metodológica pide que los resultados se obtengan por descarga directa de Banrep.
+- Términos: aviso legal de Banrep, https://www.banrep.gov.co/es/aviso-legal (última modificación: 2026-06-03), leído el 2026-09-25. No hay términos propios de la EME: la ficha metodológica (2025) y la metodología no traen cláusula de licencia.
+  - **§2.** La información económica de tipo estadístico puede reproducirse y divulgarse libremente, con tres condiciones: no alterar su contenido, indicar la fuente y mencionar la fecha en que se consultó el portal. Excluye «análisis, adaptaciones, proyecciones, compilaciones, comentarios u opiniones».
+  - **§6.** El resto del contenido está protegido por derecho de autor. Se reproduce citando fuente, obra y autor, y sin fines comerciales o promocionales salvo autorización previa. El nombre y el logo del Banco son marcas: se nombra al Banco como fuente, sin usar su logo.
+- Cómo se cumple (B-092):
+  - La fuente publicada nombra la encuesta, la edición, el estadístico y la fecha de consulta, y dice que son expectativas de los analistas encuestados, no pronósticos del Banco.
+  - El cambio de unidad no altera el valor.
+  - 2028 se declara como supuesto propio.
+  - Uso académico y no comercial.
+- Duda abierta: la ficha describe la EME como una operación estadística que publica «estadísticas descriptivas», lo que la acerca a la §2. Pero lo que describe son expectativas, y la §2 excluye «proyecciones» y «compilaciones», así que el texto no cierra la cuestión. Si cae en la §6, publicarla en el portafolio personal del autor (davirson.com) queda en zona gris, porque «promocionales» no está definido. La confirmación escrita la puede dar el buzón de la EME que figura en su metodología: DTIE-EstadisticaEnc@banrep.gov.co.
+- Atribución que se usa: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto)".
 
-### Respaldo del ancla: FMI, World Economic Outlook (API SDMX del FMI)
+### Respaldo del ancla: FMI, World Economic Outlook Database (API SDMX del FMI)
 
-- Uso: `src/iif/forecast/anchor.py` baja la senda del WEO vigente de `api.imf.org` cuando `config/forecast.yaml` no trae ancla, y la fecha por su `PUBLICATION_DATE`. Hasta el 2026-09-25 la bajaba de DBnomics, que dejó de actualizar el WEO en abril de 2025 (B-091).
-- Licencia: la API la declara «© International Monetary Fund Copyright. All Rights Reserved», con los términos de https://www.imf.org/external/terms.htm. **Pendiente de verificar** su alcance para cifras citadas. No pasa por `iif acquire` (R-07).
+- Uso: `src/iif/forecast/anchor.py` baja de `api.imf.org` la serie `COL.NGDP_RPCH.A` (una serie, tres años, una llamada por corrida) cuando `config/forecast.yaml` no trae ancla. La fecha de corte es el `PUBLICATION_DATE` del conjunto. Las cifras del WEO de abril de 2026 (2,34 / 2,54 / 2,62) se citan como contraste en ADR-021, adenda 1. Hasta el 2026-09-25 la serie se bajaba de DBnomics (B-091).
+- Términos: «Copyright and Usage» del FMI, https://www.imf.org/en/about/copyright-and-terms (vigentes desde el 2024-10-11), leídos el 2026-09-25. El portal nuevo (data.imf.org, api.imf.org) no tiene términos propios y remite a estos.
+  - **The Use of IMF Data.** Prevalece sobre la prohibición general de uso comercial y nombra expresamente la base del World Economic Outlook. Permite descargar, extraer, copiar, crear obras derivadas, publicar, distribuir y usar los datos con cuatro condiciones:
+    - que aparezcan con exactitud y atribuidos al FMI; el ejemplo de cita es «Source: International Monetary Fund, Database Name, link»;
+    - que una transformación material se declare junto a la cita;
+    - promover esas condiciones entre quien reciba los datos;
+    - avisar que son gratuitos si se venden.
+  - Para cualquier reutilización comercial hay que pedir permiso (copyright@imf.org).
+  - Siguen vigentes las condiciones generales: no descargar de forma masiva y automatizada sin permiso, no insinuar respaldo del FMI y no usar su sello ni su logo.
+- Cómo se cumple (B-092):
+  - Cuando el respaldo actúa, la fuente publicada es «Fondo Monetario Internacional, World Economic Outlook Database, <mes> de <año>, https://data.imf.org/en/datasets/IMF.RES:WEO, consultada el <fecha>».
+  - El uso como ancla de una reconciliación es una transformación que ADR-021 declara.
+  - Una sola serie por corrida.
+  - Uso académico y no comercial.
+  - Sin logo.
 
 ### Fuentes descartadas
 

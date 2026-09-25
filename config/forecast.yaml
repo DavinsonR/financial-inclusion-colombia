@@ -32,7 +32,9 @@
 #      analistas (ADR-021 decisión 6).
 #   2. Si la encuesta no llega a 2028, se repite su último año y `fuente` lo dice.
 #   3. `fecha_corte` es el último día del trabajo de campo («Fecha de realización» en la
-#      hoja RESUMEN), en formato AAAA-MM-DD.
+#      hoja RESUMEN), en formato AAAA-MM-DD. La `fuente` lleva además la fecha de consulta del
+#      portal y dice que 2028 es supuesto del proyecto: son condiciones del aviso legal de
+#      Banrep para reproducir su información (docs/LICENCIAS_DATOS.md, B-092).
 #   4. Correr `uv run iif forecast` y comprobar que `ancla.fuente` en resultados.json es la
 #      EME y que `ancla.vencida` es false. Las cifras publicadas cambian: bitácora y, si
 #      alguna prueba fija cifras del ancla, actualizarla en el mismo commit (R-09, R-10).
@@ -41,14 +43,14 @@ anclas:
   # EME de julio de 2026 (trabajo de campo del 8 al 10 de julio de 2026), res_inf_jul2026.xlsx,
   # hoja PIB, todas las entidades. 2026: 34 analistas; 2027: 30. Transcrita el 2026-09-25.
   central:
-    fuente: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana (2028 repite 2027)"
+    fuente: "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto)"
     fecha_corte: "2026-07-10"
     crecimiento: {2026: 2.40, 2027: 2.29, 2028: 2.29}
   pesimista:
-    fuente: "Banrep, EME de julio de 2026, mínimo de los analistas (2028 repite 2027)"
+    fuente: "Banrep, EME de julio de 2026, mínimo de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto)"
     fecha_corte: "2026-07-10"
     crecimiento: {2026: 2.10, 2027: 1.60, 2028: 1.60}
   optimista:
-    fuente: "Banrep, EME de julio de 2026, máximo de los analistas (2028 repite 2027)"
+    fuente: "Banrep, EME de julio de 2026, máximo de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto)"
     fecha_corte: "2026-07-10"
     crecimiento: {2026: 2.90, 2027: 3.40, 2028: 3.40}

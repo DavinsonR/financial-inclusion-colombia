@@ -1,5 +1,5 @@
 {
- "generado_en": "2026-09-25T16:06:44+00:00",
+ "generado_en": "2026-09-25T18:36:41+00:00",
  "vintage": {
   "archivo": "data\\interim\\dane\\pib_departamento_anual.parquet",
   "sha256": "a2cee8dc548b639e1f49e11a8e0307ac1b8ba18d66f0e36f33d6cc50a59008b6",
@@ -37,7 +37,7 @@
  ],
  "nivel_intervalo": 0.8,
  "ancla": {
-  "fuente": "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana (2028 repite 2027)",
+  "fuente": "Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto)",
   "fecha_corte": "2026-07-10",
   "escenario": "central",
   "crecimiento": {
@@ -52,7 +52,7 @@
  },
  "escenario": {
   "tipo": "condicional al ancla",
-  "lectura": "Escenario condicional al ancla: si Colombia crece lo que anticipa el ancla (Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana (2028 repite 2027), corte 2026-07-10), así se reparte según la inercia de cada departamento. No es un pronóstico oficial ni uno que haya superado al ingenuo con significancia. La reconciliación desplaza a todos casi lo mismo: en 2026, entre -1,09 y -1,04 puntos (rango de 0,05), así que el patrón del mapa es el de los modelos sin anclar. No se publican tablas de posiciones: los intervalos se solapan casi por completo."
+  "lectura": "Escenario condicional al ancla: si Colombia crece lo que anticipa el ancla (Banrep, Encuesta mensual de expectativas de analistas económicos (EME) de julio de 2026, mediana de los analistas, consultada el 2026-09-25 (2028 repite 2027, supuesto del proyecto), corte 2026-07-10), así se reparte según la inercia de cada departamento. No es un pronóstico oficial ni uno que haya superado al ingenuo con significancia. La reconciliación desplaza a todos casi lo mismo: en 2026, entre -1,09 y -1,04 puntos (rango de 0,05), así que el patrón del mapa es el de los modelos sin anclar. No se publican tablas de posiciones: los intervalos se solapan casi por completo."
  },
  "puerta_de_calidad": {
   "modelo_publicado": "combinacion",

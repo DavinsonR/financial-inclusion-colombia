@@ -521,6 +521,9 @@ def test_desde_weo_pide_json_del_horizonte_y_redondea(monkeypatch):
     assert "api.imf.org" in pedida["url"]
     assert ancla.fecha_corte == "2026-04-14"
     assert ancla.crecimiento == {2026: 2.34, 2027: 2.54, 2028: 2.62}
+    # B-092: la cita que piden los términos de datos del FMI.
+    assert "World Economic Outlook Database, abril de 2026" in ancla.fuente
+    assert anchor.PAGINA_WEO in ancla.fuente and "consultada el" in ancla.fuente
 
 
 def test_el_ancla_de_la_eme_se_carga_con_sus_tres_escenarios(monkeypatch):
@@ -530,7 +533,9 @@ def test_el_ancla_de_la_eme_se_carga_con_sus_tres_escenarios(monkeypatch):
     anios = [2026, 2027, 2028]
     anclas = {e: anchor.desde_config(anios, e) for e in ("central", "pesimista", "optimista")}
     for e, a in anclas.items():
-        assert "EME" in a.fuente and "2028 repite 2027" in a.fuente, e
+        assert "EME" in a.fuente and "2028 repite 2027, supuesto del proyecto" in a.fuente, e
+        # B-092: el aviso legal de Banrep pide la fecha de consulta del portal.
+        assert "consultada el 2026-09-25" in a.fuente and "analistas" in a.fuente, e
         assert a.fecha_corte == "2026-07-10", e
         assert a.crecimiento[2028] == a.crecimiento[2027], e
     # Las cifras que citan la adenda y el README, transcritas de res_inf_jul2026.xlsx, hoja PIB.
